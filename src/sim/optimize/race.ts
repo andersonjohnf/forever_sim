@@ -62,6 +62,11 @@ export interface RaceOptions {
   top?: number
   /** Merge candidates the goal can't tell apart on every first-round fight (`scoreReads`; default yes). */
   mergeTies?: boolean
+  /**
+   * A candidate every standing is also compared with (`Standing.vsReference`): a gear step's current
+   * gear, which its leader must clear at 95% to be taken (O2L-4).
+   */
+  reference?: number
   signal?: AbortSignal
   onProgress?: (progress: RaceProgress) => void
 }
@@ -92,6 +97,11 @@ export interface Standing {
   vsBaseline: { dps: Interval; tps: Interval; taken: Interval; score: Interval }
   /** Leader − candidate in score, 95%, over the candidate's fights (zero for the leader). */
   vsLeader: Interval
+  /**
+   * Candidate − the reference (`RaceOptions.reference`) in score, 95%, over the fights both ran (zero
+   * for the reference, or for the candidate it was merged into as an exact tie). Only with a reference.
+   */
+  vsReference?: Interval
   state: 'leader' | 'survivor' | 'dropped'
   /** The round it was dropped in, as clearly worse than the leader. */
   droppedInRound?: number
@@ -368,6 +378,15 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
   const score = scorer(options.goal, base)
   // A candidate has a standing only if it raced, and then the race has a leader.
   const lead = leader === null ? null : scoresOf(leader, score, n)
+  // The reference, or the candidate it was merged into (the same numbers on every fight the goal reads).
+  const mergedInto = new Map<number, number>()
+  for (const [best, others] of ties) for (const other of others) mergedInto.set(other, best)
+  const ref = options.reference === undefined || options.reference <= 0 || options.reference >= count ? undefined : (mergedInto.get(options.reference) ?? options.reference)
+  const vsReference = (c: number): Interval => {
+    if (c === ref) return { mean: 0, halfWidth: 0 }
+    const m = Math.min(samples[c].n, samples[ref!].n)
+    return pairedInterval(scoresOf(c, score, m), scoresOf(ref!, score, m), m)
+  }
   const standing = (c: number): Standing => {
     const m = samples[c].n
     const s = scoresOf(c, score, m)
@@ -380,6 +399,7 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
       mean: { dps: meanInterval(x.dps, m).mean, tps: meanInterval(x.tps, m).mean, taken: meanInterval(x.taken, m).mean, score: meanInterval(s, m).mean },
       vsBaseline: { dps: pairedInterval(x.dps, o.dps, m), tps: pairedInterval(x.tps, o.tps, m), taken: pairedInterval(x.taken, o.taken, m), score: pairedInterval(s, b, m) },
       vsLeader: c === leader || lead === null ? { mean: 0, halfWidth: 0 } : pairedInterval(lead, s, m),
+      ...(ref !== undefined ? { vsReference: vsReference(c) } : {}),
       state: c === leader ? 'leader' : droppedIn.has(c) ? 'dropped' : 'survivor',
       ...(droppedIn.has(c) ? { droppedInRound: droppedIn.get(c) } : {}),
       ties: ties.get(c) ?? [],

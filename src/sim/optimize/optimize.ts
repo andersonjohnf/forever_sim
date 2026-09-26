@@ -27,15 +27,25 @@ import { race, type RaceProgress, type RaceResult } from './race'
 import { screenTalents, type TalentScreen, type TalentVerdict } from './screen'
 import { brokenConstraints, MAX_BUILDS, type TalentConstraints, talentSpace, type TalentSpace, talentSpaceSize } from './talents'
 
-/** A candidate: the base setup with these talents and these rotation settings on top of its own. */
+/**
+ * A candidate: the base setup with these talents, these rotation settings on top of its own, and
+ * this gear (the whole of it, every slot; absent: the setup's own; docs/optimizer.md#gear).
+ */
 export interface Candidate {
   talents: string
   rotation: Record<string, RotationValue>
+  gear?: SimConfig['gear']
 }
 
 /** The base setup with a candidate's changes, fixed at the seed (a race's fights are counted, not adaptive). */
 export function applyCandidate(config: SimConfig, candidate: Candidate, seed = config.run.seed): SimConfig {
-  return { ...config, talents: candidate.talents, rotation: { ...config.rotation, ...candidate.rotation }, run: { mode: 'fixed', iterations: 0, seed } }
+  return {
+    ...config,
+    talents: candidate.talents,
+    rotation: { ...config.rotation, ...candidate.rotation },
+    gear: candidate.gear ?? config.gear,
+    run: { mode: 'fixed', iterations: 0, seed },
+  }
 }
 
 /** A candidate's plan, or an error if the setup can't be simulated. */
@@ -217,6 +227,12 @@ export interface OptimizeOptions {
    * itself, so `balanced` is always relative to it (D30).
    */
   start?: Candidate
+  /**
+   * Gear sets to try, each a whole gear map (O2, docs/optimizer.md#gear): every build and rotation is
+   * tried with each, and with the start's own gear too. A gear search's step passes the sets its
+   * slot (or pair of slots) makes.
+   */
+  gears?: readonly NonNullable<Candidate['gear']>[]
   /** Rotation settings the talent screen also tries (default: `rotations`), so a talent only they use counts. */
   screenRotations?: readonly Record<string, RotationValue>[]
   /** Limits on the sheet every candidate must meet (./constraints.ts): one that misses any is left out before any fights. */
@@ -330,6 +346,11 @@ export interface OptimizeReport {
   blocked: string[]
   /** A search in turns whose next pass no longer fit the cap ends on this report, saying so (OGV-2). */
   turnsStopped?: string
+  /**
+   * The start's index among the candidates (never 0, the baseline), when it raced: every standing's
+   * `vsReference` is against it (a gear step's current gear, O2L-4).
+   */
+  startIndex?: number
   /** Fights run: the screen's and the race's. */
   fights: number
   ms: number
@@ -474,7 +495,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     // round the caller asked for (OGV2-1): a caller's larger one shrinks to fit in the final
     // `fitBudget`, and never narrows the space.
     const raceCap = cap - screen.fights
-    const plans = (n: number) => n * rotations.length + 2
+    const plans = (n: number) => n * rotations.length * (1 + (options.gears?.length ?? 0)) + 2
     const fitsCap = (n: number) => plans(n) * FIRST_ROUND_MIN <= 0.9 * raceCap
     const fitted = (constrained: ReadonlySet<string>) => {
       const notes: string[] = []
@@ -508,7 +529,9 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     const binds =
       readByConstraint.size > 0 &&
       (found.space.builds.length === 0 ||
-        found.space.builds.some((b) => rotations.some((r) => !meetsSheet(sheetOf({ talents: b.code, rotation: { ...start.rotation, ...r } }), reference, sheetRules))))
+        found.space.builds.some((b) =>
+          rotations.some((r) => !meetsSheet(sheetOf({ talents: b.code, rotation: { ...start.rotation, ...r }, ...(start.gear ? { gear: start.gear } : {}) }), reference, sheetRules)),
+        ))
     if (binds) found = fitted(readByConstraint)
     spaceNotes = found.notes
     builds = found.space.builds.map((b) => b.code)
@@ -537,7 +560,11 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   }
   add(setupCandidate(config))
   add(start)
-  for (const talents of builds) for (const rotation of rotations) add({ talents, rotation: { ...start.rotation, ...rotation } })
+  // The start's own gear is always a variant too, as its rotation is (O2).
+  const gears = [start.gear, ...(options.gears ?? [])]
+  for (const talents of builds)
+    for (const rotation of rotations)
+      for (const gear of gears) add({ talents, rotation: { ...start.rotation, ...rotation }, ...(gear ? { gear } : {}) })
 
   // Every candidate must meet every talent and sheet constraint.
   const talentFails = (c: Candidate) => (talentRules ? brokenConstraints(data, c.talents, talentRules) : [])
@@ -580,6 +607,9 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     ...(space ? { space } : {}),
   })
 
+  // The start, when it races: every standing is compared with it too (a gear step moves only past it, O2L-4).
+  const startKey = candidateKey(config, start)
+  const startIndex = candidates.findIndex((c, i) => i > 0 && candidateKey(config, c) === startKey)
   const sources: PlanSource[] = candidates.map((c) => ({ key: planKey(), plan: () => candidatePlan(config, c) }))
   // Build the baseline's plan now, so a setup that can't be simulated fails before any fights.
   sources[0].plan()
@@ -592,6 +622,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     budget: planned.fights,
     initialFights: planned.initialFights,
     top: options.top,
+    ...(startIndex > 0 ? { reference: startIndex } : {}),
     signal,
     onProgress: (p) => options.onProgress?.({ phase: 'race', ...p }),
   })
@@ -618,6 +649,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     sheets: Object.fromEntries([0, ...raced.standings.map((st) => st.candidate)].map((i) => [i, i === 0 ? baselineSheet : sheetOf(candidates[i])])),
     race: raced,
     blocked,
+    ...(startIndex > 0 ? { startIndex } : {}),
     fights: (screen?.fights ?? 0) + raced.spent,
     ms: now() - began,
   }
@@ -765,10 +797,32 @@ export function confirmFights(requested: number, left: number, checks = 1): { fi
   return fit >= MIN_CONFIRM_FIGHTS ? { fights: fit, clamped: true } : null
 }
 
-/** A candidate's identity: its talents and its whole rotation, on top of the setup's. */
-function candidateKey(config: SimConfig, c: Candidate): string {
+/** A candidate's identity: its talents, its whole rotation on top of the setup's, and its whole gear. */
+export function candidateKey(config: SimConfig, c: Candidate): string {
   const rotation = { ...config.rotation, ...c.rotation }
-  return `${c.talents}|${JSON.stringify(Object.keys(rotation).sort().map((k) => [k, rotation[k]]))}`
+  return `${c.talents}|${JSON.stringify(Object.keys(rotation).sort().map((k) => [k, rotation[k]]))}|${gearKey(c.gear ?? config.gear)}`
+}
+
+/**
+ * A gear map's identity: each filled slot's item and enchant, in slot order, with a ring or trinket
+ * pair unordered (O2L-7): the same two rings in the other slots are the same gear set. The gear search
+ * keeps a pair's current slots whenever it can (`groupGears`), and the first of two such sets seen is
+ * the one kept.
+ */
+export function gearKey(gear: SimConfig['gear']): string {
+  const entry = (slot: keyof typeof gear) => (gear[slot] ? `${gear[slot]!.itemId}${gear[slot]!.enchantId ? `+${gear[slot]!.enchantId}` : ''}` : '-')
+  const pairs: Record<string, 'fingers' | 'trinkets'> = { finger1: 'fingers', finger2: 'fingers', trinket1: 'trinkets', trinket2: 'trinkets' }
+  return (Object.keys(gear) as (keyof typeof gear)[])
+    .filter((slot) => gear[slot])
+    .map((slot) => {
+      const pair = pairs[slot]
+      if (!pair) return `${slot}:${entry(slot)}`
+      const [a, b] = pair === 'fingers' ? (['finger1', 'finger2'] as const) : (['trinket1', 'trinket2'] as const)
+      return `${pair}:${[entry(a), entry(b)].sort().join('|')}`
+    })
+    .sort()
+    .filter((part, i, all) => all.indexOf(part) === i)
+    .join(',')
 }
 
 function sameRotation(a: Record<string, RotationValue>, b: Record<string, RotationValue>): boolean {
@@ -845,7 +899,8 @@ export async function optimizeInTurns(
     options.onPass?.(report, pass)
     if (report.race.leader === null) break
     const winner = report.candidates[report.race.leader]
-    const moved = winner.talents !== start.talents || !sameRotation(winner.rotation, start.rotation)
+    const moved =
+      winner.talents !== start.talents || !sameRotation(winner.rotation, start.rotation) || gearKey(winner.gear ?? options.config.gear) !== gearKey(start.gear ?? options.config.gear)
     start = winner
     if (!moved && pass > 0) break
   }

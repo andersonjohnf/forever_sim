@@ -332,6 +332,22 @@ describe('quantiles', () => {
   })
 })
 
+describe('a reference candidate (O2L-4)', () => {
+  it('compares every standing with it, over the fights both ran', async () => {
+    // The reference is 1,010; one candidate is 20 ahead, one 1 ahead (noise can't separate it quickly).
+    const toys: Toy[] = [{ dps: 1000 }, { dps: 1010 }, { dps: 1030 }, { dps: 1011 }, { dps: 990 }]
+    const result = await race(options(toys, { reference: 1, top: 10 }))
+    const of = (c: number) => result.standings.find((s) => s.candidate === c)!
+    expect(of(1).vsReference).toEqual({ mean: 0, halfWidth: 0 })
+    expect(of(2).vsReference!.mean - of(2).vsReference!.halfWidth).toBeGreaterThan(0)
+    expect(of(2).vsReference!.mean).toBeCloseTo(20, -1)
+    expect(of(4).vsReference!.mean).toBeLessThan(0)
+    // Without a reference, no standing has one.
+    const plain = await race(options(toys, { top: 10 }))
+    expect(plain.standings.every((s) => s.vsReference === undefined)).toBe(true)
+  })
+})
+
 describe('pairedInterval', () => {
   it('is the mean and 1.96 standard errors of the differences', () => {
     const a = [3, 5, 7, 9]

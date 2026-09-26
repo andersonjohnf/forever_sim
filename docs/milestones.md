@@ -489,12 +489,25 @@ sets. Each spec's defaults are then its results.
       decision, D30): **a hard ceiling** on a search's fights (thorough's 24 million) and builds
       (200,000); the budget grows to it, the space narrows to max ranks past it and says so, and the
       estimate is told before the search runs
-- [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
+- [x] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
       locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
       coordinate ascent with restarts; talents, gear and rotation alternated until stable
       (D30's build plan, 2026-09-25: each slot's top 5 to 8 by the setup's stat weights plus the
       current item, pairs raced together, restarts from the default preset and a greedy set,
-      enchants searched with their slot)
+      enchants searched with their slot). Built ([optimizer.md](optimizer.md#gear)): each slot's
+      top 6 by the setup's stat weights (re-measured every pass, for hit caps) or a measured swap
+      (weapons, relics, modelled effects), with their top 2 enchants; rings, trinkets and weapons
+      (a two-hander against a main and an off hand) in pairs; a shield tank's shield; set pieces
+      swapped in together; the Zandalar and Scourge shoulder enchants left out by default; a tank's
+      effective-health floor against its survival preset; `--search gear` and `--search all`
+      (talents, gear and rotation in turns). Reviewed; the fix round (O2L-1 to O2L-12): the default
+      pool is pre-raid gear and the launch raids, the later raids opt-in (`--include-later-raids`; user
+      decision, D30 2026-09-25), every piece labelled with its source; a step moves only when it
+      clears the current gear at 95% and applies D30's unmeasured-rating rule; a locked ring or trinket
+      ranks through the other slot; pairs race unordered; the rankings keep the hard ceiling and the
+      first ranking is the whole search's; Presence of Might left out; Balanced ranks against the
+      setup; the final race on its own seed. Fury `quick`: +24.1 DPS (+2.9%) in the default pool, +46.4
+      (+5.5%) with the later raids. Awaiting the fix round's verification
 - [ ] **O3 In the app (after M5.65):** the Optimizer, named so in the app (user decision), a flow (what to search, constraints, a search budget, progress
       and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px.
       It shows the hard ceiling's estimate (fights and time) before the search and again before the

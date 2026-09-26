@@ -1,4 +1,4 @@
-// The optimizer: the best talents (and rotation settings) for a setup and a goal, found by the sim
+// The optimizer: the best talents, gear and rotation settings for a setup and a goal, found by the sim
 // itself (decision D30; docs/optimizer.md). You pick the goal: Defense, DPS, TPS or Balanced. It
 // screens the class's talents for what the sim can measure for that goal, builds every sensible
 // build under the constraints (no talent is kept or ordered by its name), and races them on common
@@ -17,6 +17,9 @@
 //   npm run optimize -- --spec warrior-arms --search rotation --sweep heroicStrike.minRage=40:70:10
 //   npm run optimize -- --spec druid-feral-bear --search both --sweep maul.minRage=10:40:10
 //   npm run optimize -- --spec druid-feral-bear --turns --sweep maul.minRage=10:40:10
+//   npm run optimize -- --spec warrior-fury --search gear --budget quick
+//   npm run optimize -- --spec warrior-protection --search gear --ilvl 55-66 --sources other,reputation --lock trinket1
+//   npm run optimize -- --spec druid-feral-bear --search all --sweep maul.minRage=10:40:10
 //
 // The setup as it is is the baseline: every candidate is measured against it, fight for fight, but
 // it's never the answer. Every answer meets every constraint below; the setup itself races as a
@@ -27,6 +30,11 @@
 //   --search rotation     rotation settings only (--sweep and --rotation give the variants); the setup's
 //                         talents, with no talent constraints (the talent flags below are refused with it)
 //   --search both         every build with every rotation variant, and with the setup's own rotation
+//   --search gear         gear only (docs/optimizer.md#gear): coordinate ascent over the paper doll, one slot
+//                         (rings, trinkets and the weapons a pair) at a time, each step's candidates raced, until a
+//                         pass changes nothing; restarts from the default preset and a greedy set; the ends race
+//   --search all          talents, gear and rotation in turns until a whole cycle moves nothing
+//                         (docs/optimizer.md#talents-gear-and-rotation-together); a rotation pass only with variants
 //   --turns               talents, then the rotation variants with the winning build, then talents again,
 //                         until a pass keeps its start (docs/optimizer.md#talents-and-rotation-together).
 //                         Every pass races its start too, and holds every candidate to every constraint.
@@ -48,6 +56,27 @@
 //                         point. By default every rank of one objective talent a build is searched too (OG-2;
 //                         a talent searched only for a constraint is at 0 or max, OGV-1)
 //   --screen-fights <n>   fights per plan in the talent screen (default 400)
+//
+// Gear (with --search gear or all; docs/optimizer.md#gear):
+//   --ilvl <min>-<max>    item levels to search ("58-66", "60-", "-63"), inclusive; default every level in the pool
+//   --sources <list>      pvp, reputation, profession, other (drops, quests, crafts): comma-separated; default all
+//   --include-later-raids search the later raids' loot and later patches' items too: Zul'Gurub, Ahn'Qiraj, Molten
+//                         Core, Blackwing Lair, Naxxramas, and any item above item level 63 on no pre-raid list. By
+//                         default the pool is pre-raid gear and the launch raids (Onyxia, Barrow Deeps, Hyjal) only
+//                         (D30, user decision 2026-09-25; docs/optimizer.md#the-default-pool)
+//   --lock <slots>        slots left as they are: head, neck, shoulder, back, chest, wrist, hands, waist, legs, feet,
+//                         finger1, finger2, trinket1, trinket2, mainHand, offHand, ranged; repeatable or comma-separated
+//   --faction alliance|horde   the character's faction (the gear it can wear): the class's default race of that
+//                         faction, unless --race gives one
+//   --enchants all        search every enchant, the Zandalar and Scourge shoulder enchants and Zul'Gurub's
+//                         Presence of Might too (left out by default: their content in Forever is unconfirmed,
+//                         buffs doc §5.3 and §6.4)
+//   --per-slot <n>        items each slot races by value, beside its current one (default 6; D30: 5 to 8)
+//   --no-restarts         only the ascent from the setup's gear (default: also from the default preset and a greedy set)
+//   --gear-passes <n>     most passes over the paper doll a start runs (default 4)
+//   --weight-fights <n>   fights a plan when the stat weights are measured (default 1000; at least 50)
+//   --measure-fights <n>  fights a plan when an item or enchant is measured by a swap (default 300; at least 50)
+//   --cycles <n>          --search all: most cycles of talents, gear and rotation (default 3)
 //
 // Constraints on the character sheet (docs/optimizer.md#constraints), repeatable:
 //   --require <limit>     name>=value or name<=value; a % makes it a share of the baseline's value:
@@ -95,6 +124,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parseArgs } from 'node:util'
 import { isMainThread, parentPort, Worker, workerData } from 'node:worker_threads'
 import { engineBundle, flagNumber, fmt, parseSettings, printHelp, raidBuffs, ROOT, settingIds, sweepProduct, validate } from './lib.mjs'
+import racesJson from '../../src/data/races/races.json' with { type: 'json' }
 
 /** The engine modules the tool needs (lib.mjs bundles them from src/). */
 const ENTRY_SOURCE = `
@@ -208,7 +238,12 @@ const PACE_FIGHT_SEC = 180
 const duration = (seconds) => (seconds < 90 ? `about ${Math.max(1, Math.round(seconds))} s` : `about ${Math.round(seconds / 60)} min`)
 
 async function main() {
+  // `--ilvl -63` (O2L-10): node's parseArgs reads a value that starts with a dash as an option, and takes
+  // one only after "=", so a dash-led item level range is joined to its flag first.
+  const argv = [...process.argv.slice(2)]
+  for (let i = 0; i < argv.length - 1; i++) if (argv[i] === '--ilvl' && /^-\d+$/.test(argv[i + 1])) argv.splice(i, 2, `--ilvl=${argv[i + 1]}`)
   const { values: args } = parseArgs({
+    args: argv,
     options: {
       spec: { type: 'string' },
       search: { type: 'string', default: 'talents' },
@@ -224,6 +259,18 @@ async function main() {
       talents: { type: 'string' },
       'no-partials': { type: 'boolean', default: false },
       'screen-fights': { type: 'string', default: '400' },
+      ilvl: { type: 'string' },
+      sources: { type: 'string' },
+      'include-later-raids': { type: 'boolean', default: false },
+      lock: { type: 'string', multiple: true, default: [] },
+      faction: { type: 'string' },
+      enchants: { type: 'string' },
+      'per-slot': { type: 'string' },
+      'no-restarts': { type: 'boolean', default: false },
+      'gear-passes': { type: 'string' },
+      'weight-fights': { type: 'string' },
+      'measure-fights': { type: 'string' },
+      cycles: { type: 'string' },
       require: { type: 'string', multiple: true, default: [] },
       goal: { type: 'string' },
       budget: { type: 'string', default: 'standard' },
@@ -259,7 +306,15 @@ async function main() {
   const tank = meta.role === 'tank'
 
   // --- What to search ---
-  if (!['talents', 'rotation', 'both'].includes(args.search)) throw new Error(`--search must be talents, rotation or both, got "${args.search}"`)
+  if (!['talents', 'rotation', 'both', 'gear', 'all'].includes(args.search)) throw new Error(`--search must be talents, rotation, both, gear or all, got "${args.search}"`)
+  const searchGear = args.search === 'gear' || args.search === 'all'
+  if (args.turns && searchGear) throw new Error('--turns is for talents and rotation; --search all takes turns with gear too')
+  // The gear flags need a gear search: say so, rather than drop them.
+  const gearFlags = ['ilvl', 'sources', 'enchants', 'per-slot', 'gear-passes', 'weight-fights', 'measure-fights']
+    .filter((f) => args[f] !== undefined)
+    .concat(args.lock.length ? ['lock'] : [], args['no-restarts'] ? ['no-restarts'] : [], args['include-later-raids'] ? ['include-later-raids'] : [])
+  if (!searchGear && gearFlags.length) throw new Error(`${gearFlags.map((f) => `--${f}`).join(', ')} need a gear search: --search gear or --search all`)
+  if (args.cycles !== undefined && args.search !== 'all') throw new Error('--cycles is for --search all')
   const options = engine.rotationOptions(specId)
   const spec = settingIds(options)
   const variants = [...args.rotation.map((r) => parseSettings(r, spec)), ...(args.sweep.length ? sweepProduct(args.sweep, spec) : [])]
@@ -268,13 +323,14 @@ async function main() {
     validate(v, options)
   }
   const rotations = variants.map((v) => Object.fromEntries(v))
-  const searchTalents = args.turns || args.search !== 'rotation'
+  const searchTalents = args.turns || ['talents', 'both', 'all'].includes(args.search)
   // A rotation-only search keeps the setup's talents with no talent constraints: say so, rather than drop the flags (OV2-2).
   if (!searchTalents) {
     const given = ['keep', 'exclude', 'min-tree'].filter((f) => args[f].length > 0).concat(['no-partials'].filter((f) => args[f]))
-    if (given.length) throw new Error(`--search rotation keeps the setup's talents, with no talent constraints: drop ${given.map((f) => `--${f}`).join(', ')}, or search talents too (--search both or --turns)`)
+    if (given.length) throw new Error(`--search ${args.search} keeps the setup's talents, with no talent constraints: drop ${given.map((f) => `--${f}`).join(', ')}, or search talents too (--search both, all or --turns)`)
   }
-  if ((args.turns || args.search !== 'talents') && rotations.length === 0) throw new Error('Searching the rotation needs variants: --sweep or --rotation')
+  if ((args.turns || args.search === 'rotation' || args.search === 'both') && rotations.length === 0) throw new Error('Searching the rotation needs variants: --sweep or --rotation')
+  if (args.search === 'gear' && rotations.length > 0) throw new Error("--search gear keeps the setup's rotation: drop --sweep and --rotation, or use --search all")
 
   const treeOf = (name) => {
     const tree = data.trees.find((t) => t.id.toLowerCase() === name.toLowerCase() || t.name.toLowerCase() === name.toLowerCase())
@@ -312,7 +368,18 @@ async function main() {
   const seed = flagNumber('seed', args.seed, { min: 0, max: 0xffffffff, whole: true })
   const threads = flagNumber('threads', args.threads, { min: 1, whole: true })
   const top = flagNumber('top', args.top, { min: 1, whole: true })
-  const d = engine.defaultConfig(specId, args.race)
+  // --faction: the class's default race of that faction, unless --race names one (it must be of that faction).
+  let race = args.race
+  if (args.faction !== undefined) {
+    const faction = { alliance: 'Alliance', horde: 'Horde' }[args.faction.toLowerCase()]
+    if (!faction) throw new Error(`--faction must be alliance or horde, got "${args.faction}"`)
+    const legal = racesJson.races.filter((r) => r.faction === faction && (r.classes.forever ?? []).includes(meta.classId))
+    if (legal.length === 0) throw new Error(`No ${faction} race can be a ${meta.classId}`)
+    const fallback = engine.defaultConfig(specId).race
+    if (race !== undefined && !legal.some((r) => r.id === race)) throw new Error(`--race ${race} isn't ${faction}`)
+    race ??= legal.some((r) => r.id === fallback) ? fallback : legal[0].id
+  }
+  const d = engine.defaultConfig(specId, race)
   const fight = { ...d.fight }
   if (args.duration !== undefined) fight.durationSec = flagNumber('duration', args.duration)
   if (args.armor !== undefined) fight.bossArmor = flagNumber('armor', args.armor)
@@ -387,6 +454,44 @@ async function main() {
     `ceiling: at most ${plural(maxFights, 'fight')} for the whole search${args['max-fights'] === undefined ? ' (the cap, thorough’s budget)' : ' (--max-fights)'}; the budget ${count(budget.fights)} is ${duration(Math.min(budget.fights, maxFights) / (threads * perThread))} and the cap ${duration(maxFights / (threads * perThread))} ${rough}`,
   )
 
+  // --- The gear search's filters ---
+  let filters
+  if (searchGear) {
+    filters = {}
+    if (args.ilvl !== undefined) {
+      const m = /^(\d*)-(\d*)$/.exec(args.ilvl.trim())
+      if (!m || (m[1] === '' && m[2] === '')) throw new Error(`--ilvl is <min>-<max>, "60-" or "-66", got "${args.ilvl}"`)
+      filters.itemLevel = { ...(m[1] ? { min: Number(m[1]) } : {}), ...(m[2] ? { max: Number(m[2]) } : {}) }
+    }
+    if (args.sources !== undefined) {
+      const sources = list([args.sources])
+      for (const x of sources) if (!engine.GEAR_SOURCES.includes(x)) throw new Error(`--sources: "${x}" isn't one of ${engine.GEAR_SOURCES.join(', ')}`)
+      filters.sources = sources
+    }
+    const locked = list(args.lock)
+    for (const x of locked) if (!engine.SEARCHED_SLOTS.includes(x)) throw new Error(`--lock: "${x}" isn't a slot (${engine.SEARCHED_SLOTS.join(', ')})`)
+    if (locked.length) filters.locked = locked
+    if (args.enchants !== undefined) {
+      if (args.enchants !== 'all') throw new Error(`--enchants takes "all", got "${args.enchants}"`)
+      filters.excludedEnchants = []
+    }
+    if (args['include-later-raids']) filters.laterRaids = true
+    const f = filters
+    console.log(
+      `gear: ${f.laterRaids ? 'pre-raid gear and every raid, the later ones opted in' : `pre-raid gear and the launch raids (later raids left out: Zul'Gurub, Ahn'Qiraj and any item above item level ${engine.PRE_RAID_MAX_ITEM_LEVEL} that no pre-raid list names; --include-later-raids searches them)`}; ` +
+        `${f.itemLevel ? `item level ${f.itemLevel.min ?? ''}-${f.itemLevel.max ?? ''}` : 'every item level'}; ${f.sources ? `sources ${f.sources.join(', ')}` : 'every source'}; ${d.race} (${racesJson.races.find((r) => r.id === d.race)?.faction ?? '?'} gear)` +
+        `${f.locked ? `; locked ${f.locked.join(', ')}` : ''}; ${f.excludedEnchants ? 'every enchant' : `every enchant but ${engine.UNCONFIRMED_ENCHANTS.join(', ')}`}`,
+    )
+  }
+  const gearOptions = {
+    ...(args['per-slot'] !== undefined ? { perSlot: flagNumber('per-slot', args['per-slot'], { min: 1, max: 20, whole: true }) } : {}),
+    ...(args['no-restarts'] ? { restarts: false } : {}),
+    ...(args['gear-passes'] !== undefined ? { passes: flagNumber('gear-passes', args['gear-passes'], { min: 1, whole: true }) } : {}),
+    // At least a ranking's floor (MIN_RANK_FIGHTS, 50): fewer would leave the weights' and swaps' intervals too wide to rank by (O2L-12).
+    ...(args['weight-fights'] !== undefined ? { weightFights: flagNumber('weight-fights', args['weight-fights'], { min: engine.MIN_RANK_FIGHTS, whole: true }) } : {}),
+    ...(args['measure-fights'] !== undefined ? { measureFights: flagNumber('measure-fights', args['measure-fights'], { min: engine.MIN_RANK_FIGHTS, whole: true }) } : {}),
+  }
+
   if (args.turns)
     console.log(`in turns: each pass but the last runs at most ${Math.round(100 * (1 - engine.TURNS_RESERVE))}% of what's left of the cap, holding back the rest for the passes after it`)
 
@@ -425,8 +530,59 @@ async function main() {
     },
   }
   let reports
+  /** Every fight the search ran, when its reports don't count them all (a gear search's rankings and steps). */
+  let searchFights
+  /** The gear passes' own reports (starts, steps, weights), for the JSON. */
+  const gearReports = []
+  const onGearProgress = (p) => {
+    if (p.phase === 'rank') console.log(`  ${p.start}, pass ${p.pass}: ranked the slots (stat weights and measured swaps, ${plural(p.fights, 'fight')}); ${count(p.spent)} of ${count(p.budget)}`)
+    else if (p.phase === 'step') console.log(`    ${p.group}: ${plural(p.candidates, 'candidate')}, ${p.changed ? 'CHANGED' : 'kept'} (${plural(p.fights, 'fight')})${p.note ? `: ${p.note}` : ''}`)
+    else console.log(`  final race: ${plural(p.ends, 'end')} of the starts, with the setup; ${count(p.spent)} of ${count(p.budget)} spent`)
+  }
+  const gearPass = (g) => {
+    gearReports.push(g)
+    console.log('')
+    for (const s of g.starts) {
+      console.log(`start ${s.name}: ${count(s.passes)} ${s.passes === 1 ? 'pass' : 'passes'}, ${s.stable ? 'stable' : 'not stable (passes or budget ran out)'}, ${plural(s.fights, 'fight')}`)
+      const changes = engine.describeGearChange(config.gear, s.end, filters)
+      for (const c of changes.length ? changes : ["(the setup's gear)"]) console.log(`    ${c}`)
+    }
+    for (const note of g.notes) console.log(`  note: ${note}`)
+    console.log(`gear search: ${plural(g.fights, 'fight')} of its budget of ${count(g.budget.fights)}, in ${(g.ms / 1000).toFixed(1)} s`)
+    // The first ranking's weights, at the setup's gear with the most fights, each with its 95% interval (O2L-8).
+    const w = g.ranking.weights
+    const shown = Object.entries(w.weights).filter(([, v]) => Math.abs(v) > 1e-9).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 12)
+    if (shown.length)
+      console.log(
+        `stat weights (the first ranking, at the setup's gear, ${plural(g.ranking.weightFights, 'fight')} a plan; score per point, 95%): ${shown.map(([k, v]) => `${k} ${v.toFixed(3)} ± ${(w.intervals[k]?.halfWidth ?? 0).toFixed(3)}`).join(', ')}`,
+      )
+    if (g.final) printStandings(g.final)
+    else console.log('the final race did not run')
+  }
   try {
-    if (args.turns) {
+    if (args.search === 'gear') {
+      const g = await engine.optimizeGear({ ...gearOptions, config, goal, filters, constraints, budget, maxFights, runner, top, onProgress: onGearProgress })
+      gearPass(g)
+      reports = g.final ? [g.final] : []
+      searchFights = g.fights
+    } else if (args.search === 'all') {
+      const passes = await engine.optimizeTogether({
+        ...common,
+        talents,
+        rotations,
+        filters,
+        gearOptions,
+        ...(args.cycles !== undefined ? { cycles: flagNumber('cycles', args.cycles, { min: 1, whole: true }) } : {}),
+        onGearProgress,
+        onPass: (p, i) => {
+          console.log(`\n=== pass ${i + 1}: ${p.kind}${p.moved ? '' : ' (nothing moved)'} ===`)
+          if (p.kind === 'gear') gearPass(p.report)
+          else report(p.report)
+        },
+      })
+      reports = passes.map((p) => (p.kind === 'gear' ? p.report.final : p.report)).filter(Boolean)
+      searchFights = passes.reduce((n, p) => n + p.report.fights, 0)
+    } else if (args.turns) {
       reports = await engine.optimizeInTurns({ ...common, talents, rotations, onPass: (r, pass) => report(r, pass) })
     } else {
       const r = await engine.optimize({ ...common, talents, rotations: args.search === 'talents' ? [] : rotations })
@@ -435,6 +591,10 @@ async function main() {
     }
   } finally {
     await runner.close()
+  }
+  if (reports.length === 0) {
+    console.log('\nno answer: the final race did not run')
+    return
   }
   const stopped = reports[reports.length - 1].turnsStopped
   if (stopped) console.log(`\nturns: ${stopped}`)
@@ -492,7 +652,8 @@ async function main() {
       if (engine.isSetup(config, cand)) return 'the setup itself'
       const changes = engine.describeBuildChange(data, config.talents, cand.talents)
       const rot = Object.entries(cand.rotation).map(([id, v]) => `${id.startsWith(spec.prefix) ? id.slice(spec.prefix.length) : id}=${v}`)
-      return [...changes, ...rot].join(', ')
+      const gear = engine.describeGearChange(config.gear, cand.gear ?? config.gear, filters)
+      return [...changes, ...rot, ...gear].join('; ')
     }
     console.log('')
     if (race.standings.length === 0) console.log('no candidate raced')
@@ -548,7 +709,8 @@ async function main() {
     const asked = flagNumber('confirm-fights', args['confirm-fights'], { min: engine.MIN_CONFIRM_FIGHTS, whole: true })
     // The check counts under the cap (OGV2-2): its two runs, each the winner and the default, get what
     // the search left of it, and no more than asked for.
-    const spent = reports.reduce((n, r) => n + r.fights, 0)
+    // A gear pass's fights are its rankings', steps' and final race's, not only the final race's.
+    const spent = searchFights ?? reports.reduce((n, r) => n + r.fights, 0)
     const fit = engine.confirmFights(asked, maxFights - spent, 2)
     if (fit === null)
       console.log(
@@ -586,11 +748,34 @@ async function main() {
   mkdirSync(dirname(path), { recursive: true })
   const annotate = (r) => ({
     ...r,
-    race: { ...r.race, standings: r.race.standings.map((s) => ({ ...s, talents: r.candidates[s.candidate].talents, rotation: r.candidates[s.candidate].rotation, changes: engine.describeBuildChange(data, config.talents, r.candidates[s.candidate].talents) })) },
+    race: {
+      ...r.race,
+      standings: r.race.standings.map((s) => ({
+        ...s,
+        talents: r.candidates[s.candidate].talents,
+        rotation: r.candidates[s.candidate].rotation,
+        ...(r.candidates[s.candidate].gear ? { gear: r.candidates[s.candidate].gear, gearChanges: engine.describeGearChange(config.gear, r.candidates[s.candidate].gear, filters) } : {}),
+        changes: engine.describeBuildChange(data, config.talents, r.candidates[s.candidate].talents),
+      })),
+    },
   })
   writeFileSync(
     path,
-    JSON.stringify({ setup: { spec: specId, seed, goal, scoredGoal: scored, budget, maxFights, args, config }, passes: reports.map(annotate), winner, confirmation, seconds: (performance.now() - started) / 1000 }, null, 1),
+    JSON.stringify(
+      {
+        setup: { spec: specId, seed, goal, scoredGoal: scored, budget, maxFights, args, config, ...(filters ? { filters } : {}) },
+        passes: reports.map(annotate),
+        ...(gearReports.length
+          ? { gear: gearReports.map((g) => ({ ranking: g.ranking, starts: g.starts.map((s) => ({ ...s, endChanges: engine.describeGearChange(config.gear, s.end, filters) })), notes: g.notes, budget: g.budget, fights: g.fights })) }
+          : {}),
+        winner,
+        ...(winner?.gear ? { winnerGearChanges: engine.describeGearChange(config.gear, winner.gear, filters) } : {}),
+        confirmation,
+        seconds: (performance.now() - started) / 1000,
+      },
+      null,
+      1,
+    ),
   )
   console.log(`\nreport: ${relative(process.cwd(), path)}`)
 }

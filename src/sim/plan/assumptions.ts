@@ -669,7 +669,8 @@ const REGISTRY = {
     docRef: `${SHAM}#stormstrike`,
   },
   earthShockThreat: {
-    text: 'Earth Shock’s threat is twice its damage: the value Classic’s threat meters have always given it, as they give Maul its extra threat. No one has measured it, in Classic Era or Forever.',
+    // A shaman is a DPS spec, so its result shows no threat (review finding EU-5).
+    text: 'Earth Shock’s threat is twice its damage, as a Classic Era threat library has it, the same library that gives Maul its extra threat. No one has measured it, in Classic Era or Forever. It changes only your threat, which a DPS result doesn’t show.',
     docRef: `${SHAM}#shocks-and-lightning-bolt`,
   },
   lightningBoltCast: {

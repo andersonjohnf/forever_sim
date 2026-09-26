@@ -199,7 +199,10 @@ describe('what the default fight does (shaman.md "Enhancement priority")', () =>
     expect(counter(plan, sim, 'earthShock', FIELD.damage)).toBeGreaterThan(0)
     expect(perDamage('earthShock') / perDamage('lightningBolt')).toBeCloseTo(EARTH_SHOCK_THREAT_MULT, 9)
     expect(EARTH_SHOCK_THREAT_MULT).toBe(2)
-    expect(buildPlan(config()).assumptions.find((a) => a.id === 'earthShockThreat')!.text).toContain('twice its damage')
+    const text = buildPlan(config()).assumptions.find((a) => a.id === 'earthShockThreat')!.text
+    expect(text).toContain('twice its damage, as a Classic Era threat library has it')
+    // A DPS result shows no threat, so the row says what the value changes (EU-5).
+    expect(text).toContain('It changes only your threat, which a DPS result doesn’t show.')
   })
 
   it('lists the [?] assumptions it relies on; a Lightning Bolt with a cast time adds its own, not Slam’s', () => {

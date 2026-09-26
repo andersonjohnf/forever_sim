@@ -717,8 +717,12 @@ const REGISTRY = {
     text: 'Energy comes 20 every 2 s, as in Classic Era, and Adrenaline Rush doubles each tick. The rest is untested: a cap of 100 (more with Vigor), a full bar at the pull, the first tick at a random moment in the first 2 s, and 80% of a builder’s Energy back when it misses or is dodged or parried (a finisher gets none back and keeps its combo points).',
     docRef: `${ROGUE}#21-energy`,
   },
+  rogueFinisherAp: {
+    text: 'A player’s in-game tests, shared on Discord and not yet repeated, measured the attack-power part of Eviscerate (4% of your attack power per combo point) and of Rupture (1% per combo point a tick, up to 3%), without saying which talents the tester had.',
+    docRef: `${ROGUE}#10-open-questions`,
+  },
   rogueFinisherTalents: {
-    text: 'A player’s in-game tests, shared on Discord, measured the attack-power part of Eviscerate (4% of your attack power per combo point) and of Rupture (1% per combo point a tick, up to 3%) without saying which talents the tester had; no one has repeated them yet. The sim raises those parts by your Improved Eviscerate, Aggression and Serrated Blades, as it raises the rest of the damage: if the test’s numbers already included these talents, they’re counted twice. Untested.',
+    text: 'The sim raises the attack-power part of Eviscerate and Rupture by your Improved Eviscerate, Aggression and Serrated Blades, as it raises the rest of the damage: if the tests’ numbers already included these talents, they’re counted twice. Whether they did is untested.',
     docRef: `${ROGUE}#10-open-questions`,
   },
   rogueTwoRolls: {
@@ -738,7 +742,7 @@ const REGISTRY = {
     docRef: `${ROGUE}#4-poisons`,
   },
   poisonAp: {
-    text: 'Instant Poison adds 0.5% of your attack power a hit and Deadly Poison 0.1125% a stack each tick, as a player’s in-game tests shared on Discord measured, on Deadly Poison V; rank IV is taken to be the same. Deadly Poison reads your attack power at each tick, not when the stack lands, and Vile Poisons and Venom raise the attack-power part as they raise the rest of a poison’s damage. Untested.',
+    text: 'A player’s in-game tests, shared on Discord and not yet repeated, measured Instant Poison adding 0.5% of your attack power a hit and Deadly Poison V 0.1125% a stack each tick; rank IV is taken to be the same. Deadly Poison reads your attack power at each tick, not when the stack lands, and Vile Poisons and Venom raise the attack-power part as they raise the rest of a poison’s damage. How it scales is untested.',
     docRef: `${ROGUE}#4-poisons`,
   },
   deadlyPoisonTicks: {

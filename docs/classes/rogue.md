@@ -744,7 +744,8 @@ R11–R13 are in `subtlety.test.ts`.
 - **Q3 Finishers' attack power.** A player's in-game tests shared on Discord 2026-09-25
   ([discord-0925]), a third-party measurement [?] until the user or a guild member reproduces it: Eviscerate
   4% of AP per point (Classic Era sims' 3%), Rupture 1% per point per tick up to 3 points (unchanged),
-  both in the sim (§3.4, §3.5). **Still open: the tester's talents.** The test reported totals
+  both in the sim (§3.4, §3.5) and in the results' assumptions whenever the plan uses Eviscerate
+  or Rupture. **Still open: the tester's talents.** The test reported totals
   without the build or sample size. The sim multiplies the measured shares by Improved Eviscerate
   and Aggression (Eviscerate) and Serrated Blades (Rupture) [?], as Classic Era does, and lists it in
   the results' assumptions (`rogueFinisherTalents`) whenever the plan uses a finisher one of them
@@ -758,6 +759,13 @@ R11–R13 are in `subtlety.test.ts`.
   tester's talents are known.
   Test: the tester's build, or 20 Eviscerates at 5 points without Improved Eviscerate or Aggression
   and 20 Rupture ticks at 3 points without Serrated Blades, each at two attack-power levels.
+  **Doctrine conflict, for the user to decide.** These shares, and Q16's poison shares, are the
+  defaults on one outside tester's numbers that nobody has repeated. The doctrine (§2's
+  secondary evidence, D22, D24's 1% rule, D37's list of allowed sources) doesn't let an
+  unreplicated third-party test set a default, so they stay only pending the user's decision.
+  The alternative is the reading before the test: Eviscerate at the 3% Classic Era sims use
+  (itself only other sims' data, [?]; the client's coefficient is 0) and no attack-power share on
+  the poisons. It would move the defaults Combat −1%, Assassination −2% and Subtlety −0.7%.
 - **Q4 Two rolls.** Eviscerate and Expose Armor roll to hit and then crit, as the warrior's melee
   spells; untested for rogues.
 - **Q5 Poison hit and crit.** Spell hit (with Precision's), partial resists and spell crit ×1.5
@@ -797,7 +805,9 @@ R11–R13 are in `subtlety.test.ts`.
   and are in the results' assumptions: a Deadly Poison stack's share is read at each tick, not fixed
   when it's applied, and Vile Poisons and Venom multiply the share. Test: Deadly Poison's ticks with
   5 stacks on the boss before and after an attack-power buff lands (a Juju Might), without a new
-  application; Instant Poison's hits with Vile Poisons 5/5 at two AP levels.
+  application; Instant Poison's hits with Vile Poisons 5/5 at two AP levels. These shares stand
+  on one outside tester's unrepeated numbers, which the doctrine doesn't let set a default: they
+  stay pending the user's decision, and Q3 gives the alternative and its effect.
 
 ---
 

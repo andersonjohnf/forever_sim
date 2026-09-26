@@ -26,7 +26,7 @@ export function rogueEnergy(talents: ReadonlyMap<string, number>, maxMult = 1): 
 
 /**
  * The rogue's [?] this plan relies on (rogue.md §10), for the results' assumptions: Energy, the
- * finisher talents on the Discord-tested attack-power shares, the two-roll abilities, Backstab's flat
+ * finishers' Discord-tested attack-power shares and the talents that raise them, the two-roll abilities, Backstab's flat
  * bonus, Lethality, the poisons and their attack-power shares, Hack and Slash, Slice and Dice's
  * haste, Cold Blood and Subtlety's talents, each only when the plan uses it.
  */
@@ -36,8 +36,10 @@ export function rogueAssumptions(plan: Plan, talents: ReadonlyMap<string, number
   const has = (id: string) => plan.abilities.some((a) => a.id === id)
   if (plan.abilities.some((a) => a.resource === 'energy' && a.costTenths > 0)) ids.push('energyTicksRogue')
   // Eviscerate's and Rupture's attack-power shares come from a player's in-game tests shared on Discord [?] since 2026-09-25
-  // (rogue.md §3.4, §3.5); that Improved Eviscerate, Aggression and Serrated Blades multiply them is [?]
-  // (rogue.md Q3), so it shows when the plan uses a finisher one of them raises.
+  // (rogue.md §3.4, §3.5), so they show whenever the plan uses a finisher that carries one; that Improved
+  // Eviscerate, Aggression and Serrated Blades multiply them is [?] (rogue.md Q3), so it shows only when
+  // the plan uses a finisher one of them raises.
+  if (plan.abilities.some((a) => (a.apCoefficientPerComboPoint ?? 0) > 0 || (a.dotApCoefficientPerComboPoint ?? 0) > 0)) ids.push('rogueFinisherAp')
   const rank = (name: string) => talents.get(name) ?? 0
   if ((has('eviscerate') && (rank('Improved Eviscerate') > 0 || rank('Aggression') > 0)) || (has('rupture') && rank('Serrated Blades') > 0)) ids.push('rogueFinisherTalents')
   if (has('eviscerate') || has('exposeArmor')) ids.push('rogueTwoRolls')

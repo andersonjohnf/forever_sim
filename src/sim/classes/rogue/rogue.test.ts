@@ -550,6 +550,26 @@ describe('worked examples (rogue.md §9)', () => {
     const noFinishers = { ...forever, abilities: forever.abilities.filter((a) => a.id !== 'eviscerate' && a.id !== 'rupture') }
     expect(rogueAssumptions(noFinishers, ranks([['Improved Eviscerate', 3], ['Serrated Blades', 3]]))).not.toContain('rogueFinisherTalents')
   })
+
+  it('lists the finishers’ Discord-tested attack-power shares whenever the plan uses Eviscerate or Rupture, talents or not (rogue.md Q3)', () => {
+    const forever = buildPlan(defaultConfig('rogue-combat')).plan
+    const none = new Map<string, number>()
+    // With no talent raising a finisher, the shares still show; the talent sentence doesn't.
+    expect(rogueAssumptions(forever, none)).toContain('rogueFinisherAp')
+    expect(rogueAssumptions(forever, none)).not.toContain('rogueFinisherTalents')
+    const onlyEviscerate = { ...forever, abilities: forever.abilities.filter((a) => a.id !== 'rupture') }
+    expect(rogueAssumptions(onlyEviscerate, none)).toContain('rogueFinisherAp')
+    // Subtlety's default keeps Rupture up; without Eviscerate, Rupture alone shows the shares.
+    const subtlety = buildPlan(defaultConfig('rogue-subtlety')).plan
+    expect(subtlety.abilities.some((a) => a.id === 'rupture')).toBe(true)
+    const onlyRupture = { ...subtlety, abilities: subtlety.abilities.filter((a) => a.id !== 'eviscerate') }
+    expect(rogueAssumptions(onlyRupture, none)).toContain('rogueFinisherAp')
+    const noFinishers = { ...forever, abilities: forever.abilities.filter((a) => a.id !== 'eviscerate' && a.id !== 'rupture') }
+    expect(rogueAssumptions(noFinishers, COMBAT)).not.toContain('rogueFinisherAp')
+    // The shares come first, so the talent sentence reads after them.
+    const ids = rogueAssumptions(forever, COMBAT)
+    expect(ids.indexOf('rogueFinisherAp')).toBeLessThan(ids.indexOf('rogueFinisherTalents'))
+  })
 })
 
 describe('the poisons’ attack-power share in the engine (rogue.md §4.1, §4.2)', () => {

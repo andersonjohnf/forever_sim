@@ -747,7 +747,7 @@ One target: 118.69 a Swipe with the default build (W16).
 | Demoralizing Roar r5 | −204 melee AP on nearby enemies at 60 (the level-60 tooltip; in combat, Q32), 30 s, 10 Rage, 1.5 s GCD. Threat 39 per target | [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913) [fc-book] [se-f]; in combat [?] (Q32); threat [?], Maul's lineage (§4.1, Q15) |
 | Faerie Fire (bear) | −505 armor, free, 6 s CD, 1.5 s GCD. Threat 108 | [F] [client] (SpellEffect 9635 #4, #5, 1.60.1.69913: Dire Bear Form (Passive), −100% cost and +6000 ms cooldown on its class mask) [se-f]; threat [?], Maul's lineage (§4.1, Q15) |
 | Growl | Taunt, 8 s CD. Not simmed | [F] [scd-f] |
-| Thorns (on yourself) | 22 Nature damage to the boss on each of its swings that lands, 10 min; a Buffs entry, "Thorns (your own)" (`thornsOwn`), on in the Self only and Dungeon presets and in a raid with no other druid; in a raid with one, a Restoration druid's (`thorns`, 22 too: its spell damage is taken as none [?]) takes its place ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)); threat at the form's multiplier | [F] [client] (SpellEffect 9910, 1.60.1.69913); the model [?] (Q38) |
+| Thorns (on yourself) | 22 Nature damage to the boss on each of its swings that lands, 10 min; a Buffs entry, "Thorns (your own)" (`thornsOwn`), on in the Self only and Dungeon presets and in a raid with no other druid; in a raid with one, a Restoration druid's (`thorns`, 22 + 0.08 × its pre-raid gear's 313 spell damage = 47.04 [?]) takes its place ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)); threat at the form's multiplier | [F] [client] (SpellEffect 9910, 1.60.1.69913); the model [?] (Q38) |
 | Enrage | +10 Rage now, +2 Rage/s for 10 s, 1 min CD, no GCD. −27% (bear) / −16% (dire bear) base armor for 10 s; +5 Rage with Wolfshead | [F] [client] (SpellEffect, 1.60.1.69913) [fc-wolf]; the armor part is a dummy effect (server-side), so only the tooltip gives it |
 | Frenzied Regeneration | Not simmed (TPS only) | [F] |
 | Bash | Not simmed | |
@@ -1546,8 +1546,9 @@ default setups; `scripts/tune/rotation.mjs`):
   numbers here are without it: Thorns at 22 a hit, 10.3 TPS of the bear's (0.9%). Since the
   paladin review's PR-4 a raid's Thorns is a Restoration druid's, and the bear's own, in its Self
   only and Dungeon presets, the base 22 (buffs doc §1.2). The raid druid's was 38 a hit (a guessed
-  200 spell damage) until 2026-09-26, when that spell damage was taken as none: 22 too, the default
-  bear 1,177.0 → 1,169.5 TPS (−0.64%).
+  200 spell damage) until 2026-09-26, then briefly 22 (that spell damage taken as none), and since
+  then 47.04: a pre-raid Restoration druid's gear, 313 spell damage from Forever's items (buffs doc
+  §1.2), the default bear 1,092.5 → 1,104.3 TPS (+1.08%) against 22.
 - **The presets, re-checked (D27 first pass).** Balanced's Maul from 20: 14 to 16 gain 0.13–0.14%
   TPS for 0.12–0.23% of the DPS, 22 and up lose TPS, as before; Max TPS's 14: 12 and 16 are within
   ±0.04% (not significant), 18 and 20 lose. Lacerate's 12 s refresh: 9 s −1.84%, 15 s −0.63%.

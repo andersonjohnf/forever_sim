@@ -407,19 +407,23 @@ export const POWER_INFUSION: OnUseSpec = {
 export const DAMAGE_SHIELD_SP_COEFFICIENT = 0.08
 
 /**
- * The spell damage of the raid druid whose Thorns is on a tank (buffs doc §1.2 "Thorns"): taken as
- * none [?]. Thorns scales with its caster's spell power (the dev notes), but the sim has no healer
- * setups and no measured healer's gear, so a raid Restoration druid's spell damage has no allowed
- * source: the base 22 stands, as the bear's own does (`thornsOwn`). It was 200, a third of a guessed
- * +600 healing, until 2026-09-26.
+ * The spell damage of the raid druid whose Thorns is on a tank (buffs doc §1.2 "Thorns"): a pre-raid
+ * Restoration druid's gear, **313** [?]. Forever's healing gear carries +Spell Damage at a third of
+ * its +Healing (ItemSparse stat 42 beside 41 [F]; the client's STAT_SPELLPOWER_TOOLTIP and
+ * STAT_SPELLHEALING_TOOLTIP: Spell Power adds to both, +Healing adds no damage). A pre-raid set
+ * built from the gear search's pool rules (content pre-raid or Forever-new, cloth or leather, a
+ * Restoration druid's priorities) totals 576 Healing, 121 Spell Power and 85 Spell Damage; with
+ * the third applied to its 8 pieces that only have Classic rows, its spell damage is 313 (gear only,
+ * no enchants). Unmeasured in game (buffs doc open question 24). It was 200, a third of a guessed
+ * +600 healing, until 2026-09-26, then briefly none. The bear's own (`thornsOwn`) has none.
  */
-export const THORNS_CASTER_SPELL_DAMAGE = 0
+export const THORNS_CASTER_SPELL_DAMAGE = 313
 
 /**
  * Thorns r6 (9910; buffs doc §1.2 "Thorns"): a damage shield (aura 15) of 22 Nature damage to each
  * melee attacker that hits its target, 10 min [F] [client] (SpellEffect, 1.60.1.70009), plus its
  * caster's spell damage × `DAMAGE_SHIELD_SP_COEFFICIENT` in Forever (a raid druid's
- * `THORNS_CASTER_SPELL_DAMAGE`, taken as none: 22; the bear's own, with none, 22) [?]; Classic Era's
+ * `THORNS_CASTER_SPELL_DAMAGE`: 22 + 0.08 × 313 = 47.04; the bear's own, with none, 22) [?]; Classic Era's
  * 18, with no scaling [C]. Unrounded, as Retribution Aura's and Holy Shield's are: the engine rounds no
  * spell's damage [?].
  * Like every damage shield it always lands and never crits [?], and each of the boss's swings that
@@ -469,7 +473,7 @@ const thorns = (damage: number, id = 'thorns'): ProcSpec => ({
 })
 /**
  * Thorns r6's damage per swing that lands (buffs doc §1.2): Forever's 22 [F] with its caster's spell
- * damage, a raid Restoration druid's, taken as none, so 22 [?], and 22 when it's the bear's own; Classic
+ * damage, a raid Restoration druid's, 22 + 0.08 × 313 = 47.04 [?], and 22 when it's the bear's own; Classic
  * Era's 18 [C].
  */
 export const THORNS_BASE_DAMAGE = { forever: 22, classicEra: 18 } as const
@@ -730,7 +734,7 @@ export const BUFFS: BuffSpec[] = [
   // so every tank's raid and max presets have it, as Devotion Aura (from a druid in the raid). A bear
   // with no other druid casts its own before the pull (`thornsOwn`: its Self only and Dungeon presets,
   // and its raid presets without a druid in the raid), with no spell damage, so the base 22; the two
-  // don't stack. Both deal 22, since the raid druid's spell damage is taken as none [?].
+  // don't stack, and the raid druid's, with its gear's spell damage, is the larger (about 47) [?].
   // Only a tank takes the boss's swings, so for any other spec they do nothing (the Buffs tab says so).
   {
     id: 'thorns',
@@ -738,7 +742,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_nature_thorns',
     category: 'raidBuff',
     group: 'Threat and defense',
-    summary: '22 Nature damage to the boss each time it hits you: a raid Restoration druid’s',
+    summary: `${Math.round(THORNS_DAMAGE.forever)} Nature damage to the boss each time it hits you: a raid Restoration druid’s, with its gear’s spell damage`,
     providedBy: 'druid',
     exclusiveGroup: 'thorns',
     docRef: `${DOC}#12-threat-defense-and-mana`,

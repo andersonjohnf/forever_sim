@@ -173,9 +173,9 @@ const ROWS: Record<string, Row> = {
   blessingOfSalvation: { rows: [S(1038)] },
   devotionAura: { rows: [S(10293)] },
   // A damage shield on the tank: 100% of the boss's landed swings, and its damage.
-  // 1.60.1.70009: Forever's 22 (9910) grows with its caster's spell damage, 0.08 × a raid druid's 389 [?]
-  // (buffs doc §1.2), dealt as a whole 53; no client row holds that.
-  thorns: { forever: [['thorns chance %', 100], ['thorns nature', 22]], classicEra: [['thorns chance %', 100], ['thorns nature', 18]], rows: [null, null], classicRows: [null, S(9910)] },
+  // 1.60.1.70009: Forever's 22 (9910) grows with its caster's spell damage, 0.08 × a raid Restoration
+  // druid's 313 [?] (buffs doc §1.2), unrounded; no client row holds that.
+  thorns: { forever: [['thorns chance %', 100], ['thorns nature', 47.04]], classicEra: [['thorns chance %', 100], ['thorns nature', 18]], rows: [null, null], classicRows: [null, S(9910)] },
   thornsOwn: { forever: [['thornsOwn chance %', 100], ['thornsOwn nature', 22]], classicEra: [['thornsOwn chance %', 100], ['thornsOwn nature', 18]], rows: [null, S(9910)], classicRows: [null, S(9910)] },
   // Mana per 5 s: rank 5's 36 every 5 s (Classic Era 30); the totem's Mana Spring 10494, 10 every 2 s, × 2.5.
   blessingOfWisdom: { forever: [['mp5', 36]], classicEra: [['mp5', 30]], rows: [S(19854)] },
@@ -382,12 +382,13 @@ describe('the catalogue in both profiles (buffs doc, Classic Era values)', () =>
   })
 
   it('shows each profile’s own numbers in the summaries of the entries that differ', () => {
-    // Every number but a time ("every 5 s", "for 2 min"), which says how often, not how much.
+    // Every number but a time ("every 5 s", "for 2 min"), which says how often, not how much. A
+    // summary may show an unrounded value whole (a raid druid's Thorns, 47.04, as 47).
     const numbers = (text: string) => [...text.matchAll(/\d[\d,]*(?:\.\d+)?(?! ?(?:s|min)\b)/g)].map((m) => Number(m[0].replaceAll(',', '')))
     for (const [id, entry] of ENTRIES) {
       if (!entry.classicEra) continue
       for (const profile of [FOREVER, CLASSIC_ERA]) {
-        const values = digest(catalogueEffects(entry, profile)).map(([, v]) => Math.abs(round(v)))
+        const values = digest(catalogueEffects(entry, profile)).flatMap(([, v]) => [Math.abs(round(v)), Math.abs(Math.round(v))])
         const summary = catalogueSummary(entry, profile)
         for (const n of numbers(summary)) expect(values, `${id} (${profile.id}): “${summary}”`).toContain(n)
       }

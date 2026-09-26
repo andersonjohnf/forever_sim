@@ -446,7 +446,7 @@ describe('catalogues and presets', () => {
     // tank's raid and max presets have it, as Devotion Aura; a DPS spec's don't, and without a druid
     // only the bear's own does.
     // PR-4: the bear's own (`thornsOwn`) where it's the only druid, a raid Restoration druid's
-    // (`thorns`) where there's one; never both. Both deal 22 (buffs doc §1.2).
+    // (`thorns`) where there's one; never both. The raid druid's deals 47.04 with its gear's spell damage, the bear's own 22 (buffs doc §1.2).
     expect(presetBuffs('self', 'druid-feral-bear', FULL_RAID)).toEqual(['markOfTheWild', 'thornsOwn'])
     expect(presetBuffs('dungeon', 'druid-feral-bear', FULL_RAID)).toContain('thornsOwn')
     expect(presetBuffs('dungeon', 'druid-feral-bear', FULL_RAID)).not.toContain('thorns')

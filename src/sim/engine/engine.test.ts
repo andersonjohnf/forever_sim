@@ -691,6 +691,16 @@ describe('golden run (fixed config and seed)', () => {
   // - D36's re-tune (W4, warrior.md §6.1): the 13/5/33 build with Deep Wounds (Improved Rend 3, Deep Wounds 3 for
   //   Improved Sunder Armor 3, Vanguard, Toughness 1 and an Improved Heroic Strike point). TPS 944.98 → 987.82, DPS
   //   373.37 → 410.20 (Defensive below: 882.78 → 925.59 TPS, 351.76 → 386.49 DPS); the rotation is unchanged.
+  // - D37 (threat.md#warrior, warrior.md Q1 and Q34): Shield Slam keeps Classic Era's dmg + 254 [?] (475
+  //   before, 254 scaled by a damage ratio) and Sunder Armor is the client's flat 206 (206 + 5% of attack
+  //   power before). Shield Slam's threat 24.23 M → 20.02 M, Sunder Armor's 9.80 M → 7.26 M; TPS 987.82 →
+  //   912.68; every ability's damage, parries and blocks and the DPS (410.20) unchanged (Defensive
+  //   below: 925.59 → 857.09 TPS).
+  // - 2026-09-26 merge: Shield Slam +254 and Sunder 206 flat on top of Thorns 47.04 (the bear slice's
+  //   raid druid, above). Shield Slam's threat 24.23 M → 20.02 M, Sunder Armor's 9.80 M → 7.26 M; TPS
+  //   992.47 → 917.34; every ability's damage, parries and blocks and the DPS unchanged (Defensive
+  //   below: 929.52 → 861.03 TPS). With Thorns set back to 38, the warrior branch's snapshot
+  //   reproduces exactly; the bear's rows and every other spec's are main's.
   it('keeps the default Protection warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)
@@ -701,6 +711,8 @@ describe('golden run (fixed config and seed)', () => {
   // - M5.65 A2 (D28, D31): Defensive, the Protection default until Balanced, and its snapshot, byte
   //   for byte (the priority list changed nothing it plays; protection-apl.test.ts checks 200 random
   //   setups too).
+  // - D37, as above: Shield Slam's threat 22.71 M → 18.76 M, Sunder Armor's 8.53 M → 6.33 M; TPS
+  //   925.59 → 857.09, DPS unchanged.
   it('keeps the Defensive Protection warrior’s result unchanged', () => {
     const d = defaultConfig('warrior-protection')
     const bundle = buildPlan({ ...d, rotation: { 'warrior.protection.priority': 'duties' }, run: { mode: 'fixed', iterations: 500, seed: 12345 } })

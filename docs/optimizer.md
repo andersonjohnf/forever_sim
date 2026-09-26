@@ -479,10 +479,13 @@ budget.
 
 **What 70009 moved** (against the 69913 table below). The warrior's and Fury's trees didn't change,
 and neither did their Balanced, Defense and DPS spaces. The warrior's **TPS** space took Shield Slam
-back: on 69913 the screen measured it lowering TPS (−30.5 at max rank, harmful; OG-8), and with
-70009's "very high" Shield Slam threat (dmg + 475 [?],
-[threat.md](mechanics/threat.md#threat-wording-table)) it's the warrior's most valuable TPS talent
-(+175.3), so it's a dimension again (22 → 23 objective) and the space grows. The **paladin** lost
+back: on 69913 the screen measured it lowering TPS (−30.5 at max rank, harmful; OG-8), and on
+70009, with Sunder Armor's lower threat and the dmg + 475 [?] the sim then assumed for its "very
+high" Shield Slam threat, it was the warrior's most valuable TPS talent (+175.3), so it's a
+dimension again (22 → 23 objective) and the space grows. That screen predates D37: the sim now
+uses Classic Era's dmg + 254 [?] ([threat.md](mechanics/threat.md#threat-wording-table)), and
+Shield Slam off still costs Balanced 18.3% of its TPS ([warrior.md Q34](classes/warrior.md#9-open-questions)),
+so it stays objective; the +175.3 hasn't been re-screened. The **paladin** lost
 Improved Holy Strike (29 → 28 objective for Balanced). Its Defense screen finds 20 talents
 objective (23 on 69913), eight threat talents tie-break only, and Reckoning and Instrument of Law
 harmful, so its Defense space is 1,553 builds where 69913's was 135,311. The **bear's** Feral

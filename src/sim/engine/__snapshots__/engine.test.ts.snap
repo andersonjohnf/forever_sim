@@ -254,7 +254,7 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection war
     [
       "shieldSlam",
       9321492.708259474,
-      22709257.150824785,
+      18756887.1396249,
       1935,
       531,
     ],
@@ -268,7 +268,7 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection war
     [
       "sunderArmor",
       0,
-      8533858.942244228,
+      6326251.986599566,
       3283,
       1210,
     ],
@@ -286,9 +286,9 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection war
     "stdev": 28.600121246411017,
   },
   "tps": {
-    "ci95": 4.48366935913448,
-    "mean": 929.5167087878301,
-    "stdev": 51.15292706774086,
+    "ci95": 4.342395227982556,
+    "mean": 861.0251974636433,
+    "stdev": 49.54117010072672,
   },
 }
 `;
@@ -903,7 +903,7 @@ exports[`golden run (fixed config and seed) > keeps the default Protection warri
     [
       "shieldSlam",
       9950276.346831195,
-      24233789.098782893,
+      20018219.822682887,
       2030,
       620,
     ],
@@ -917,7 +917,7 @@ exports[`golden run (fixed config and seed) > keeps the default Protection warri
     [
       "sunderArmor",
       0,
-      9804195.948494084,
+      7261101.080999495,
       3936,
       1346,
     ],
@@ -935,9 +935,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection warri
     "stdev": 28.82787314602498,
   },
   "tps": {
-    "ci95": 4.509782549715596,
-    "mean": 992.4713821311923,
-    "stdev": 51.45084514026343,
+    "ci95": 4.366237147034985,
+    "mean": 917.3365604975704,
+    "stdev": 49.813175872954154,
   },
 }
 `;

@@ -147,14 +147,12 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     expect(sunder).toMatchObject({ effect: 63, effectBasePointsF: LACERATE_THREAT.forever })
     expect(LACERATE_THREAT.forever).toBe(206)
     expect(LACERATE.threatBonus).toBe(206)
-    expect(LACERATE.threatApCoefficient).toBeUndefined()
     expect(lacerateFor(FOREVER)).toBe(LACERATE)
     // Classic Era: the warrior's GCD specials with those words fit 4.5 × the spell's level (Sunder
     // Armor r5 at 58: 261; Revenge r5 at 54: 243, r6 at 60: 270), with no attack power term.
     expect([highThreatBonus(58), highThreatBonus(54), highThreatBonus(60)]).toEqual([261, 243, 270])
     expect(LACERATE_THREAT.classicEra).toBe(261)
     expect(lacerateFor(CLASSIC_ERA).threatBonus).toBe(261)
-    expect(lacerateFor(CLASSIC_ERA).threatApCoefficient).toBeUndefined()
   })
 
   it('Demoralizing Roar r5 (9898): 10 rage, GCD 1500, 30 s; W18: −193 − 1.4 × 8 = −204.2 at 60 (Classic −138)', () => {

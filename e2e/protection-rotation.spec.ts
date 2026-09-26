@@ -78,8 +78,8 @@ test.describe('Protection rotation', () => {
     await tab.getByRole('button', { name: 'About the presets' }).click()
     const info = page.getByRole('dialog', { name: 'The presets' })
     await expect(info.getByRole('term')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
-    await expect(info).toContainText('6.5% more TPS, 5.9% more DPS and 21% more damage taken')
-    await expect(info).toContainText('7.0% more TPS, 5.6% more DPS and 21% more damage taken')
+    await expect(info).toContainText('6.3% more TPS, 5.9% more DPS and 21% more damage taken')
+    await expect(info).toContainText('6.7% more TPS, 5.6% more DPS and 21% more damage taken')
     // Max TPS names what it changes from Balanced, whose rows it shares (WR-1).
     await expect(info).toContainText('Against Balanced in the default setup: 0.4% more TPS, 0.2% less DPS and the same damage taken')
     await page.keyboard.press('Escape')

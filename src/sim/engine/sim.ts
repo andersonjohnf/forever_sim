@@ -638,8 +638,6 @@ export class Sim {
   private readonly abRefund: Float64Array
   private readonly abThreatMult: Float64Array
   private readonly abThreatBonus: Float64Array
-  /** Its threat bonus's share of the attack power when it lands (Sunder Armor, threat.md#warrior); 0 for most. */
-  private readonly abThreatApCoef: Float64Array
   private readonly abSource: Int32Array
   private readonly abStances: Int32Array
   private readonly abPerExtraRage: Float64Array
@@ -1715,7 +1713,6 @@ export class Sim {
     this.abRefund = new Float64Array(nb)
     this.abThreatMult = new Float64Array(nb)
     this.abThreatBonus = new Float64Array(nb)
-    this.abThreatApCoef = new Float64Array(nb)
     this.abSource = new Int32Array(nb)
     this.abStances = new Int32Array(nb)
     this.abPerExtraRage = new Float64Array(nb)
@@ -1910,7 +1907,6 @@ export class Sim {
       this.abRefund[i] = a.refundShare
       this.abThreatMult[i] = a.threatMult
       this.abThreatBonus[i] = a.threatBonus
-      this.abThreatApCoef[i] = a.threatApCoefficient ?? 0
       this.abSource[i] = a.source
       this.abStances[i] = a.stances
       this.abPerExtraRage[i] = a.damagePerExtraRage
@@ -3686,10 +3682,8 @@ export class Sim {
     // druid.md §2.5: a landed builder awards its combo points (Primal Fury one more on a crit), a
     // finisher spends them, after its damage read them.
     if (main && (this.abCp[a] !== 0 || this.abFinisher[a] === 1)) this.landComboPoints(a, crit)
-    // docs/mechanics/threat.md#base-rule-and-how-modifiers-stack: (dmg × mult + bonus) × global, the
-    // bonus with its share of the attack power (Sunder Armor, threat.md#warrior).
-    const bonus = this.abThreatBonus[a] + this.abThreatApCoef[a] * (this.ap + bonusAp)
-    this.addDamage(source, damage, (damage * this.abThreatMult[a] + bonus) * this.threatMult)
+    // docs/mechanics/threat.md#base-rule-and-how-modifiers-stack: (dmg × mult + bonus) × global.
+    this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a]) * this.threatMult)
     // A landed strike puts its debuff on the boss: Sunder Armor adds a stack (warrior.md §7). An
     // attack that also bleeds put its marker up with its bleed, above (Rake; Lacerate's stacks).
     if (main && this.abAura[a] >= 0 && this.abDotTicks[a] === 0) this.applyAura(this.abAura[a])
@@ -3805,7 +3799,7 @@ export class Sim {
     } else {
       c[row + FIELD.hits]++
     }
-    this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a] + this.abThreatApCoef[a] * this.ap) * this.threatMult)
+    this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a]) * this.threatMult)
     if (this.abAura[a] >= 0) this.applyAura(this.abAura[a])
     if (crit) this.useCritCharges(SCHOOL.physical)
     // docs/mechanics/character-stats.md#touch-of-the-grave: Thunder Clap, not Demoralizing Shout.

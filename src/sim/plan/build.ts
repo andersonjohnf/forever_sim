@@ -1675,24 +1675,18 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     notes.addText('preAqRanks', preAqRanksText(blessings))
   }
   if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add(classId === 'rogue' ? 'rogueArmorPen' : 'weaponmasterMace')
-  // threat.md#warrior: in `forever` Sunder Armor's threat is the Forever client's plus a share of the
-  // attack power [?] (its own note), the rest Classic Era's; in `classicEra` all are Classic Era's,
-  // Sunder's 261 too.
+  // threat.md#warrior: in `forever` Sunder Armor's threat is the Forever client's 206 (its own note), the
+  // rest Classic Era's; in `classicEra` all are Classic Era's, Sunder's 261 too.
   // A paladin tank's note speaks paladin: mana and Righteous Fury, not rage and stances.
   if (tank && classId === 'paladin') notes.add('whiteThreatPaladin')
   else if (tank) {
     const forever = profile.id === 'forever'
     const sunder = forever ? abilities.find((a) => a.id === 'sunderArmor') : undefined
-    // threat.md#threat-wording-table: Forever's "very high" on Shield Slam [?].
+    // threat.md#threat-wording-table: Forever's "very high" on Shield Slam has no value, so it keeps
+    // Classic Era's 254; its note says so.
     const slam = forever ? abilities.find((a) => a.id === 'shieldSlam') : undefined
-    const own = [sunder && 'Sunder Armor', slam && 'Shield Slam'].filter(Boolean).join(' and ')
-    // "Their own values", not Forever's: only Sunder's 206 is the client's; its AP share and Shield Slam's +475 are [?] defaults.
-    const plural = own.includes(' and ')
-    notes.add('whiteThreat', own ? `${own} ${plural ? 'use their own values' : 'uses its own value'} (below), the other abilities Classic Era’s` : undefined)
-    if (sunder) {
-      const pct = Math.round((sunder.threatApCoefficient ?? 0) * 100)
-      notes.add('sunderThreat', `${sunder.threatBonus.toLocaleString('en-US')} plus ${pct}% of your attack power`)
-    }
+    notes.add('whiteThreat', sunder ? 'Sunder Armor uses its own value (under Warrior mechanics), the other abilities Classic Era’s' : undefined)
+    if (sunder) notes.add('sunderThreat', sunder.threatBonus.toLocaleString('en-US'))
     if (slam) notes.add('shieldSlamThreat', slam.threatBonus.toLocaleString('en-US'))
   }
   if (setup.stance === 'defensive' && setup.talents.has('Defiance') && hasShield) notes.add('defiance')

@@ -502,16 +502,16 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   **206** by rank [F] (1 / 405 / 608 / 810 / 1013 in 1.60.1.69913), and Blizzard's notes call it a
   correction "on all ranks, including a small increase to threat generated from Attack Power". So
   whether 1013 replaced or added to 261 is moot, and rank 1's "1" is gone.
-- **Assumes now:** 206 plus **0.05 × attack power** [?] per landed Sunder at rank 5: the client
-  carries no attack power coefficient, so the share is D29's default, a guess that keeps the total
-  near Classic Era's 261: 261 at 1,100 AP, about 281 at the default tank's ~1,500 AP when its
-  Sunders land. The results list it.
+- **Assumes now:** **206 flat** [F] per landed Sunder at rank 5. The notes' attack power term has
+  no value: no client carries a coefficient and nobody has measured it, so the sim adds 0 [?] (until
+  2026-09-26 it assumed 0.05 × AP, a share we chose; D37 removed it, −3.0% on the default
+  Protection warrior's TPS). The results list it.
 - **Test:** at 60, Defensive Stance with Defiance 3/3 and a shield (×1.495), auto attack off: one
   landed Sunder on a mob, threat read before and after, at two attack powers (with and without
   Battle Shout and a Mighty Rage Potion or Juju Might). `threat ÷ 1.495 − 206` is the term; its
   change over the attack power change is the coefficient. Calibrate with a plain white hit.
 - **Samples:** ≥5 landed Sunders per attack power.
-- **Changes:** Sunder's threat (about 11% of the default Protection warrior's), the Protection
+- **Changes:** Sunder's threat (about 9% of the default Protection warrior's), the Protection
   filler and presets.
 - **Docs:** [threat § warrior](mechanics/threat.md#warrior),
   [threat OQ 2](mechanics/threat.md#open-questions);
@@ -536,6 +536,13 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Assumes:** 16.5% parry vs a +3 target at 300 skill, from the client tooltip [F client
   strings; ? in combat]; Classic Era 14%, and another client string still says 14%. Mob block
   5% [C].
+- **Evidence so far:** 47 public beta logs read 14.3% ± 1.5 against +3 mobs at levels 1–20 (not
+  bosses; the audit of 2026-09-26), nearer 14% than 16.5%. The filter to swings from the front is
+  unverified: no script or write-up of it exists, and swings from behind would pull the rate down.
+  Not yet a D22 default: the method isn't documented and no log is at 60 against a boss. The
+  results don't cite it until that write-up exists. 14% would give the default Protection warrior
+  about 2.5% more TPS
+  ([combat-tables OQ 3](mechanics/combat-tables.md#open-questions)).
 - **Test:** white swings from the front vs mobs three levels higher that can parry; count
   parries and blocks.
 - **Samples:** ≥3,500 front swings.
@@ -561,11 +568,13 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B13. Warrior ability threat at low ranks
 **High · M3 · ≤20** (max ranks and Shield Slam: [C6](#c6-warrior-threat-at-max-rank))
-- **Assumes:** Classic Era values (Magey, 1.13.6) for everything except Sunder and Shield Slam
-  [?]: Heroic Strike dmg + 145 (r8), Revenge 2.25 × dmg + 243 (r5), Shield Bash 1.5 × dmg + 156,
+- **Assumes:** Classic Era values for everything except Sunder [?] (Magey's 1.13.6 tests; Heroic
+  Strike r8 and Revenge r5 from Resultsmayvary's 1.13.2 aggro-rip threshold tests, Heroic Strike r8's
+  a thin sample): Heroic Strike dmg + 145 (r8), Revenge
+  2.25 × dmg + 243 (r5), Shield Bash 1.5 × dmg + 156,
   Cleave dmg + 100 per target, Thunder Clap 2.5 × dmg, Battle Shout 52 per recipient (r6),
-  Demoralizing Shout 43.2, Hamstring 1.25 × dmg + 135; Mocking Blow's bonus unknown. (Shield Slam's
-  "very high" is the wording table's +475, [C6](#c6-warrior-threat-at-max-rank).)
+  Demoralizing Shout 43.2, Hamstring 1.25 × dmg + 135; Mocking Blow's bonus unknown. (Shield Slam
+  keeps Classic Era's + 254; its "very high" is [C6](#c6-warrior-threat-at-max-rank).)
 - **Build 1.60.1.70009:** Blizzard's notes retuned only Sunder Armor's threat among the warrior's
   ("Corrected the threat values on all ranks"), and its low ranks now carry values (34 / 75 / 117 /
   158) where rank 1 had 1, so the low-rank Sunder bug players reported is fixed in the data. Every
@@ -1609,17 +1618,18 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 **High · M3**
 - **Assumes:** Classic values for the trainer's top ranks at 60 (D36: no Ahn'Qiraj book's rank) [?]:
   Heroic Strike r8 + 145, Revenge r5 2.25 × dmg + 243, Thunder Clap, Battle Shout r6, Demoralizing
-  Shout r5; and Shield Slam dmg + **475** [?], the
-  [wording table](mechanics/threat.md#threat-wording-table)'s "very high" (the tooltip's words since
-  Forever; Classic's "high" was + 254, scaled by the ×1.871 damage Forever gave it with the words).
+  Shout r5; and Shield Slam dmg + **254** [?] (Classic Era's rank 4 [C], Magey's 1.13.6 and
+  Resultsmayvary's 1.13.2 measurements). Forever's tooltip says "very high" where Classic's said "high", and no
+  allowed source gives the extra a value, so it adds 0 [?]
+  ([wording table](mechanics/threat.md#threat-wording-table)).
 - **Test:** as [B13](#b13-warrior-ability-threat-at-low-ranks) at 60 with max ranks. Shield Slam
   first: in Defensive Stance with Defiance 3/3 and a shield, threat ÷ 1.495 − its logged damage =
   the bonus.
 - **Samples:** ≥8 casts per ability.
-- **Changes:** Prot TPS per ability. Shield Slam is 27% of the default Protection warrior's threat
-  (build 1.60.1.70009), so its bonus moves the headline most: at + 254 the default Balanced makes
-  946.78 TPS, −4.7% against + 475's 993.82 (seed 31101, 6,000 fights). It no longer decides a
-  preset (dropping it costs Max TPS 12.85% even at + 254; [warrior Q34](classes/warrior.md#9-open-questions)).
+- **Changes:** Prot TPS per ability. Shield Slam is about a quarter of the default Protection
+  warrior's threat, so its bonus moves the headline most: the + 475 the sim assumed until 2026-09-26
+  (254 scaled by the damage ratio, removed by D37) gave the default 5.0% more TPS (removing it cost 4.75%). It decides no
+  preset: off, Balanced loses 18.3% of its TPS ([warrior Q34](classes/warrior.md#9-open-questions)).
 - **Docs:** [threat OQ 1](mechanics/threat.md#open-questions);
   [warrior §5.4](classes/warrior.md#54-protection-tps)
 

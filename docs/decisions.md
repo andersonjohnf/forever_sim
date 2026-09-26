@@ -372,8 +372,9 @@ PL2, PL6, PV1–PV4 and PW1–PW3, and the bear's, BL1, BL2 and BL9):
   wins on TPS without resting on an untested threat value. Shield Slam stayed: before build
   1.60.1.70009, dropping it gained 3.3% TPS only at Classic Era's +254 threat [?], while Forever's
   tooltip raised its threat to "very high", and from about +449 keeping it won on TPS as well.
-  Since that build's lower Sunder Armor, dropping it costs Max TPS 12.85% of its TPS even at +254
-  (957.77 → 834.72, seed 31101, 6,000 fights), so the untested value no longer decides it
+  Since that build's lower Sunder Armor, dropping it costs Max TPS 17.95% of its TPS at +254 and
+  Sunder Armor's flat 206 (919.28 → 754.25, seed 31101, 6,000 paired fights, re-measured 2026-09-26
+  with a raid druid's Thorns at 47.04; 12.85% with Sunder Armor's former 0.05 × AP share), so the untested value no longer decides it
   ([warrior.md Q34](classes/warrior.md#9-open-questions)).
 - **The Buffs tab's versions of the duties** assume the tank applies them, so no preset lists a
   tank's duty (buffs doc §6.2). When Max TPS drops a duty, the Buffs tab's version is off by
@@ -468,7 +469,13 @@ merged (the paladin review's PR-7, 2026-09-24; seed 31101, 100,000 fights), Bala
 TPS for the warrior, 1,126.6 for the bear and 752.6 for the paladin**: the warrior 33.1% over the
 paladin and 11.1% under the bear. D29 sets no numeric target, so these gaps are observations for
 in-game tests ([milestones T6](milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)), not
-failures.
+failures. D37 (2026-09-26) moved the warrior: Shield Slam keeps Classic Era's +254 [?] and Sunder
+Armor is a flat 206. With the bear's D37 slice and a raid druid's Thorns at 47.04 merged the same
+day, Balanced makes **914.4 TPS for the warrior, 750.6 for the paladin and 1,104.7 for the bear**
+(seed 31101, 100,000 fights): the warrior 21.8% over the paladin and 17.2% under the bear. All three
+are still far above every DPS spec's TPS (Fury's 492.5 is the highest), and no tank is at twice
+another. These figures predate D37's paladin slice, which moves its own numbers; the gap to the bear
+is an open question, not a finding.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 **Amended by [D37](#d37-only-sourced-values-2026-09-26):** the same-wording bonus is used as is,

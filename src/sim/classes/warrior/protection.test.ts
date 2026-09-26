@@ -24,10 +24,9 @@ import {
   revengeWindowProcs,
   SHIELD_BLOCK,
   SHIELD_SLAM,
-  SHIELD_SLAM_THREAT,
-  shieldSlam,
   SUNDER_ARMOR,
   SUNDER_ARMOR_THREAT,
+  sunderArmor,
   THUNDER_CLAP,
   thunderClap,
 } from './abilities'
@@ -78,12 +77,10 @@ describe('Protection abilities match src/data/client/spells.json (warrior.md §3
     expect(Math.round(dmg.effectBasePointsF! * (1 + dmg.variance! / 2))).toBe(670)
     expect([SHIELD_SLAM.flatDamage - SHIELD_SLAM.flatSpread!, SHIELD_SLAM.flatDamage + SHIELD_SLAM.flatSpread!]).toEqual([640, 670])
     expect(SHIELD_SLAM.blockValueCoefficient).toBe(1)
-    // Threat dmg + 475 [?]: the wording table's "very high" (threat.md), Classic's "high" 254 × 655 / 350.
+    // Threat dmg + 254: [?] in `forever` (Classic Era's [C]), [C] in `classicEra`; Classic Era's rank 4 (threat.md#warrior). Neither client
+    // carries a value, so Forever's "very high" adds nothing without a measurement (warrior.md Q34).
     expect(s.effects.find((e) => e.effect === 63)).toBeUndefined()
-    expect([SHIELD_SLAM.threatMult, SHIELD_SLAM.threatBonus, SHIELD_SLAM.refundShare]).toEqual([1, 475, 0.8])
-    expect(Math.round(254 * (655 / 350))).toBe(SHIELD_SLAM_THREAT.forever)
-    expect(shieldSlam(FOREVER)).toBe(SHIELD_SLAM)
-    expect(shieldSlam(CLASSIC_ERA).threatBonus).toBe(254)
+    expect([SHIELD_SLAM.threatMult, SHIELD_SLAM.threatBonus, SHIELD_SLAM.refundShare]).toEqual([1, 254, 0.8])
   })
 
   it('Revenge rank 5 (11601): 5 rage, 5 s, the GCD, Defensive Stance, 121 ± 12 (the tooltip’s 109–133), two rolls, its window', () => {
@@ -104,7 +101,7 @@ describe('Protection abilities match src/data/client/spells.json (warrior.md §3
     expect([REVENGE.kind, REVENGE.threatMult, REVENGE.threatBonus, REVENGE.shieldOnly ?? false]).toEqual(['meleeSpell', 2.25, 243, false])
   })
 
-  it('Sunder Armor (11597): 15 rage, the GCD, any stance; −450 armor, 5 stacks, 30 s, and a threat effect of 206 plus 5% of attack power; no damage', () => {
+  it('Sunder Armor (11597): 15 rage, the GCD, any stance; −450 armor, 5 stacks, 30 s, and a flat threat effect of 206; no damage', () => {
     const s = spells['11597']
     expect(s.name).toBe('Sunder Armor')
     expect([cost(11597), s.cooldowns?.categoryRecoveryTime ?? 0, s.cooldowns?.startRecoveryTime]).toEqual([SUNDER_ARMOR.costTenths, 0, SUNDER_ARMOR.gcdMs])
@@ -116,9 +113,11 @@ describe('Protection abilities match src/data/client/spells.json (warrior.md §3
     expect(s.duration?.duration).toBe(SUNDER_ARMOR.aura!.durationMs)
     expect(s.effects.find((e) => e.effect === 63)?.effectBasePointsF).toBe(SUNDER_ARMOR.threatBonus)
     expect(SUNDER_ARMOR.threatBonus).toBe(206)
-    // The notes' attack power term, which the client doesn't carry: a D29 default [?] (threat.md#warrior).
-    expect(SUNDER_ARMOR.threatApCoefficient).toBe(0.05)
-    expect(SUNDER_ARMOR_THREAT.forever.bonus + SUNDER_ARMOR_THREAT.forever.apCoefficient * 1100).toBe(SUNDER_ARMOR_THREAT.classicEra.bonus)
+    // The notes' attack power term has no value in either client or any measurement, so it adds nothing
+    // (threat.md#warrior, warrior.md Q1); Classic Era keeps its server-side 261.
+    expect(SUNDER_ARMOR_THREAT).toEqual({ forever: 206, classicEra: 261 })
+    expect(sunderArmor(FOREVER)).toBe(SUNDER_ARMOR)
+    expect(sunderArmor(CLASSIC_ERA)).toMatchObject({ threatBonus: 261 })
     expect([SUNDER_ARMOR.weaponPercent, SUNDER_ARMOR.flatDamage, SUNDER_ARMOR.threatMult]).toEqual([0, 0, 0])
     // Its stacks are the Buffs tab's Sunder Armor ×5, so the plan can drop that one.
     expect(SUNDER_ARMOR.aura!.id).toBe('sunderArmor')
@@ -195,11 +194,11 @@ describe('Protection talents on its abilities (warrior.md §4.3, W14, W20)', () 
     const threat = (def: typeof SUNDER_ARMOR) => {
       const a = withTalents(def, TALENTS)
       const damage = (a.flatDamage + 62 * (a.blockValueCoefficient ?? 0)) * dmg
-      const t = (damage * a.threatMult + a.threatBonus + (a.threatApCoefficient ?? 0) * 1400) * m
+      const t = (damage * a.threatMult + a.threatBonus) * m
       return [Math.round(t * 100) / 100, a.costTenths / 10, Math.round((t / (a.costTenths / 10)) * 100) / 100]
     }
-    expect(threat(SUNDER_ARMOR)).toEqual([412.62, 9, 45.85])
-    expect(threat(SHIELD_SLAM)).toEqual([1771.32, 17, 104.2])
+    expect(threat(SUNDER_ARMOR)).toEqual([307.97, 9, 34.22])
+    expect(threat(SHIELD_SLAM)).toEqual([1440.93, 17, 84.76])
     expect(threat(REVENGE)).toEqual([1007.99, 2, 504])
     expect(threat(THUNDER_CLAP)).toEqual([381.11, 17, 22.42])
     expect(threat(DEMORALIZING_SHOUT)).toEqual([64.58, 7, 9.23])

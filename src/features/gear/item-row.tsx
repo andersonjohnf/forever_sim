@@ -185,10 +185,16 @@ export function ItemSummary({
   dimmed = false,
   equipped = false,
   idPrefix,
+  nameEnd,
   className,
 }: {
   item: Item
   bis?: number | null
+  /**
+   * A control at the end of the name's line (a gear card's info control, docs/ux.md "Item tooltips"),
+   * so the lines under the name keep the row's whole width.
+   */
+  nameEnd?: ReactNode
   /** An extra muted line, e.g. the slot name, or the item's type and level. */
   meta?: string | null
   /** Why the item can't be picked, or does nothing here; stays at full contrast when the rest is dimmed. */
@@ -210,9 +216,18 @@ export function ItemSummary({
     <div className={cn('flex min-w-0 flex-1 items-start gap-3', className)}>
       <WowIcon icon={item.icon} size="lg" className={cn(fade)} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span aria-hidden className={cn('truncate text-sm font-medium', QUALITY_CLASS[item.quality], fade)}>
-          {item.name}
-        </span>
+        {nameEnd ? (
+          <span className="flex min-w-0 items-center">
+            <span aria-hidden className={cn('min-w-0 flex-1 truncate text-sm font-medium', QUALITY_CLASS[item.quality], fade)}>
+              {item.name}
+            </span>
+            {nameEnd}
+          </span>
+        ) : (
+          <span aria-hidden className={cn('truncate text-sm font-medium', QUALITY_CLASS[item.quality], fade)}>
+            {item.name}
+          </span>
+        )}
         {meta && (
           <span aria-hidden className={cn('line-clamp-2 text-xs text-muted-foreground', fade)}>
             {meta}

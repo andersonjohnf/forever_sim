@@ -29,7 +29,7 @@ function fieldChanges(o, n) {
   for (const k of [...keys].sort()) cmp(`stats.${k}`, o.stats?.[k] ?? 0, n.stats?.[k] ?? 0);
   for (const k of ["min", "max", "speed", "dps", "school", "skill", "extraDamage"]) cmp(`weapon.${k}`, o.weapon?.[k], n.weapon?.[k]);
   cmp("weaponSkill", o.weaponSkill, n.weaponSkill);
-  for (const f of ["procs", "useEffects", "otherEquip"]) cmp(`${f}.text`, (o[f] ?? []).map((e) => e.raw), (n[f] ?? []).map((e) => e.raw));
+  for (const f of ["statEquip", "procs", "useEffects", "otherEquip"]) cmp(`${f}.text`, (o[f] ?? []).map((e) => e.raw), (n[f] ?? []).map((e) => e.raw));
   cmp("useEffects.cooldownSec", (o.useEffects ?? []).map((u) => u.cooldownSec ?? null), (n.useEffects ?? []).map((u) => u.cooldownSec ?? null));
   return out;
 }
@@ -40,7 +40,7 @@ function classify(o, n, field) {
     return o.statsFrom === "classic" && n.statsFrom === "forever" ? "Forever row: the item now has one (Classic Era fallback ended)" : "Forever row: the item lost it (now falls back to Classic Era)";
   if (field.startsWith("stats.")) return "stats";
   if (field.startsWith("weapon")) return "weapon";
-  if (/^(procs|useEffects|otherEquip)\./.test(field)) return "effects";
+  if (/^(statEquip|procs|useEffects|otherEquip)\./.test(field)) return "effects";
   if (field === "classic" || field === "classicName" || field === "classicShieldBlockValue") return "Classic Era comparison";
   if (field === "preRaidBis") return "pre-raid BiS lists";
   if (["name", "icon", "itemSubclass", "flavor", "sellPrice", "notes"].includes(field)) return "names, icons and text";

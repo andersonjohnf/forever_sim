@@ -596,6 +596,12 @@ robustness grid in the class doc), and its low findings in the known gaps are wo
 
 ## Known gaps and follow-ups
 
+- **Item tooltips, three pre-existing lows (review VT-2, VT-3, VT-4).** Closing the picker with
+  Escape while the mouse rests on another slot can leave two tooltips open (the returned slot's focus
+  one and the hovered one); the next Escape closes both. One probe saw the phone picker's sheet
+  refuse to drag down from its handle while a tooltip was pinned; a second couldn't reproduce it (a
+  drag starting on the tooltip scrolls it instead, by design). On a phone card the info
+  control shortens the item's name by 32 px (moving it to the slot's line would restore it).
 - **A missing hashed asset caches its 404 for a year on Firebase Hosting** (review V3-2, low): `/assets/**` carries the immutable header on every response. Hashed names are never reused, so only a browser that asked for a chunk a later deploy removed, and then a rollback restored, would keep a broken cache. A `404` rule can't target status codes in `firebase.json`; revisit if a rollback ever needs it.
 - **What's New and pasted links (WQ-2, WQ-4).** A refused link pasted while What's New is open drops
   the opening link's held "Loaded" notice, though the opening link did load; no e2e test pastes a link

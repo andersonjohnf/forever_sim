@@ -53,7 +53,8 @@ for (const [name, device] of [
       await slot.click({ position: { x: 24, y: 24 } })
       await expect(first).toBeFocused()
       const item = picker.getByRole('list', { name: 'Items' }).getByRole('button').filter({ hasNotText: 'Leave this slot empty' })
-      const other = item.and(page.locator(':not([aria-current])')).first()
+      // Not the item's info control (a phone's, docs/ux.md "Item tooltips"), which opens its tooltip.
+      const other = item.and(page.locator(':not([aria-current]):not([aria-expanded])')).first()
       const picked = (await other.innerText()).split('.')[0]
       await other.click()
       await expect(picker).toBeHidden()

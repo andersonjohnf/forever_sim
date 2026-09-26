@@ -377,7 +377,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     its effect (Draconic Infused Emblem, Earthstrike, a totem or idol), shows its effects in the
     tooltip's own words there instead (`statsLine` in `src/features/gear/item-flags.ts`), on slot
     and picker rows alike, so a proc trinket's BiS rank has its reason beside it; "No stats" is
-    left for an item with neither. Empty slots have their own
+    left for an item with neither. Every slot's and picker row's item has its **tooltip**, as the
+    game shows it: on hover or keyboard focus, or where nothing hovers an info control or a long
+    press ([Item tooltips](#item-tooltips)). Empty slots have their own
     state. The columns are `minmax(0, 1fr)`, so a long name or enchant truncates rather than
     widening the page, down to 320 px.
   - Choosing a slot opens the **item picker**: a full-height sheet on mobile, a dialog on
@@ -1332,7 +1334,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
 - **Tooltips** take the popover's colours in both themes, with a border, a light shadow and an arrow
   of the same surface (`src/components/ui/tooltip.tsx`, one commented edit): shadcn's inverted box
   was a white box in the dark theme. The talent tooltip's reasons are in the notice colour, as in its
-  popover: 5.3:1 light, 10.4:1 dark.
+  popover: 5.3:1 light, 10.4:1 dark. Item tooltips are the exception, dark in both themes as the
+  game's are ([Item tooltips](#item-tooltips)).
 - **Color:**
   - Neutral tokens for surfaces and text. Muted text, `--muted-foreground`, is 5.8:1 on white,
     5.3:1 on the page and 5.1:1 on muted rows in the light theme.
@@ -1380,6 +1383,164 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
 - **Game icons:** WoW icons by icon name from Wowhead's CDN, lazy-loaded at a fixed size with
   a neutral placeholder on error. Nothing depends on them loading.
 - **Motion:** short and purposeful (sheets, disclosure). Respect `prefers-reduced-motion`.
+
+### Item tooltips
+
+Every item can show its tooltip as the game does (M5.67), built from the Forever client's own
+data: the lines by `itemTooltipLines` in `src/features/gear/item-tooltip-lines.ts`, the panel and
+its open and close rules by `ItemTooltip` in `src/features/gear/item-tooltip.tsx`.
+
+- **Content, top to bottom:** the name in its quality colour; binding ("Binds when picked up");
+  Unique or Unique-Equipped with its group; the slot, with the type on the right ("Two-Hand" and
+  "Axe"; none for jewelry, cloaks and held items); a weapon's damage with its speed on the right,
+  any extra damage and its damage per second; ammo's damage per second; armor (base and bonus armor
+  on one line, as Forever's tooltip adds them; an equip spell's "+200 Armor." stays its own Equip
+  line) and a Classic Era shield's block; primary stats and resistances; **the enchant**; classes,
+  races, "Requires Level", other requirements (reputation, skill, PvP rank) and the item level; the
+  **Equip** lines for the stat columns, then each stat spell's line, then the item's other Equip,
+  Chance on hit and Use lines; and the **set** the item counts toward (`setOf`: a Classic Era row
+  whose set id Forever reuses for another set, such as Champion's Chain Headguard's, shows none):
+  its name with the pieces worn ("(3/8)"), its pieces, and its bonuses, "Set: …" for one reached
+  and "(2) Set: …" for one not, as the client's `ITEM_SET_BONUS` and `ITEM_SET_BONUS_GRAY` word
+  them. An off-hand a two-hander locks doesn't count as worn, as the engine skips it.
+- **Words come from the client, never invented.**
+  - *Effect, stat-spell and set-bonus lines* are the client's rendered descriptions, as the item
+    data carries them (`statEquip`, `procs`, `useEffects`, `otherEquip`;
+    [items.md](data/items.md#stat-spell-text)): "Improves your chance to get a critical strike
+    with melee attacks by 1.0%.", "+14 Attack Power. This effect is tripled in Forest and
+    Grassland areas." A line the scraper words for a spell the client describes with nothing
+    ("+15 Spell Power in certain areas.", `generated`) isn't shown, as the game shows nothing; the
+    stats summary keeps it.
+  - *Forever's stat columns* have no description, so they take the Forever client's own
+    `ITEM_MOD_*` strings ([GlobalStrings][gs-forever-ux]) after "Equip: ": "Increases your
+    critical strike by 28.", "Increases your hit by 20.", "Increases attack power by 62.",
+    "Increases spell power by 46.", "Restores 5 mana per 5 sec.", "Increases spell resistance by
+    5." (stat 124, all five resistances). A stat with only a short string reads "+81 Attack Power
+    Vs Undead.". `[?]` Whether the game prints these long forms or the short "+28 Critical Strike"
+    is unsettled until a guild screenshot of a rated item; the strings are the client's either way,
+    and "Rating" is in none of them. A stat spell the client leaves without a description would
+    take the Classic Era wording of its aura; no pool item has one, and a test holds that.
+  - *The enchant* is the client's enchant name with its values filled in ("Strength +15",
+    "Crusader"; `enchant-lines.ts`, held to the client by its test). Under Classic Era rules an
+    enchant whose Classic Era number differs takes the Classic Era client's name for it ("Armor
+    +50", "Health +100"), held to that client's cached rows by the same test.
+  - *PvP ranks* read as the client's rank title, "Requires Lieutenant Commander": the
+    `PVP_RANK_*` title for the faction that can wear the item (`itemFaction`, which its name
+    gives), since the game names the reader's own faction's and only that faction wears it here.
+    `[?]` The "Requires %s" form is the client's `ITEM_REQ_SKILL`, assumed for ranks too.
+  - *Under Classic Era rules* an item's lines stay the Forever client's, as its stats do in the
+    engine. Where that profile simulates an item's effect as Classic Era has it (Hand of Justice's
+    chance, Ironfoe's: the effects in `ITEM_EFFECTS` that take the profile), a grey note under the
+    lines says so: "Classic Era rules simulate this effect as Classic Era has it."
+  - A fact the data doesn't carry is left out, not guessed: durability, sell price and flavor text
+    (the browser's data drops the last two), and a set piece outside the item pool, which has no
+    name in the data (the count still counts every piece).
+- **Colours, on a dark panel in both themes**, as the game's is (#0b0d1a, with a #565d7e border
+  and a shadow, so it stands off the dark page too; `TOOLTIP_PALETTE`). The one exception to
+  tooltips taking the popover's colours ([Visual language](#visual-language)): the game's colours
+  only read on dark. White for the item's own facts (19.3:1); green `#1EFF00` for Equip, Use and
+  Chance on hit, the enchant and a set bonus reached (14.1:1); gold `#FFD100` for the item level and
+  the set's name (13.2:1); pale yellow for a set piece worn (18.4:1) and grey `#9D9D9D` for one
+  not worn, a bonus not reached and the Classic Era note (7.1:1). The name takes its quality
+  colour, the game's where it reaches AA on the panel (Uncommon, Legendary 7.7:1) and the dark
+  theme's otherwise (Rare `#4DA3FF` 7.4:1, Epic `#C27EF7` 7.0:1; the game's own are 4.0:1). A unit test holds every colour
+  to 4.5:1 or more. Two-column rows put the right column flush right; set pieces are indented; a
+  gap sets off the set and its bonuses.
+- **Opening and closing, by device:**
+  - *Desktop:* a mouse or pen resting on the item for 150 ms opens it, and leaving the item closes
+    it. Keyboard focus on the item (`:focus-visible`, so a click's focus doesn't) opens it, and
+    blur closes it. Escape or a click outside closes it either way. It never takes focus and
+    returns none, and the pointer passes through it.
+  - **Escape** (review finding TU-7): a tooltip the resting pointer opened closes and lets the key
+    go on, so one press closes the item picker, as before tooltips (the player never asked for it);
+    it goes at once, without its fade, so the picker hears the key. A tooltip the player asked for,
+    by keyboard focus on the item or pinned (below), takes Escape for itself, and the next press
+    closes the picker (`escapeGoesThrough` in `item-tooltip-open.ts`).
+  - *Phone*, where nothing hovers: a tap on the item's **info control** (a 44 px "i" button,
+    named "<item> details") opens it, and another tap closes it; so does a **long press** (500 ms,
+    moving under 10 px) on the item, whose release then doesn't also run the item's own tap (open
+    the picker) or bring up the system's callout. A tap outside, a tap on the tooltip itself, or
+    Escape closes it. Opened this way (**pinned**) it stays until then, and scrolls if it's taller
+    than the room: in the picker too, whose dialog or sheet draws it inside itself so the dialog's
+    scroll lock lets it scroll and a drag on it doesn't drag the sheet (review finding TU-1).
+  - **A tap outside only closes a pinned tooltip:** the slot or picker row the tap lands on doesn't
+    also act, as in the game and most phone popovers, so a player reading one item's tooltip doesn't
+    pick another by closing it. The next tap acts. A press outside that turns into a scroll leaves it
+    open. **Another item's info control** is the exception (TU-6): it picks nothing, so its tap
+    closes this tooltip and opens that one, and a long press on another item does the same, which
+    makes comparing a picker's candidates one tap each. (A hover or focus tooltip lets the pointer
+    through, so a click beside it acts at once.)
+  - **A tap on a pinned tooltip closes it** (TU-4), as the game's tooltips take no input: on a touch
+    screen's wide grid, where it can cover its own info control, that tap is the one the player makes.
+  - **It closes when its item scrolls out of view** (TU-3): out of the picker's list, or on the page
+    under the sticky header and tabs or behind the phone's sim bar. It never comes loose from its
+    item to ride over them (an `IntersectionObserver` on the item, and Radix's `hideWhenDetached`).
+  - Beside a hover or focus tooltip, the info control pins it open.
+  - **For screen readers** (TU-8, decided): the item keeps its own short accessible name and
+    description (a slot's summary, a picker row's full name and details), so the tooltip's twenty-odd
+    lines aren't read at every focus stop as the player tabs through a list. The tooltip is
+    `role="tooltip"`; the info control, where it shows, says whether it's open (`aria-expanded`) and
+    names the tooltip as its description while it is, so the full text is one control away.
+- **Placement:** beside the item from 640 px (right, or left where the item asks: the wide grid's
+  mirrored right side), on the other side where that one lacks the room, and **below it where
+  neither side has 16 rem** (`tooltipSide` in `item-tooltip-open.ts`, measured as it opens), flipping
+  above where there's more room there: a gear card as wide as a tablet's window, or a picker row
+  whose dialog leaves less than that beside it. **Where it fits neither below nor above** (its
+  height is measured as it opens, at its 20 rem width), it goes **over the item** instead, beside a
+  line inside the item's box on the side with more room outside it, as far toward the window's edge
+  as a 20 rem panel allows (`overlapLine`), where the window's whole height is its (review finding
+  TU-2: a hover tooltip can't scroll, so a set's bonuses were cut off). That's the picker at about
+  1,024 to 1,210 px, where the dialog leaves little beside it (Lightforge Legplates at 1024×768 sits
+  over the dialog's right edge, whole), and a Gear card at 640 to 900 px near the top or bottom of the
+  window (over the card's right half, clear of its icon). A hover tooltip there covers rows, but lets
+  the pointer through. On a phone it's below the item, flipping above. It's at most 20 rem wide,
+  narrowing to the room beside the item down to 16 rem (the window less 1 rem on a phone), keeps 8 px
+  clear of the window's edges and is as tall as the room, so it never makes the page scroll sideways
+  at 390, 1280 or 1920 px. **Pinned on the page, it also keeps clear of the sticky header and section
+  tabs and the phone's sim bar** (`--sticky-top`, `--sim-bar-height`), down to 320 px, so it never
+  covers them as the page scrolls under it; in the picker those are behind the overlay. A hover or
+  focus tooltip, there only while the pointer rests or focus stays, has the window's whole height,
+  which a set's tooltip needs on a 720 px laptop.
+- **What it sits beside** (`anchorBox`): the item's own element, except where that's wider than
+  what the player points at. In the wide Gear grid, whose slot buttons cover the whole row, it's the
+  slot's **icon, name and rank** (`WIDE_TOOLTIP_ANCHOR`), so the tooltip opens right beside them: the
+  left side's to their right, over the rest of its own row (stats, enchant, flags) and reaching the
+  right side's slots only where a long name leaves too little of the row; the mirrored right side's
+  to their left. In the item picker it's the **dialog's side**, level with the row, so from about
+  1,210 px, where the centred 42 rem dialog leaves 16 rem beside it, it covers none of the list; under
+  that it opens below the row (or above it, or over it) as the rule above says. A part with no size
+  (a hidden BiS badge) isn't one it sits beside. Hover and focus are still on the
+  whole slot or row; only where the tooltip sits changes. A virtual anchor (Radix's `virtualRef`), so
+  the item's own element stays the trigger.
+- **Where it shows** (M5.67 T2): every item the page shows.
+  - **Gear's slots, at every width:** the cards below 1440 px and both sides of the wide grid, beside
+    the slot's icon and name there, the right side's to their left. The slot's button is the item: hovering or
+    focusing it opens the tooltip, with the item worn, its enchant, and the set's pieces worn. Its
+    tap or click still opens the picker. An empty slot has none.
+  - **The item picker's rows,** in the dialog and the phone's sheet: the row's button is the item,
+    and its click or tap, Enter or Space still picks it; Tab still walks the rows. The row's
+    enchant line shows only on the item the slot holds, the one wearing it. Beside the dialog from
+    about 1,210 px, it covers nothing; below, above or over the row where there's less room, it
+    covers rows but a hover or focus tooltip lets the pointer through, so nothing it covers stops a
+    pick. Escape closes a focus or pinned one before the picker, and a hover one with it (above). On
+    a phone, a tap on another row while one is pinned only closes it, and a tap on another row's info
+    control opens that one (above). An off-hand a two-hander locks doesn't count toward a set here
+    either, as the engine skips it.
+  - **Not the character sheet,** which shows stats, not items.
+- **The info control shows only where nothing hovers** (the pointer isn't `(hover: hover) and
+  (pointer: fine)`): a phone, or a touch screen at any width. Where a mouse or pen hovers, desktop
+  included, it's left out: hover and keyboard focus already open the tooltip, so the control would
+  add a second way to the same panel, a tab stop on every slot and picker row, and width the
+  fixed-height slots don't have. Principle 4's "show it when there's room" is about what a menu or
+  disclosure hides, and nothing is hidden: the tooltip is one hover or focus away. Where it shows:
+  - on a gear card, at the end of the item's name line, top right before the chevron, as on a picker
+    row (review finding TU-5): its 44 px target reaches over the gap to the chevron and past the
+    name's line above and below, so the stats line keeps the row's whole width and its one line at
+    390 and 360 px (a long name is cut short 32 px sooner);
+  - in the wide grid, at the row's inner end, toward the pane's middle on either side;
+  - on a picker row, at its top right, level with the name.
+
+[gs-forever-ux]: https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua
 
 ## Brand
 

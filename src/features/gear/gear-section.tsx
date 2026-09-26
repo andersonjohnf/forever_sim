@@ -1,5 +1,5 @@
 import { Check, ChevronDown, ChevronRight, History, Info, MoreHorizontal } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState, type HTMLAttributes, type ReactElement, type ReactNode } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
@@ -11,7 +11,7 @@ import { ClassicEraNote, RULE_PROFILE_ID } from '@/features/character/classic-er
 import { changeAndFocus, selectedOption } from '@/features/refocus'
 import { useFocusAcrossPlaces } from '@/features/rotation/layout'
 import { SectionHeader } from '@/features/section'
-import { useIsWide } from '@/hooks/use-media-query'
+import { useIsWide, useMediaQuery } from '@/hooks/use-media-query'
 import { itemsById } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { hasThreatSet, isTwoHand, matchSupplies, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
@@ -21,7 +21,8 @@ import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
 import { itemDescription, unsimulatedEffects } from './item-flags'
 import { ItemFlags, ItemSummary } from './item-row'
-import { WideSlot, WideSlotGrid } from './wide-slots'
+import { ItemTooltip, ItemTooltipInfoButton, ItemTooltipTrigger } from './item-tooltip'
+import { WIDE_TOOLTIP_ANCHOR, WideSlot, WideSlotGrid } from './wide-slots'
 import { ammoNote, bisRank, EMPTY_SLOT_ICON, SLOT_LABEL, slotGroups } from './slots'
 
 /** The items equipped in each slot. */
@@ -121,6 +122,18 @@ export function GearSection() {
   }
   const setSection = useSetup((s) => s.setSection)
   const profile = useSetup((s) => s.config.rules.profile)
+  // The items worn, for a tooltip's set count (docs/ux.md "Item tooltips"): an off-hand a two-hander
+  // locks doesn't count, as the engine skips it (src/sim/plan/build.ts).
+  const wornIds = useMemo(
+    () =>
+      (Object.entries(config.gear) as [GearSlot, { itemId: number } | undefined][]).flatMap(([slot, entry]) =>
+        entry && !(slot === 'offHand' && twoHanded) ? [entry.itemId] : [],
+      ),
+    [config.gear, twoHanded],
+  )
+  // Where a mouse or pen hovers, hover and keyboard focus open an item's tooltip, so the info control
+  // shows only where nothing hovers: a touch screen, at any width (docs/ux.md "Item tooltips").
+  const hovers = useMediaQuery('(hover: hover) and (pointer: fine)')
 
   // From 1440 px the slots are a grid that shows them all at once (docs/ux.md "Gear", D34).
   const wide = useIsWide()
@@ -197,6 +210,37 @@ export function GearSection() {
         <Info className="mt-px size-3.5 shrink-0" aria-hidden />
         {unused}
       </>
+    )
+
+  /**
+   * A slot's row inside its item's tooltip (docs/ux.md "Item tooltips"): `trigger` wraps the slot's
+   * button, which the tooltip describes and sits beside (in the wide grid, `wide`, beside its icon and
+   * name), and `info` is the info control where nothing hovers. An empty slot has neither.
+   */
+  const withTooltip = (
+    slot: GearSlot,
+    item: Item | undefined,
+    row: (tooltip: { trigger: (button: ReactElement<HTMLAttributes<HTMLElement>>) => ReactNode; info: ReactNode }) => ReactNode,
+    wide?: { mirrored: boolean },
+  ) =>
+    item ? (
+      <ItemTooltip
+        key={slot}
+        item={item}
+        enchantId={config.gear[slot]?.enchantId}
+        profile={profile}
+        worn={wornIds}
+        // In the wide grid it opens beside the slot's icon and name, the mirrored right side's to their left.
+        side={wide?.mirrored ? 'left' : undefined}
+        anchorParts={wide ? `.${WIDE_TOOLTIP_ANCHOR}` : undefined}
+      >
+        {row({
+          trigger: (button) => <ItemTooltipTrigger>{button}</ItemTooltipTrigger>,
+          info: hovers ? null : <ItemTooltipInfoButton className="relative z-10" />,
+        })}
+      </ItemTooltip>
+    ) : (
+      row({ trigger: (button) => button, info: null })
     )
 
   const enchantPicker = (slot: GearSlot, item: Item, enchantId: string | undefined, className?: string) => (
@@ -350,29 +394,37 @@ export function GearSection() {
                   fit={place.enchantLine ? `${item.id}:${equipped?.enchantId ?? ''}:${config.rules.profile}` : undefined}
                 />
               )
-              return (
-                <WideSlot
-                  key={slot}
-                  slot={slot}
-                  place={place}
-                  item={item}
-                  locked={lockedByTwoHand}
-                  bis={bis}
-                  note={unused}
-                  button={slotButton(
-                    slot,
-                    item,
-                    lockedByTwoHand,
-                    bis,
-                    unused,
-                    // Its ring inset, so the list's rounded edge doesn't clip it.
-                    'absolute inset-0 z-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset disabled:cursor-not-allowed',
-                  )}
-                  // The chip's text lines up with the name above it: its focus ring's 4 px of room goes outside.
-                  chip={item && enchantable && enchantPicker(slot, item, equipped?.enchantId, place.mirrored ? '-mr-1' : '-ml-1')}
-                  flags={flags}
-                  flagged={Boolean(item && (!item.foreverData || unsimulatedEffects(item, meta.id).length > 0))}
-                />
+              return withTooltip(
+                slot,
+                item,
+                ({ trigger, info }) => (
+                  <WideSlot
+                    key={slot}
+                    slot={slot}
+                    place={place}
+                    item={item}
+                    locked={lockedByTwoHand}
+                    bis={bis}
+                    note={unused}
+                    button={trigger(
+                      slotButton(
+                        slot,
+                        item,
+                        lockedByTwoHand,
+                        bis,
+                        unused,
+                        // Its ring inset, so the list's rounded edge doesn't clip it.
+                        'absolute inset-0 z-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset disabled:cursor-not-allowed',
+                      ),
+                    )}
+                    // The chip's text lines up with the name above it: its focus ring's 4 px of room goes outside.
+                    chip={item && enchantable && enchantPicker(slot, item, equipped?.enchantId, place.mirrored ? '-mr-1' : '-ml-1')}
+                    flags={flags}
+                    flagged={Boolean(item && (!item.foreverData || unsimulatedEffects(item, meta.id).length > 0))}
+                    info={info}
+                  />
+                ),
+                { mirrored: place.mirrored },
               )
             }}
           />
@@ -386,31 +438,46 @@ export function GearSection() {
                   const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
                   return (
                     <li key={slot} className="flex min-w-0 flex-col rounded-xl border bg-surface shadow-surface">
-                      {/* The slot's button covers the row; the flag badges and the enchant chip sit above it, so a
-                          tap on one explains it rather than opening the picker (docs/ux.md "Gear"). Its z-1 keeps
-                          it over faded content too (an empty slot's icon), which opacity would lift above it. */}
-                      <div
-                        className={cn(
-                          'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
-                          lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
-                          enchantable && 'rounded-b-none',
-                        )}
-                      >
-                        {slotButton(
-                          slot,
-                          item,
-                          lockedByTwoHand,
-                          bis,
-                          unused,
-                          'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed',
-                        )}
-                        {item ? (
-                          <ItemSummary item={item} bis={bis} meta={SLOT_LABEL[slot]} dimmed={Boolean(unused)} note={unusedNote(unused)} idPrefix={`gear-${slot}`} />
-                        ) : (
-                          <EmptySlot slot={slot} locked={lockedByTwoHand} />
-                        )}
-                        {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
-                      </div>
+                      {withTooltip(slot, item, ({ trigger, info }) => (
+                        // The slot's button covers the row; the flag badges, the info control and the enchant chip
+                        // sit above it, so a tap on one does its own thing rather than opening the picker
+                        // (docs/ux.md "Gear"). Its z-1 keeps it over faded content too (an empty slot's icon),
+                        // which opacity would lift above it.
+                        <div
+                          className={cn(
+                            'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
+                            lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
+                            enchantable && 'rounded-b-none',
+                          )}
+                        >
+                          {trigger(
+                            slotButton(
+                              slot,
+                              item,
+                              lockedByTwoHand,
+                              bis,
+                              unused,
+                              'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed',
+                            ),
+                          )}
+                          {item ? (
+                            <ItemSummary
+                              item={item}
+                              bis={bis}
+                              meta={SLOT_LABEL[slot]}
+                              dimmed={Boolean(unused)}
+                              note={unusedNote(unused)}
+                              idPrefix={`gear-${slot}`}
+                              // On the name's line, as on a picker row, so the stats line keeps the row's width: its
+                              // 44 px target reaches over the gap to the chevron and past the name's line above and below.
+                              nameEnd={info && <div className="-my-3 -mr-3 flex shrink-0">{info}</div>}
+                            />
+                          ) : (
+                            <EmptySlot slot={slot} locked={lockedByTwoHand} />
+                          )}
+                          {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
+                        </div>
+                      ))}
                       {item && enchantable && <div className="border-t">{enchantPicker(slot, item, equipped?.enchantId)}</div>}
                     </li>
                   )

@@ -20,6 +20,12 @@ import { EMPTY_SLOT_ICON, paneGroups, SLOT_LABEL } from './slots'
  */
 const SLOT_HEIGHT = { enchant: 76, plain: 48 } as const
 
+/**
+ * Marks a wide slot's icon, name and rank: its item's tooltip opens beside them rather than at the
+ * row's far edge (docs/ux.md "Item tooltips"), as `ItemTooltip`'s `anchorParts`.
+ */
+export const WIDE_TOOLTIP_ANCHOR = 'item-tooltip-anchor'
+
 /** Where a slot sits in the wide grid, and so how it's drawn. */
 export type WidePlace = {
   /** The right side of the character pane: the icon on the right edge, the text aligned toward it. */
@@ -95,6 +101,7 @@ export function WideSlot({
   chip,
   flags,
   flagged,
+  info,
 }: {
   slot: GearSlot
   place: WidePlace
@@ -109,6 +116,8 @@ export function WideSlot({
   flags: ReactNode
   /** The item has a flag to show (`ItemFlags`), after its text or on its enchant line. */
   flagged: boolean
+  /** The item tooltip's info control, where nothing hovers (docs/ux.md "Item tooltips"). */
+  info?: ReactNode
 }) {
   const { mirrored } = place
   // The enchant line, where the row has one and there's a chip or a flag to put on it; else the text is centred.
@@ -128,14 +137,19 @@ export function WideSlot({
           // across the slot from it.
           className={cn('flex min-w-0 gap-3', line ? 'flex-1 items-start pb-2.5' : 'items-center', !line && !(item && flagged) && 'flex-1', mirrored && 'flex-row-reverse')}
         >
-          <WowIcon icon={item?.icon ?? EMPTY_SLOT_ICON[slot]} size="md" grayscale={!item} className={cn(fade)} />
+          {/* The icon, name and rank are what the item's tooltip opens beside (WIDE_TOOLTIP_ANCHOR). */}
+          <WowIcon icon={item?.icon ?? EMPTY_SLOT_ICON[slot]} size="md" grayscale={!item} className={cn(WIDE_TOOLTIP_ANCHOR, fade)} />
           <div className={cn('flex min-w-0 flex-1 flex-col', mirrored && 'items-end text-right')}>
             {/* The whole name on hover, and as the slot's accessible name (its button's). */}
             <span aria-hidden className={cn('flex h-4.5 w-full min-w-0 items-center gap-1.5 text-sm leading-4.5 font-medium', mirrored && 'justify-end', fade)}>
-              <span title={item?.name ?? SLOT_LABEL[slot]} className={cn('truncate', item ? QUALITY_CLASS[item.quality] : 'text-muted-foreground')}>
+              <span title={item?.name ?? SLOT_LABEL[slot]} className={cn(WIDE_TOOLTIP_ANCHOR, 'truncate', item ? QUALITY_CLASS[item.quality] : 'text-muted-foreground')}>
                 {item?.name ?? SLOT_LABEL[slot]}
               </span>
-              {bis ? <BisBadge rank={bis} /> : null}
+              {bis ? (
+                <span className={cn(WIDE_TOOLTIP_ANCHOR, 'flex shrink-0')}>
+                  <BisBadge rank={bis} />
+                </span>
+              ) : null}
             </span>
             {note ? (
               <span aria-hidden className={cn('flex h-4 w-full min-w-0 items-center gap-1.5 text-xs text-foreground', mirrored && 'justify-end')}>
@@ -159,6 +173,8 @@ export function WideSlot({
           </div>
         </div>
         {item && !place.enchantLine && flags}
+        {/* At the row's inner end, toward the pane's middle on either side. */}
+        {info && <div className={cn('flex shrink-0', mirrored ? 'mr-auto' : 'ml-auto')}>{info}</div>}
       </div>
     </li>
   )

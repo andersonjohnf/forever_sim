@@ -234,6 +234,22 @@ export interface VerbatimEffect {
    * the spell, fallback items included (docs/data/items.md#effects-of-fallback-items).
    */
   spellId: number;
+  /**
+   * The line is the scraper's words, not the client's: a conditional stat bonus whose description
+   * is empty, which the game doesn't show ("+15 Spell Power in certain areas.";
+   * docs/data/items.md#effect-and-set-bonus-text). Absent on the client's own lines.
+   */
+  generated?: true;
+}
+
+/**
+ * A stat spell's Equip line as the client renders its description, e.g. "Equip: Improves your
+ * chance to get a critical strike with melee attacks by 1.0%.", with what the spell adds to the
+ * item's `stats` and `weaponSkill` (docs/data/items.md#stat-spell-text).
+ */
+export interface StatEquipLine extends VerbatimEffect {
+  stats: Partial<Stats>;
+  weaponSkill?: Partial<Record<WeaponSkill, number>>;
 }
 
 export interface UseEffect extends VerbatimEffect {
@@ -507,6 +523,11 @@ export interface Item {
   weaponSkill: Partial<Record<WeaponSkill, number>> | null;
   /** Equip spells whose auras are part of `stats` and `weaponSkill` (sorted; [] for none). */
   statSpellIds: number[];
+  /**
+   * The client's Equip line for each stat spell that has one, in the item's effect order ([] for
+   * none): what the tooltip shows for those stats (docs/data/items.md#stat-spell-text).
+   */
+  statEquip: StatEquipLine[];
   /** "Chance on hit:" effects, and Equip effects that fire on an event. */
   procs: VerbatimEffect[];
   useEffects: UseEffect[];

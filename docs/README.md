@@ -11,6 +11,7 @@ documents: if the code and a doc disagree, one of them is a bug.
 | [ux.md](ux.md) | UX principles, layout, sections, states, and the **UX review checklist** |
 | [reviews/](reviews/README.md) | Adversarial review logs, one per push |
 | [milestones.md](milestones.md) | The plan and current status |
+| [known-gaps.md](known-gaps.md) | Low review findings and follow-ups not yet scheduled, each with its reason |
 | [architecture.md](architecture.md) | App layout, data flow, engine design, testing, deployment |
 | [decisions.md](decisions.md) | Log of significant decisions and their reasons |
 | [optimizer.md](optimizer.md) | The optimizer (D30): racing on common random numbers, the objective, constraints and effective health, the talent space, budgets, and how defaults come from it |

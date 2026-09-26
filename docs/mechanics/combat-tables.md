@@ -638,7 +638,7 @@ covers the generic table.
   does. Demoralizing Roar is Physical, so only its spell hit rolls. The cat's Faerie Fire, the same
   spell, rolls only its spell hit so far ([druid §3.8](../classes/druid.md#38-faerie-fire-in-cat-9907-r4));
   so do the other spell-hit casts (Curse of the Elements, the moonkin's Faerie Fire, Vampiric
-  Embrace), a known gap ([milestones](../milestones.md#known-gaps-and-follow-ups)).
+  Embrace), a [known gap](../known-gaps.md).
 - Resistance reduction caps at 75% (`R = 5 × level`) [C]; [F] ([Warcraft Tavern stats][wt-stats]).
 - **Forever:** spell penetration can push a target **below 0** resistance ("Spell
   Vulnerability"), which increases the spell damage it takes [F] tooltip text

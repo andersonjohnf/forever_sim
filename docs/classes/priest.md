@@ -197,7 +197,7 @@ Meditation's 17/33/50% of it inside the rule [F], and mp5 always. What restores 
 - **Spirit Tap** does nothing: it needs a kill.
 - **Shadowfiend** (401977: "Caster receives 5% mana when the Shadowfiend attacks", 15 s, 5 min) is a
   pet; the sim can't model pets until the pet core (H1), so it's left out and listed in the result's
-  assumptions (`shadowfiendNotSimulated`) and the milestones' known gaps.
+  assumptions (`shadowfiendNotSimulated`) and the [known gaps](../known-gaps.md).
 
 In the default setup the priest spends about 10,600 mana a fight and still ends it with about 2,300
 of its 5,506: its Major Mana Potion is used about once.
@@ -364,7 +364,7 @@ move to ranks 2 and 3, and the default gains 7.0% (523.3 → 559.7 DPS, 20,000 f
 sim-ranked list, as the warlocks' ([warlock.md §7.3](warlock.md#73-gear)), would gain a few percent
 more; it's a known gap. Briarwood Reed's Forever effect ("+15 Spell Power in
 certain areas") and Eye of the Beast's on-use +7% spell hit aren't simulated: they count as zero (E7 in
-[shaman.md](shaman.md), the milestones' known gaps).
+[shaman.md](shaman.md), the [known gaps](../known-gaps.md)).
 
 **The off hand is re-ranked by the sim** (DV2-4, 1.60.1.70009): Spirit of Aquementas, the default's,
 lost its Forever row in 1.60.1.70009 and has Classic Era's stats, so its slot was ranked again among the

@@ -712,7 +712,7 @@ has its hour. A new top-level folder in `public/` needs a row.
 `public/404.html` is the page both hosts serve for a path that doesn't exist: plain HTML with no
 script, carrying its own meta policy (no worker, font or Wowhead images), which the header policy
 also allows. A missing `/assets/` file still gets the immutable header with its 404; that's accepted
-(known gaps), since hashed names are never reused.
+([known gaps](known-gaps.md)), since hashed names are never reused.
 
 ### Release stamp
 

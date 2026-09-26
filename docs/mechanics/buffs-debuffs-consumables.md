@@ -1014,7 +1014,7 @@ Balance +0.16%, while Frost and Arcane −0.10%, Destruction −0.21%, Shadow �
 −0.45% lose. The hunters, whose Auto Shot it only holds, gain: Marksmanship
 +0.89%, Survival +0.85%, Beast Mastery +0.51%. Its 15 yd range is the catch for both: a caster or
 hunter at 30 yd or more would have to move in to throw it, which the sim doesn't model, so no caster
-or hunter preset throws it yet (a known gap in the [milestones](../milestones.md)).
+or hunter preset throws it yet (a [known gap](../known-gaps.md)).
 
 Druids in forms and weapon temporary enchants: whether stones or oils do anything in cat or
 bear form is owned by [druid](../classes/druid.md). A shaman's weapon imbue is its main hand's

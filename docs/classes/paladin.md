@@ -1812,7 +1812,13 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    curve)? *Test:* count Redoubt procs per melee hit taken at 1–5 ranks. The sim uses 10% at
    every rank; at the default 5/5 both readings agree, so no default moves. Without Redoubt the
    default Protection setup makes 7.5% less TPS: its blocks feed Holy Shield and Shield
-   Specialization.
+   Specialization. **The user's logs** (1.60.1.70009, 2026-09-26, a level-20 paladin tanking
+   Ragefire Chasm pulls, two logs): 17 procs from 116 landed melee hits, about 15% (roughly 9–22% at
+   this sample), none from 12 landed spell hits; each lasts 10 s, a proc refreshes it and blocks use its
+   charges, as modelled. Uptime while being hit was 42% and 46%; the sim's default fight gives 34.8%,
+   against one boss's melee only. Adds and a boss's extra attacks give more swings to proc it, so
+   the multi-target fight (M6) will show a higher uptime; the single-target default keeps the tooltip's
+   10%. Always up, it would be +9% TPS and −1.5% damage taken (seed 31101, 2,000 fights).
 9. **Reckoning** extra-attack stacking cap and block-trigger rate. *Test:* block-heavy
    tanking log. The sim swings each at once, so in combat no stack builds (one given during Hammer
    of Wrath's cast swings when the cast ends); without Reckoning the default Protection setup makes

@@ -1458,6 +1458,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [?]; Reckoning's stacking cap [?]; Sanctified Judgement returns 60% of the seal's base cost
   and nothing on a missed judgement [?]; Vindication effectively permanent (100% proc in data)
   [?]; Benediction and Holy Conduit add [?]; Seal and Judgement of Wisdom proc rates [?].
+- **Measured:** the user's two logs, 17 procs from 116 landed melee hits (about 15%, small sample), none from 12 spell hits; uptime 42–46% while being hit, against the default fight's 34.8%
 - **Test:** Redoubt procs per hit taken at 1–5 ranks; a block-heavy log for Reckoning; mana
   before and after landed and missed judgements; Vindication uptime; Consecration's cost with
   both talents; mana procs per hit with Wisdom.

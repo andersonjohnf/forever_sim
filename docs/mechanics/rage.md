@@ -666,9 +666,9 @@ Ferocity, which the sim already applies.
   3 talent points, and Ferocity 3/5 takes 3 off Maul: 12. The log's cost field shows the base 15.
   Then the dodged Maul is 80% of its 12 refunded, net 2.4, as the sim's refund rule
   ([refunds](#rage-refunds-on-avoided-abilities)) gives: one Forever sample for Maul's 80%.
-- **Left open.** The bear's talents weren't recorded, so this rests on the one 12-rage Maul
-  ([druid.md Q39](../classes/druid.md#10-open-questions)). Read as 3 rage given back on each Maul,
-  on top of Ferocity 5/5's 5 off, which the sim already applies, it would add about 5% to the bear's
+- **Closed.** The user confirmed the test bear had Ferocity 3/5 (2026-09-26;
+  [druid.md Q39](../classes/druid.md#10-open-questions)), so Forever gives Maul no rage back. Read as 3
+  rage given back on each Maul, on top of Ferocity 5/5's 5 off, it would have added about 5% to the bear's
   TPS (1,088.8 → 1,143.6 on the 5,000 boss; seed 31101, 100,000 fights).
 
 ### Bear white hits in the public beta logs [?]

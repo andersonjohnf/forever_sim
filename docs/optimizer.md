@@ -979,6 +979,12 @@ compares the leader, the answer, with the default.
   its head, neck and rings, the other slots locked, on 24,000 fights: the answer changes an open slot
   for a higher-level item, clears the bad set at 95%, spends no more than its budget, and is the same,
   step for step, on a second run with the same seed.
+- **The hands' rules on the hands alone.** A Protection warrior set up with a two-hander breaks the
+  shield rule, and its head is still searched: the rule is checked only when a hand changes.
+- **Talents, gear and rotation together** (`gear-search.test.ts`). Fury with every default talent kept
+  but Deep Wounds and Impale, and the bad set's open slots: the talent pass comes first, the gear pass
+  searches with its answer's build, a later pass keeps what the one before found, and the cycles stop
+  within the cap.
 
 These are unit tests (`src/sim/optimize/*.test.ts`).
 

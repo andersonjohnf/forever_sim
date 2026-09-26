@@ -4,7 +4,9 @@ import { defaultConfig } from '../defaults'
 import type { GearSlot, SimConfig } from '../types'
 import { localFightRunner } from './fights'
 import { gearContext, type Gear, POOL, SEARCHED_SLOTS, slotPool } from './gear'
-import { type GearSearchOptions, optimizeGear } from './gear-search'
+import { decodeTalentCode, talentsInCodeOrder } from '@/data/talents/types'
+import { TALENT_DATA } from '../defaults'
+import { type GearSearchOptions, optimizeGear, optimizeTogether } from './gear-search'
 import { gearKey } from './optimize'
 
 const OPEN: GearSlot[] = ['head', 'neck', 'finger1', 'finger2']
@@ -36,6 +38,41 @@ const search = (config: SimConfig, extra: Partial<GearSearchOptions> = {}) =>
     measureFights: 20,
     ...extra,
   })
+
+describe('talents, gear and rotation together', () => {
+  it('passes each answer on, and stops when a cycle moves nothing', { timeout: 120_000 }, async () => {
+    // Fury, every default talent kept but Deep Wounds and Impale, so the talent space is small.
+    const config = badFury()
+    const data = TALENT_DATA.warrior
+    const ranks = decodeTalentCode(data, config.talents)
+    const keep = Object.fromEntries(
+      talentsInCodeOrder(data)
+        .flat()
+        .filter((t) => (ranks[t.id] ?? 0) > 0 && t.name !== 'Deep Wounds' && t.name !== 'Impale')
+        .map((t) => [t.name, ranks[t.id]]),
+    )
+    const passes = await optimizeTogether({
+      config,
+      talents: { keep, screenFights: 10 },
+      filters: { locked: SEARCHED_SLOTS.filter((s) => !OPEN.includes(s)) },
+      gearOptions: { restarts: false, passes: 1, perSlot: 2, enchantsPerItem: 1, weightFights: 30, measureFights: 20 },
+      budget: { fights: 6_000 },
+      maxFights: 200_000,
+      runner: localFightRunner(),
+      cycles: 2,
+    })
+    expect(passes[0].kind).toBe('talents')
+    expect(passes[1].kind).toBe('gear')
+    // The gear pass searched gear with the talent pass's answer.
+    expect(passes[1].answer!.talents).toBe(passes[0].answer!.talents)
+    // A pass after the first starts where the last ended, so its answer keeps what that one found.
+    const gear = passes[1].answer!.gear!
+    if (passes[2]) expect(passes[2].answer!.gear).toEqual(gear)
+    // It stops on a whole cycle with nothing moved, or when the cycles run out.
+    expect(passes.length).toBeLessThanOrEqual(4)
+    expect(passes.reduce((n, p) => n + p.report.fights, 0)).toBeLessThanOrEqual(200_000)
+  })
+})
 
 describe('the gear search', () => {
   it('improves a bad set, within its budget, the same for a seed', { timeout: 120_000 }, async () => {

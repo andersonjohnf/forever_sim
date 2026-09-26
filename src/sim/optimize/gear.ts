@@ -259,7 +259,8 @@ export function wornItems(gear: Gear): Partial<Record<GearSlot, Item>> {
 export function gearProblems(ctx: GearContext, gear: Gear, from?: Gear): string[] {
   const problems: string[] = []
   const worn = wornItems(gear)
-  const changed = (Object.keys(gear) as GearSlot[]).filter((slot) => !from || !sameEquipped(gear[slot], from[slot]))
+  const slots = [...new Set([...Object.keys(gear), ...Object.keys(from ?? {})])] as GearSlot[]
+  const changed = slots.filter((slot) => !from || !sameEquipped(gear[slot], from[slot]))
   for (const slot of changed) {
     const entry = gear[slot]
     if (!entry) continue
@@ -278,9 +279,12 @@ export function gearProblems(ctx: GearContext, gear: Gear, from?: Gear): string[
       if (!enchant || !enchantFits(enchant, slot, item)) problems.push(`${slot}: enchant ${entry.enchantId} doesn't fit ${item.name}`)
     }
   }
-  const mh = worn.mainHand
-  if (mh && isTwoHand(mh) && gear.offHand) problems.push('a two-hander leaves the off hand empty')
-  if (SHIELD_SPECS.has(ctx.spec) && (!mh || isTwoHand(mh) || worn.offHand?.slot !== 'shield')) problems.push('a shield tank keeps a one-hander and a shield')
+  // The hands' rules, when a hand changed: a setup that breaks one can still have its other slots searched.
+  if (changed.includes('mainHand') || changed.includes('offHand')) {
+    const mh = worn.mainHand
+    if (mh && isTwoHand(mh) && gear.offHand) problems.push('a two-hander leaves the off hand empty')
+    if (SHIELD_SPECS.has(ctx.spec) && (!mh || isTwoHand(mh) || worn.offHand?.slot !== 'shield')) problems.push('a shield tank keeps a one-hander and a shield')
+  }
   return problems
 }
 

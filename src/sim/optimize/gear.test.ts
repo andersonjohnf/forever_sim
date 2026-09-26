@@ -1,7 +1,6 @@
 // The gear search's candidates and rules (docs/optimizer.md#gear): pure, no fights, except the
 // stat-weight perturbation's plan checks.
 import { describe, expect, it } from 'vitest'
-import type { Item } from '@/data/items/types'
 import { defaultConfig } from '../defaults'
 import { ENCHANTS } from '../effects/enchants'
 import { itemFaction, isTwoHand } from '../equip'
@@ -148,6 +147,18 @@ describe('the rules a gear set keeps', () => {
       }
   })
 
+  it('checks the hands’ rules only when a hand changes', () => {
+    // A Protection warrior set up with a two-hander breaks the shield rule, but its head can still be searched.
+    const prot = setup('warrior-protection')
+    const twoHander = [...POOL.values()].find((i) => isTwoHand(i) && i.weaponType === 'sword')!
+    const broken: Gear = { ...prot.gear, mainHand: { itemId: twoHander.id } }
+    delete broken.offHand
+    const protCtx = gearContext(prot)
+    expect(gearProblems(protCtx, broken)).toContain('a shield tank keeps a one-hander and a shield')
+    expect(gearProblems(protCtx, { ...broken, head: { itemId: 12640 } }, broken)).toEqual([])
+    expect(groups(prot, 'head', {}, broken).length).toBeGreaterThan(0)
+  })
+
   it('leaves locked slots as they are', () => {
     const locked = (slots: GearSlot[]) => ({ locked: slots })
     expect(groups(config, 'head', locked(['head']))).toEqual([])
@@ -268,5 +279,3 @@ describe('a candidate with gear', () => {
     expect(candidateKey(config, { ...base, gear: { ...config.gear, head: { itemId: 12640 } } })).not.toBe(candidateKey(config, base))
   })
 })
-
-export type { Item }

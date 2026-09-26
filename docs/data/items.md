@@ -716,8 +716,9 @@ rank lower, and a Horde character wears it as the default main hand (`TWO_HANDER
 `src/sim/defaults.ts`). The off hand isn't part of that choice: one rule puts the default off hand
 beside the main hand actually worn, none beside a two-hander and the spec's best off hand beside a
 one-hander, the default's or the player's own (`defaultOffHand`; gate step 6, review finding EV2-1).
-So a Horde caster's empty off hand comes from the staff, and a Horde caster wearing their own
-one-hander gets the off hand an Alliance caster's default has. Cut with it: the empty off hand
+So a Horde caster's empty off hand comes from the staff. An off hand follows only while it holds
+that default beside the main hand worn: one the staff emptied becomes the player's when they pick
+a one-hander, so it stays empty until they choose one (review EV3-1). Cut with it: the empty off hand
 stored as part of the Horde default, which a race change carried onto a player's own one-hander,
 and the separate branch for an off hand beside the player's own two-hander ([ux.md
 "Gear"](../ux.md#gear)). For an Alliance character nothing moves: the Alliance's Crackling Staff (+25 in

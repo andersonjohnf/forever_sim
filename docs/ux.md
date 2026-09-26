@@ -374,7 +374,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     `followDefaults` carried its own branch for an off hand beside the player's two-hander. The
     list of two-handers ranked over a main hand and off hand (`twoHandersOverPair`) now only
     chooses the default main hand and the main-hand picker's order. An empty off hand beside a
-    one-hander that the player left that way stays theirs.
+    one-hander stays empty: an off hand follows only while it holds the default beside the main hand
+    worn, so one a two-hander emptied becomes the player's when they pick a one-hander, and nothing
+    fills it until they choose one (review EV3-1; filling it from the picker would be a design change).
+    An own one-hander that already has the default's off hand beside it keeps it across a race change.
   - Under it, a bordered row puts the default set back in one tap: a 44 px **Equip pre-raid best in
     slot** button, or **Equip the threat set** for a tank, beside a line on how the gear compares.
     While any slot's item or enchant differs from the default for the spec and race, the line

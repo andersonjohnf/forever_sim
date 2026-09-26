@@ -1298,10 +1298,10 @@ seed 36501, 400,000 paired fights) the result is **+40.25 DPS (+5.02%, 95% CI +4
     feed it; the ticks ignore armor and don't crit.
 
   So the gap is the cited mechanics' (four tenths of it D36's `[?]` rolling Deep Wounds), not a
-  formula error found, and it stays a D29 finding until the guild's test of the rolling bleed
-  ([Q21](#9-open-questions), [open-questions B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer))
-  confirms or moves it. D29 has no numeric target, so no value moves for it; the gap goes to the
-  guild's tests.
+  formula error found, and it stays a D29 finding until M5.669's B3 re-check of the rolling bleed
+  or an in-game test ([Q21](#9-open-questions), [open-questions B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer))
+  confirms or moves it. D29 has no numeric target, so no value moves for it; the gap is an open
+  question.
 
 ### 5.3 Arms (two-hander)
 

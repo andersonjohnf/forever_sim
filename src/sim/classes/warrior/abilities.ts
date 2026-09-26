@@ -768,10 +768,11 @@ export const REVENGE: AbilityDef = {
  * 6000, GCD 1500, any stance, a shield (`equippedItemSubclass` 64). `SCHOOL_DAMAGE` 655 with
  * `Variance` 0.0457, 655 ± 15.0: the tooltip's 640–670 [F] [sb], 655 ± 15, plus the block value (the
  * tooltip's "increased by your Block Value", ×1; warrior.md §3.1, W15). A melee spell: two rolls
- * (combat-tables §3). Its dispel doesn't matter here. Threat dmg + 254 [C] in both profiles: Classic
- * Era's rank 4 bonus (Magey's 1.13.6 and Resultsmayvary's 1.13.2 tests, both reading ranks 1–4 as
- * 178 / 203 / 229 / 254), measured when the tooltip said "high". Forever's tooltip says "a very high amount" and neither client carries a
- * value, so any extra over 254 is an open question with no default (threat.md#warrior,
+ * (combat-tables §3). Its dispel doesn't matter here. Threat dmg + 254 in both profiles: Classic
+ * Era's rank 4 bonus [C] (Magey's 1.13.6 and Resultsmayvary's 1.13.2 tests, both reading ranks 1–4
+ * as 178 / 203 / 229 / 254), measured when the tooltip said "high", and [?] in `forever`, where it
+ * stands in for an unknown value. Forever's tooltip says "a very high amount" and neither client
+ * carries a value, so the extra over 254 is 0 [?], an open question (threat.md#warrior,
  * threat.md#threat-wording-table, warrior.md Q34).
  */
 export const SHIELD_SLAM: AbilityDef = {
@@ -808,7 +809,7 @@ export const SHIELD_SLAM: AbilityDef = {
  * (`cumulativeAura` 5), each application refreshing the stack's duration; and a THREAT effect (63) of
  * 206 [F] (1.60.1.70009; 1013 before it), flat. Blizzard's notes add "a small increase to threat
  * generated from Attack Power", which the client doesn't carry (the effect has no bonus
- * coefficient) and nobody has measured, so it has no value and adds nothing (`SUNDER_ARMOR_THREAT`;
+ * coefficient) and nobody has measured, so it has no value and adds 0 [?] (`SUNDER_ARMOR_THREAT`;
  * threat.md#warrior, warrior.md Q1). It deals no damage: one roll over miss, dodge, parry and block (combat-tables §3),
  * and what lands is a hit, not a crit (warrior.md §7). A miss, dodge or parry refunds 80% [C]. Its
  * stacks on the boss take the place of the Buffs tab's Sunder Armor ×5 (warrior.md §5.4 notes). This
@@ -844,7 +845,7 @@ export const SUNDER_ARMOR: AbilityDef = {
  * Sunder Armor's flat threat per landed application, by rule profile (threat.md#warrior, worked
  * examples T1 and T2), before the global multipliers:
  * - `forever`: the Forever client's THREAT effect, 206 at rank 5 [F] (1.60.1.70009, 34 / 75 / 117 /
- *   158 / 206 by rank). The notes' attack power term has no value anywhere, so it adds nothing
+ *   158 / 206 by rank). The notes' attack power term has no value anywhere, so it adds 0 [?]
  *   (warrior.md Q1; open-questions B10).
  * - `classicEra`: Classic Era's server-side 261 [C] (Magey), since the Classic Era client has no
  *   threat effect on the spell.

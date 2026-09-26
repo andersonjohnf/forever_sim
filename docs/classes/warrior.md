@@ -1942,10 +1942,11 @@ Notes:
   slow from the Buffs tab counts instead of your own. The results list the three with their uptimes.
 - **Threat values** per ability, including the Forever Sunder question (Q1), live in
   [threat.md](../mechanics/threat.md#warrior). The engine uses the Forever client's 206 for Sunder
-  Armor, flat (the notes' attack power term has no value), and Classic Era's values for the rest
-  [?], Shield Slam's dmg + 254 [C] included: its "very high" tooltip has no value (Q34, the
+  Armor, flat (the notes' attack power term has no value, so it's 0 [?], Q1), and Classic Era's
+  values for the rest [?], Shield Slam's dmg + 254 [?] (Classic Era's [C]) included: its "very
+  high" tooltip has no value, so the extra is 0 [?] (Q34, the
   [wording table](../mechanics/threat.md#threat-wording-table)). Under the `classicEra` profile
-  Sunder's is Classic Era's 261 [C] too.
+  Sunder's is Classic Era's 261 [C] and Shield Slam's dmg + 254 [C].
   The Classic reference numbers are the measurements Magey's table collects [magey-thr]: Magey's on
   1.13.6, and Resultsmayvary's on 1.13.2 for Heroic Strike r8 and Revenge r5, the ranks the sim uses.
 - **Why Sunder Armor still fills the free GCDs.** Since build 1.60.1.70009 it makes about 308

@@ -8,9 +8,11 @@
 // bear.test.ts checks them against it. Rage is in tenths, times in ms. These are the base rows:
 // the build's talents (Ferocity, Shredding Attacks, Savage Fury, Feral Instinct, Genesis,
 // Predatory Instincts, Rend and Tear) are applied by `withDruidTalents` (modifiers.ts) when the plan
-// resolves the rotation. Threat values are threat.md's bear rows: Classic values that only a threat
-// library carries, and Lacerate's "high amount of threat" by threat.md's wording table (D29): the
-// warrior's Sunder Armor's at the same level, so [?] (Q15).
+// resolves the rotation. Threat values are threat.md's bear rows, all [?] (Q15): Maul's, Swipe's,
+// Faerie Fire's and Demoralizing Roar's are the values every Classic and Season of Discovery threat
+// tool has used since 2019, which trace to a 2006 guide and were never measured on Classic Era; and
+// Lacerate's "high amount of threat" is, by threat.md's wording table (D29), the warrior's Sunder
+// Armor's at the same level.
 import { CRIT_MULTIPLIER, GCD_MS } from '../../core/formulas'
 import { type AbilityDef, SCHOOL, STANCE_ANY } from '../../plan/types'
 import type { RulesProfile } from '../../rules/profiles'
@@ -26,10 +28,15 @@ export const BEAR_GCD_MS = GCD_MS
 /** A bear attack that misses or is dodged or parried refunds 80% of its rage, as a warrior's does [?] (rage.md#rage-refunds-on-avoided-abilities). */
 const BEAR_REFUND = 0.8
 
-/** Maul's and Swipe's threat: 1.75 per damage before the global multipliers [?] (threat.md#druid-bear, druid.md §4.8, Q15). */
+/**
+ * Maul's and Swipe's threat: 1.75 per damage before the global multipliers [?] (threat.md#druid-bear,
+ * druid.md §4.8, Q15). Every Classic and Season of Discovery threat tool has used it since 2019; it
+ * traces to a 2006 guide and was never measured on Classic Era. The same lineage gives Faerie Fire's
+ * and Demoralizing Roar's below.
+ */
 export const MAUL_THREAT_MULT = 1.75
 export const SWIPE_THREAT_MULT = 1.75
-/** Faerie Fire's threat, 108 (rank 4), and Demoralizing Roar's, 39 per target (rank 5) [?] (threat.md#druid-bear, druid.md §4.8). */
+/** Faerie Fire's threat, 108 (rank 4), and Demoralizing Roar's, 39 per target (rank 5), of Maul's lineage [?] (threat.md#druid-bear, druid.md §4.8, Q15). */
 export const FAERIE_FIRE_THREAT = 108
 export const DEMORALIZING_ROAR_THREAT = 39
 
@@ -133,17 +140,14 @@ export const LACERATE_RANK_LEVELS = [42, 50, 58] as const
  * threat.md#threat-wording-table, D29: the same words make the same threat). No Lacerate rank has a
  * threat effect in the client, so it takes the value of the warrior's ability with those words at
  * its level, Sunder Armor r5 (level 58, 15 rage, a 5-stack debuff, as rank 3 is):
- * - `forever`: Forever's Sunder since build 1.60.1.70009, the client's **206** (effect 63) [F] plus
- *   the attack power share Blizzard's notes add, which the client doesn't carry, **0.05 × AP** [?]
- *   (threat.md#warrior, warrior.md Q1): about 274 at the default bear's ~1,355 attack power when its
- *   Lacerates land (1,296 at the pull). It takes
- *   the warrior's share as given; if that default moves, this one moves with it (guild test G1).
+ * - `forever`: Forever's Sunder since build 1.60.1.70009, the client's **206** (effect 63) [F],
+ *   flat [?] (user decision, 2026-09-26): the client carries no attack power term, so none is added.
  * - `classicEra`: Classic Era's rule, 4.5 × level 58 = **261** [C], Sunder's there.
  */
 export const LACERATE_THREAT = {
-  forever: { bonus: 206, apCoefficient: 0.05 },
-  classicEra: { bonus: highThreatBonus(LACERATE_RANK_LEVELS[2]), apCoefficient: 0 },
-} as const satisfies Record<RulesProfile['id'], { bonus: number; apCoefficient: number }>
+  forever: 206,
+  classicEra: highThreatBonus(LACERATE_RANK_LEVELS[2]),
+} as const satisfies Record<RulesProfile['id'], number>
 
 /**
  * Lacerate rank 3 (spells.json 1235827): 15 rage, GCD 1500; a bleed of 15 every 3000 ms for 15000 ms
@@ -152,8 +156,8 @@ export const LACERATE_THREAT = {
  * re-snapshots the bleed for every stack [?] (druid.md §4.3, §2.9, Q16). Its ticks carry the
  * periodic-crit flag (SpellMisc Attributes[8] 0x200), so they crit in `forever` [?]. Its threat,
  * "high" in the tooltip: one per damage, plus the profile's `LACERATE_THREAT` per landed application
- * (206 + 0.05 × the attack power as it lands in `forever`, 261 in `classicEra`), a hit or a block, the
- * first one too, which deals no damage [?] (Q15). Clearcasting's class mask covers it (§2.7). This is
+ * (206 in `forever`, 261 in `classicEra`), a hit or a block, the first one too, which deals no
+ * damage [?] (Q15). Clearcasting's class mask covers it (§2.7). This is
  * the `forever` row; `lacerate(profile)` gives the profile's.
  */
 export const LACERATE: AbilityDef = {
@@ -164,8 +168,7 @@ export const LACERATE: AbilityDef = {
   ...BEAR_ATTACK,
   costTenths: 150,
   weaponPercentPerStack: LACERATE_WEAPON_PCT_PER_STACK,
-  threatBonus: LACERATE_THREAT.forever.bonus,
-  threatApCoefficient: LACERATE_THREAT.forever.apCoefficient,
+  threatBonus: LACERATE_THREAT.forever,
   clearcastable: true,
   dotTickDamage: 15,
   dotTicks: 5,
@@ -176,10 +179,8 @@ export const LACERATE: AbilityDef = {
 
 /** Lacerate under a rule profile: its "high amount of threat" is the profile's (`LACERATE_THREAT`). */
 export function lacerate(profile: RulesProfile): AbilityDef {
-  const { bonus, apCoefficient } = LACERATE_THREAT[profile.id]
-  return bonus === LACERATE.threatBonus && apCoefficient === LACERATE.threatApCoefficient
-    ? LACERATE
-    : { ...LACERATE, threatBonus: bonus, threatApCoefficient: apCoefficient }
+  const bonus = LACERATE_THREAT[profile.id]
+  return bonus === LACERATE.threatBonus ? LACERATE : { ...LACERATE, threatBonus: bonus }
 }
 
 /**

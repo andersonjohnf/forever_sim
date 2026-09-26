@@ -626,12 +626,12 @@ when the swing lands. No GCD. [F] [se-f] [sp-f]
 (SpellEffect, SpellClassOptions, 1.60.1.69913). The mask's first word, 0x800, is Maul's and
 Swipe's; its second, 0x40, is Primal Bite's (1238073), which the tooltip doesn't name. The engine takes
 2 rage off all three: Maul **8**, Swipe and Primal Bite **13** with Ferocity 5/5 (W21). Maul and Swipe
-[F]; Primal Bite by the class mask [F data, ?] (Q37, guild test G2). In the engine the bear's rotation
+[F]; Primal Bite by the class mask [F data, ?] (Q37, in-game test G2). In the engine the bear's rotation
 reads it from the equipped items (`withIdolOfBrutality`, as Wolfshead Helm's Enrage), so the
 results don't list it as not simulated.
 
-Threat ×1.75 before the form modifier [?] (LibThreatClassic2 only, [ltc2]; see
-[threat.md](../mechanics/threat.md#druid-bear); Q15).
+Threat ×1.75 before the form modifier [?]: every Classic and Season of Discovery threat tool has used it since 2019 (LibThreatClassic2, [ltc2], and the tools built on it); it traces to a 2006 guide and was never measured on Classic Era. It stays the default (user
+decision, 2026-09-26) ([threat.md](../mechanics/threat.md#druid-bear); Q15).
 
 **In the engine** it's an on-next-swing row (the warrior's Heroic Strike queue, §8 "Maul"): queued
 off the GCD, paid when its swing lands, one roll on the special table. The swing it replaces gives
@@ -672,29 +672,30 @@ no rage, where a landed white swing would give 8.65 [?]
 - **Assumption [?]:** each application also deals an immediate physical hit of
   `0.10 × W_b × (stacks already on the target)`, can crit, and refreshes the bleed's duration. A
   separate spell, 414647, carries a 20% weapon-damage effect whose role is unknown.
-- "Causes a high amount of threat": **+206 + 0.05 × AP per landed application** [?] (about
-  **274** at the default bear's ~1,355 attack power when its Lacerates land; 1,296 at the pull), by
+- "Causes a high amount of threat": **+206 per landed application** [?], by
   [threat.md's wording table](../mechanics/threat.md#threat-wording-table)
   ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)):
   the same words make the same threat, and rank 3 is level 58, 15 rage and a 5-stack debuff, as
   the warrior's Sunder Armor r5 is. No rank has a threat effect in the client, so it's server-side
-  (Q15, guild test G1).
+  (Q15, in-game test G1).
   - **Re-derived for build 1.60.1.70009.** Until then Lacerate took Classic Era's rule for the
     words, 4.5 × the spell's level (Sunder r5's 261 [C]; Revenge's 243 and 270), because Forever's
     only value, Sunder's 1013, was 2.25 × the armor it removes and so Sunder's alone. 1.60.1.70009
     replaced it: Sunder's client threat is now 34/75/117/158/**206** at levels 10/22/34/46/58, about
-    3.4–3.55 × its level, no longer tied to its armor, plus "a small increase to threat generated
-    from Attack Power" by Blizzard's notes, which the client doesn't carry and the warrior's slice
-    defaults to **0.05 × AP** [?] ([threat.md § warrior](../mechanics/threat.md#warrior), warrior.md
-    Q1). A Forever value for the same words at the same level outranks Classic Era's (doctrine §2),
-    so rank 3 takes Sunder r5's whole: **206 [F] + 0.05 × AP [?]**, the attack power as the
-    application lands. Ranks 1 and 2 would take Sunder's ladder at their levels, about 144 (42) and
-    174 (50), plus the same share; the sim uses rank 3.
-  - **It depends on the warrior's Sunder.** The 0.05 is the warrior's default for the term Blizzard
-    didn't publish; if a test or a later build moves it, Lacerate's moves with it. Against Classic
-    Era's 261 it's +10 at the default bear's attack power: **+0.34% TPS** (1,115.34 → 1,119.09 on
-    seed 31101, 100,000 fights), and nothing else.
+    3.4–3.55 × its level, no longer tied to its armor. A Forever value for the same words at the
+    same level outranks Classic Era's (doctrine §2), so rank 3 takes Sunder r5's client value:
+    **206**. Ranks 1 and 2 would take Sunder's ladder at their levels, about 144 (42) and 174 (50);
+    the sim uses rank 3.
+  - **Flat, with no attack power term** (user decision, 2026-09-26). Blizzard's notes add "a small
+    increase to threat generated from Attack Power" to Sunder, but give no size, and the client
+    carries none, so any share would be invented. It was 206 + 0.05 × AP (about 274 when the
+    default bear's Lacerates land) until then: the flat 206 moves the default bear **1,102.4 →
+    1,083.3 TPS (−1.73%)**, DPS unchanged (the default setup, seed 1, 10,000 fights).
   - `classicEra` keeps Classic Era's rule, 261 flat.
+  - Season of Discovery's Lacerate is the same spell (Forever's rank 1 reuses its id, 414644, and its
+    tooltip), and Blizzard's SoD hotfixes of 2 December 2024 set its threat to 3.33 × damage on the
+    hit and the ticks (was 3.5) [sod-hotfix]. That's an allowed analog (D36, D37), not adopted:
+    the user chose Sunder's 206 by the wording rule (Q15).
 - In `forever` its ticks may crit [?] (§2.9).
 - [F] [client] (SpellEffect, SpellDuration, SpellAuraOptions, 1.60.1.69913: period 3000 ms,
   15,000 ms, `CumulativeAura` 5)
@@ -710,16 +711,17 @@ no rage, where a landed white swing would give 8.65 [?]
     an application at that moment starts again from one stack.
   - Its ticks count on a row of their own, "Lacerate (bleed)", whose casts are the landed
     applications. Hit and ticks make one threat per damage (Q15), and each landed application
-    (a hit or a block, the first one too, which deals nothing) makes 206 + 0.05 × the attack power
-    as it lands more (261 in `classicEra`) × the form's multiplier, on the hit's row
-    (`LACERATE_THREAT`, `lacerate(profile)`, the engine's `threatApCoefficient`; W20).
+    (a hit or a block, the first one too, which deals nothing) makes 206 more (261 in
+    `classicEra`) × the form's multiplier, on the hit's row (`LACERATE_THREAT`,
+    `lacerate(profile)`; W20).
 
 ### 4.4 Swipe (r5, 9908)
 
 83 × SF × Feral Instinct (×1.10 × ×1.30) to up to **3** targets. No AP scaling
 (`BonusCoefficientFromAP` 0), 20 − 5 = **15 Rage** (13 with Idol of Brutality, §4.1), 1.5 s GCD. [F] [se-f] [sp-f]
 
-Threat ×1.75 [?] (LibThreatClassic2 only, [ltc2]; Q15).
+Threat ×1.75 [?], Maul's lineage (§4.1): every Classic and Season of Discovery threat tool has
+used it since 2019; it traces to a 2006 guide and was never measured on Classic Era (Q15).
 
 **In the engine** it rolls twice, miss/dodge/parry and then crit, like Bloodthirst, since it
 deals no weapon damage [?] (Q33). Like the warrior's area attacks, Whirlwind and Cleave, it
@@ -730,8 +732,8 @@ One target: 118.69 a Swipe with the default build (W16).
 
 | Ability | Numbers | Tag |
 | --- | --- | --- |
-| Demoralizing Roar r5 | −204 melee AP on nearby enemies at 60 (the level-60 tooltip; in combat, Q32), 30 s, 10 Rage, 1.5 s GCD. Threat 39 per target | [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913) [fc-book] [se-f]; in combat [?] (Q32); threat [?] [ltc2] |
-| Faerie Fire (bear) | −505 armor, free, 6 s CD, 1.5 s GCD. Threat 108 | [F] [client] (SpellEffect 9635 #4, #5, 1.60.1.69913: Dire Bear Form (Passive), −100% cost and +6000 ms cooldown on its class mask) [se-f]; threat [?] [ltc2] |
+| Demoralizing Roar r5 | −204 melee AP on nearby enemies at 60 (the level-60 tooltip; in combat, Q32), 30 s, 10 Rage, 1.5 s GCD. Threat 39 per target | [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913) [fc-book] [se-f]; in combat [?] (Q32); threat [?], Maul's lineage (§4.1, Q15) |
+| Faerie Fire (bear) | −505 armor, free, 6 s CD, 1.5 s GCD. Threat 108 | [F] [client] (SpellEffect 9635 #4, #5, 1.60.1.69913: Dire Bear Form (Passive), −100% cost and +6000 ms cooldown on its class mask) [se-f]; threat [?], Maul's lineage (§4.1, Q15) |
 | Growl | Taunt, 8 s CD. Not simmed | [F] [scd-f] |
 | Thorns (on yourself) | 22 Nature damage to the boss on each of its swings that lands, 10 min; a Buffs entry, "Thorns (your own)" (`thornsOwn`), on in the Self only and Dungeon presets and in a raid with no other druid; in a raid with one, a Restoration druid's (`thorns`, 22 + 0.08 × its 200 spell damage = 38 [?]) takes its place ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)); threat at the form's multiplier | [F] [client] (SpellEffect 9910, 1.60.1.69913); the model [?] (Q38) |
 | Enrage | +10 Rage now, +2 Rage/s for 10 s, 1 min CD, no GCD. −27% (bear) / −16% (dire bear) base armor for 10 s; +5 Rage with Wolfshead | [F] [client] (SpellEffect, 1.60.1.69913) [fc-wolf]; the armor part is a dummy effect (server-side), so only the tooltip gives it |
@@ -811,12 +813,12 @@ One target: the extra targets add nothing.
 | Item | Value | Tag |
 | --- | --- | --- |
 | Bear/Dire Bear threat modifier | **×1.3** (Bear Form Passive2 21178: +30%). **Feral Instinct adds nothing in Forever**, where Classic 5/5 made it ×1.45 | [F] [client] (SpellEffect, 1.60.1.69913) [fc-tal]; [C] [ltc2] |
-| Maul, Swipe | ×1.75 damage-to-threat | [?] [ltc2] (LibThreatClassic2 only; Q15) |
-| Faerie Fire | 108 threat (rank 4) | [?] [ltc2] |
-| Demoralizing Roar | 39 threat per target (rank 5) | [?] [ltc2] |
+| Maul, Swipe | ×1.75 damage-to-threat | [?]: every Classic and Season of Discovery threat tool has used it since 2019 ([ltc2]); it traces to a 2006 guide and was never measured on Classic Era (Q15) |
+| Faerie Fire | 108 threat (rank 4) | [?], the same lineage (Q15) |
+| Demoralizing Roar | 39 threat per target (rank 5) | [?], the same lineage (Q15) |
 | Cower | −1208 (Forever) vs −608 (Classic) at 60 | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Primal Bite | ×1.0 damage-to-threat (no threat words) | [?] Q15 |
-| Lacerate | ×1.0 on the hit and ticks, **+206 + 0.05 × AP** per landed application ("high threat": Forever's Sunder Armor r5 at the same level 58, the [wording table](../mechanics/threat.md#threat-wording-table); about 274 at the default bear's ~1,355 AP when its Lacerates land; `classicEra` 261) | 206 [F] (Sunder's client value); the rest [?] Q15, D29 |
+| Lacerate | ×1.0 on the hit and ticks, **+206** per landed application ("high threat": Forever's Sunder Armor r5 at the same level 58, the [wording table](../mechanics/threat.md#threat-wording-table); flat, no attack power term; `classicEra` 261) | 206 [F] (Sunder's client value); its use for Lacerate [?] Q15, D29 |
 | Enrage | +10 Rage immediately, 20 over 10 s | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Furor 5/5 | +10 Rage on shifting into bear (100%) | [F] [client] (SpellEffect 17057, 1.60.1.69913) |
 | Blood Frenzy 2/2 (Primal Fury until 1.60.1.70009) | +5 Rage on any crit in bear (100%) | [F] [client] (SpellEffect 16959, 1.60.1.69913; unchanged in 1.60.1.70009) |
@@ -907,8 +909,8 @@ button. [C] [wh-rot]. (wowsims/classic's APL does the same: Shred, Bite, powersh
 **Bear.** The commonly described practice is Maul on every swing, Swipe only with spare rage, and
 Faerie Fire (Feral) as a free filler [?]. The only detailed write-up found (wowhead's tank rotation
 page) is labelled *Season of Mastery*, so it is **not** cited as a source, and the bear thresholds
-below are [?] (Q31). The underlying numbers are Maul ×1.75 (LibThreatClassic2 only, [?],
-[ltc2]) and Swipe's flat damage ([F] client data).
+below are [?] (Q31). The underlying numbers are Maul ×1.75 ([?], §4.1's lineage, [ltc2]) and
+Swipe's flat damage ([F] client data).
 
 ### 6.2 Forever cat priority
 
@@ -1091,8 +1093,8 @@ above (ids `druid.cat.…`):
 ### 6.3 Forever bear priority (TPS)
 
 This is derived for Forever [?]. Primal Bite and Lacerate have no Classic analogue. Primal Bite's threat is
-assumed one per damage, and Lacerate's "high amount of threat" is +206 + 0.05 × AP an application
-(about 274 at the AP it lands at) by the wording table (D29); neither is measured (Q15).
+assumed one per damage, and Lacerate's "high amount of threat" is +206 an application by the
+wording table (D29); neither is measured (Q15).
 
 **A tank's duties come first** ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)).
 The bear's duties are its two raid debuffs on the boss: **Demoralizing Roar**, the attack-power
@@ -1233,7 +1235,7 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list
 | `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** with Defensive (duty; off with Balanced and Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
 | `maul.enabled`, `maul.minRage` | **on**, 20 (14 with Max TPS) | Tuned (below): from 20, rage stays for Primal Bite and Lacerate; Max TPS, tuned on TPS alone, Mauls from 14 ([Max TPS](#max-tps-b4)) |
 | `mangle.enabled` | **on** | Needs the talent |
-| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (every preset) | Kept with the raid's warriors: with its +261 threat an application [?] (about +274 since 1.60.1.70009, at the AP it lands at), leaving it out costs about 12% of TPS and 14% of DPS; refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
+| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (every preset) | Kept with the raid's warriors: with its +206 threat an application [?], leaving it out costs about 13% of TPS and 15% of DPS (1,082.8 → 939.6 TPS, 540.3 → 458.2 DPS; 20,000 fights, 2026-09-26); refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
 | `faerieFire.filler` | **on** | Keeps Faerie Fire up too |
 | `ragePotion.enabled`, `ragePotion.maxRage` | **on**, 25 | The cap minus 75; needs the potion selected in Buffs |
@@ -1525,7 +1527,8 @@ default setups; `scripts/tune/rotation.mjs`):
   before and after the rename, and bear-apl.test.ts's 200 random plans map back to their old
   fingerprints. Ferocity's and Berserk's tooltips now name Primal Bite; their data didn't change.
 - **Lacerate's "high amount of threat"** follows Forever's new Sunder Armor, 206 + 0.05 × AP for
-  261 (§4.3): the bear's Balanced **1,115.34 → 1,119.09 TPS** (+0.34%), DPS 547.44 unchanged.
+  261 (§4.3): the bear's Balanced **1,115.34 → 1,119.09 TPS** (+0.34%), DPS 547.44 unchanged. (Flat
+  206 since 2026-09-26, §4.3.)
 - **Thorns** scales with the caster's spell power in 1.60.1.70009 (Blizzard's notes; the client's
   9910 still reads 22). The shared change is the paladin slice's (`effects/buffs.ts`); the
   numbers here are without it: Thorns at 22 a hit, 10.3 TPS of the bear's (0.9%). Since the
@@ -1541,8 +1544,8 @@ default setups; `scripts/tune/rotation.mjs`):
   finishers hold too: Ferocious Bite and Rip at 5 combo points beat every mix with 4 (−0.09% to
   −0.82%).
 - **Plausibility (D29, milestones T6).** D29 sets no numeric benchmark for a tank: the headlines
-  land where the cited mechanics put them, and a gap no cited mechanic explains goes to the
-  guild's in-game tests rather than moving a value. What the three tanks' defaults make with every
+  land where the cited mechanics put them, and a gap no cited mechanic explains goes to in-game
+  tests rather than moving a value. What the three tanks' defaults make with every
   1.60.1.70009 slice merged (seed 31101, 100,000 fights, each tank's default setup; the paladin
   review's PR-7), as observations: the bear **1,126.6 TPS**, the warrior **1,001.6** and the paladin
   **752.6**. The order has turned over: on 1.60.1.69913 the warrior's Balanced led (1,241 against
@@ -1854,8 +1857,8 @@ Unit tests: W1, W2, W9, W10, W13 and W17, and the talent arithmetic of W3, W5 an
 cat's abilities in the engine, and W8's Energy against the client (`src/sim/engine/cat.test.ts`,
 `src/sim/classes/druid/cat.test.ts`); the bear's W14, W15, W16, W18, W19, W20, W21 and W22
 (`src/sim/classes/druid/bear.test.ts`, W22 in `druid.test.ts`, with W14–W16 and W19 also in the
-engine, `src/sim/engine/bear.test.ts`, whose Lacerate tests check W20's 206 + 0.05 × AP per
-landed application, and Classic Era's 261). W12 compares W6 and W7 by hand.
+engine, `src/sim/engine/bear.test.ts`, whose Lacerate tests check W20's 206 per landed application,
+and Classic Era's 261). W12 compares W6 and W7 by hand.
 
 1. **Cat AP.** Str 200 (after HotW), Agi 300, +310 AP from gear and buffs, Predatory Strikes 3/3:
    `2×200 − 20 + 300 + 120 + 90 + 310 = 1200`. [F] form terms; [?] `2×Str − 20` (character-stats.md)
@@ -1920,7 +1923,7 @@ landed application, and Classic Era's 261). W12 compares W6 and W7 by hand.
 13. **Dire bear white swing at 1200 AP.** 109.6 + 214.286 = **323.886** to 164.4 + 214.286 =
     **378.686**; average **351.286**.
 14. **Maul at 1200 AP.** (351.286 + 128) × 1.10 = **527.214**. Threat × 1.75 × 1.3 =
-    **1199.41**. [F] damage, [?] threat (LibThreatClassic2 only)
+    **1199.41**. [F] damage, [?] threat (§4.1's lineage)
 15. **Primal Bite at 1200 AP.** 351.286 + 77 = **428.286** (no Savage Fury). Threat with an assumed
     ×1.0 ability multiplier: × 1.3 = **556.77**. [?] threat
 16. **Swipe.** 83 × 1.10 × 1.30 = **118.69** per target; threat × 1.75 [?] × 1.3 = **270.02**
@@ -1934,10 +1937,10 @@ landed application, and Classic Era's 261). W12 compares W6 and W7 by hand.
 19. **Lacerate at 5 stacks** (bleed only): 15 × 5 = **75 per 3 s** (25 DPS); with Genesis 5/5,
     **78.75** per tick. [F] bleed, [?] stack model
 20. **Lacerate's threat at 1200 AP** (`forever`, the boss bleeding, 4 stacks already on it): the
-    hit is 0.1 × 4 × 351.286 × 1.10 (Rend and Tear 5/5) = **154.566**; its bonus 206 + 0.05 × 1200
-    = **266**, so its threat (154.566 + 266) × 1.3 = **546.735**. The first application of a run
-    deals nothing and makes 266 × 1.3 = **345.8**. In `classicEra` the bonus is 261: 540.235 and
-    339.3. [?] (the hit, Q16; the bonus, Q15 and the wording table)
+    hit is 0.1 × 4 × 351.286 × 1.10 (Rend and Tear 5/5) = **154.566**; its bonus is **206**,
+    whatever the attack power, so its threat (154.566 + 206) × 1.3 = **468.735**. The first
+    application of a run deals nothing and makes 206 × 1.3 = **267.8**. In `classicEra` the bonus is
+    261: 540.235 and 339.3. [?] (the hit, Q16; the bonus, Q15 and the wording table)
 21. **Idol of Brutality with Ferocity 5/5** (§4.1): Maul 15 − 5 − 2 = **8** rage, Primal Bite and Swipe
     20 − 5 − 2 = **13**; Lacerate stays **15** (not in its mask). [F] Maul and Swipe, [?] Primal Bite (Q37)
 22. **Thick Hide 3/3 at 60** (§4.7): (3 × 60 + 2.00 × (310 − 300)) = 200 base armor with 310
@@ -1968,7 +1971,7 @@ ranks.
 | Q12 | Savage Fury on Rake's bleed (10%) | Mask on the periodic mod [F] | Rake ticks with 0 vs 2 points |
 | Q13 | Furor re-entry formula and rounding; Energy on entering cat without Furor | Tooltip [F]; 0 without Furor [C] [wh-rot] (inferred) | Shift at known Energy, time the caster phase |
 | Q14 | Wolfshead +20 on Tiger's Fury stacks with King of the Jungle | Tooltip [F] | Press TF at 0 Energy with the helm |
-| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Primal Bite ×1? Lacerate's "high amount of threat" | [?] for all: Maul, Swipe, FF and Demo Roar come only from LibThreatClassic2 [ltc2] ([threat.md OQ 4](../mechanics/threat.md#open-questions)). Primal Bite has no threat words: ×1. Lacerate's bonus is **+206 + 0.05 × AP per landed application** (about 274 at the default bear's ~1,355 AP when its Lacerates land), Forever's Sunder Armor r5 at the same level by the [wording table](../mechanics/threat.md#threat-wording-table) (D29; Classic Era's 4.5 × level 58 = 261 until build 1.60.1.70009, §4.3), shown in the results' assumptions; each 50 more or less moves the default bear's TPS by about 1.3%, none at all −6.6%, the old 1013 +19.1% (seed 424242, 20,000 fights, T3's defaults, the rotation unchanged). Leaving Lacerate out while warriors keep the boss bleeding costs 12.3% of TPS, and would lose even with no bonus at all (−6.0%) | **G1:** alone on a high-health elite, no Salvation, read `/run local _,_,_,_,t=UnitDetailedThreatSituation("player","target") print(t/100)` before and after each action. 20+ first applications on fresh mobs: the change ÷ 1.3 is the bonus. 20+ at 1–4 stacks: the change ÷ 1.3 − the hit's damage is the same bonus. The ticks should be damage × 1.3, Maul ÷ 1.3 ÷ damage 1.75, Primal Bite 1.0 (divide by 1.02 more with the gloves' threat enchant) |
+| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Primal Bite ×1? Lacerate's "high amount of threat" | [?] for all. Maul, Swipe, FF and Demo Roar: every Classic and Season of Discovery threat tool has used them since 2019 (LibThreatClassic2 [ltc2] and the tools built on it); they trace to a 2006 guide and were never measured on Classic Era; kept as the defaults (user decision, 2026-09-26; [threat.md OQ 4](../mechanics/threat.md#open-questions)). Primal Bite has no threat words: ×1. Lacerate's bonus is **+206 per landed application**, flat: Forever's Sunder Armor r5 client value at the same level by the [wording table](../mechanics/threat.md#threat-wording-table) (D29; user decision, 2026-09-26: no attack power term; Classic Era's 4.5 × level 58 = 261 until build 1.60.1.70009, §4.3), shown in the results' assumptions; each 50 more or less moves the default bear's TPS by about 1.3%, none at all −6.6%, the old 1013 +19.1% (seed 424242, 20,000 fights, T3's defaults, the rotation unchanged). Season of Discovery's Lacerate, the same spell (414644), has Blizzard's 3.33 × damage on the hit and ticks [sod-hotfix]: an allowed analog, not adopted. Leaving Lacerate out while warriors keep the boss bleeding costs 13% of TPS (§6.3) | **G1:** alone on a high-health elite, no Salvation, read `/run local _,_,_,_,t=UnitDetailedThreatSituation("player","target") print(t/100)` before and after each action. 20+ first applications on fresh mobs: the change ÷ 1.3 is the bonus. 20+ at 1–4 stacks: the change ÷ 1.3 − the hit's damage is the same bonus. The ticks should be damage × 1.3, Maul ÷ 1.3 ÷ damage 1.75, Primal Bite 1.0 (divide by 1.02 more with the gloves' threat enchant) |
 | Q16 | Lacerate: per-stack bleed and the "10% weapon damage per existing application" hit; does an application restart the ticks (the tick under way lost) or keep their timer? | Tooltip [F]; the SoD precedent is forbidden. The engine hits for 10% × the stacks already there and restarts the ticks, as a reapplied Rend does (§4.3) [?] | Apply 1→5 stacks on a mob; log hits and ticks, and the time from the fifth application to the next tick **G5:** the damage of the 1st to 5th applications against the weapon damage: 0/10/20/30/40% as modelled, or a 20% base (spell 414647) |
 | Q17 | Ranks available from the trainer: Primal Bite ranks 2–4, and Ferocious Bite rank 5 from the trainer or its book | [F] spellbook lists ranks. Rank 5's book, Book of Ferocious Bite V, drops in Upper Blackrock Spire [C] [fb-v], not Ahn'Qiraj, so D36 keeps rank 5 either way; the AQ books' ranks are out (D36, [open-questions C13](../open-questions.md#c13-rank-availability-at-launch)) | Trainer window at 36/48/56/60 |
 | Q18 | Combo points on the player or on the target | Forever uses modern CP costs [F] | Build CP, swap target, check |
@@ -2334,6 +2337,7 @@ only `/api/`, `/spell/`, `/search`, `/admin`).
 | wh-rot | <https://www.wowhead.com/classic/guide/classes/druid/feral/dps-rotation-cooldowns-abilities-pve> | Era cat decision tree (63/48/35 Energy, 4 CP Bite), no Rip/Rake, MCP, mana consumables | Classic Era (NerdEgghead, patch 1.15.8). The site also hosts SoD guides; only this Era page is used |
 | wiki-ooc | <https://warcraft.wiki.gg/wiki/Omen_of_Clarity> | Classic Clearcasting 15 s (Classic section only; retail/pre-1.12 history not used) | Classic Era section |
 | wiki-forever | <https://warcraft.wiki.gg/wiki/Druid_abilities_(Forever)> | Forever trainer levels, "Mangle (Bear)" naming | Forever |
+| sod-hotfix | <https://us.forums.blizzard.com/en/wow/t/season-of-discovery-hotfixes/1788040> (the first post, "December 2, 2024", Druid) | Blizzard's Season of Discovery hotfixes: "Mangle (Bear) Threat modifier increased to 1.5x threat per damage (was 1.0x threat per damage)"; Lacerate's impact and damage-over-time threat 3.33x per damage (was 3.5x) | Season of Discovery, Blizzard's notes: allowed only for spells the Forever client reuses (D36, D37) |
 
 Not used (forbidden ruleset, recorded only as leads): wowhead's Classic *tank* rotation page is
 labelled Season of Mastery; the vanilla-wiki "6% Omen of Clarity, no ICD" claim describes pre-1.12
@@ -2385,6 +2389,7 @@ the same spell ids and was ignored except where Forever reuses the id with Forev
 [wh-rot]: https://www.wowhead.com/classic/guide/classes/druid/feral/dps-rotation-cooldowns-abilities-pve
 [wiki-ooc]: https://warcraft.wiki.gg/wiki/Omen_of_Clarity
 [wiki-forever]: https://warcraft.wiki.gg/wiki/Druid_abilities_(Forever)
+[sod-hotfix]: https://us.forums.blizzard.com/en/wow/t/season-of-discovery-hotfixes/1788040
 [wsf-repo]: https://github.com/wowsims/forever
 [wsf-mangle]: https://github.com/wowsims/forever/blob/master/sim/druid/mangle.go
 [wsf-shred]: https://github.com/wowsims/forever/blob/master/sim/druid/shred.go

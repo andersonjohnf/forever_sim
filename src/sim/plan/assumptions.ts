@@ -584,8 +584,8 @@ const REGISTRY = {
   },
   // docs/classes/druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.
   bearThreat: {
-    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them. Primal Bite makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 206 plus 5% of your attack power more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (206 is Forever’s client value; the attack power share is the sim’s guess at the one Blizzard’s notes add). None is measured in Forever.',
-    docRef: `${THREAT}#druid-bear`,
+    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (206 is Sunder’s value in Forever’s game files). None is measured in Forever.',
+    docRef: `${THREAT}#druid-bear`
   },
   lacerate: {
     text: 'Lacerate stacks to 5 on the boss. Each one hits for 10% of your Dire Bear Form attack’s damage per stack already there (nothing for the first), and restarts its bleed for every stack, losing the tick under way, as a warrior’s Rend does. Its ticks keep your crit chance and damage bonuses from the last one and can crit in Forever. The hit and the restart are readings of its tooltip; untested.',
@@ -1129,13 +1129,19 @@ export const BEAR_TEXT = {
     // Armor's at its level, the profile's (bear-abilities.ts LACERATE_THREAT).
     const lacerate = LACERATE_THREAT[profile]
     const sentences = [
-      ...(known.length ? [`${prose(known)}, as a Classic Era threat library has them.`] : []),
+      ...(known.length
+        ? [
+            known.length > 1 || multiplied.length > 1
+              ? `${prose(known)}: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era.`
+              : `${prose(known)}: the value every Classic and Season of Discovery threat meter has used since 2019, which goes back to a 2006 guide and was never measured in Classic Era.`,
+          ]
+        : []),
       ...(uses.mangle ? ['Primal Bite makes 1 threat per damage, since its threat is unknown.'] : []),
       ...(uses.lacerate
         ? [
-            lacerate.apCoefficient > 0
-              ? `Lacerate makes 1 per damage and ${lacerate.bonus} plus ${Math.round(100 * lacerate.apCoefficient)}% of your attack power more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (${lacerate.bonus} is Forever’s client value; the attack power share is the sim’s guess at the one Blizzard’s notes add).`
-              : `Lacerate makes 1 per damage and ${lacerate.bonus} more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s ${lacerate.bonus} in Classic Era).`,
+            profile === 'forever'
+              ? `Lacerate makes 1 per damage and ${lacerate} more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (${lacerate} is Sunder’s value in Forever’s game files).`
+              : `Lacerate makes 1 per damage and ${lacerate} more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s ${lacerate} in Classic Era).`,
           ]
         : []),
       'None is measured in Forever.',

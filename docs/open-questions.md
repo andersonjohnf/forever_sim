@@ -592,9 +592,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B15. Bear ability threat
 **High · M4 · ≤20** (Primal Bite ≤30; Lacerate: [C8](#c8-lacerate))
-- **Assumes:** Maul and Swipe 1.75 × dmg, Demoralizing Roar 39, Faerie Fire 108 [?: threat-meter
-  code (LibThreatClassic2) only, in Classic as well as Forever; a Classic guide repeats them
-  uncited]; Primal Bite (Mangle until 1.60.1.70009) dmg × 1 [?]; bear form ×1.3 with no Feral Instinct threat [F].
+- **Assumes:** Maul and Swipe 1.75 × dmg, Demoralizing Roar 39, Faerie Fire 108 [?: every Classic
+  and Season of Discovery threat tool has used them since 2019; they trace to a 2006 guide and were
+  never measured on Classic Era; kept by user decision, 2026-09-26]; Primal Bite (Mangle until
+  1.60.1.70009) dmg × 1 [?]; bear form ×1.3 with no Feral Instinct threat [F].
 - **Test:** threat macro in bear form: fit mult × dmg + bonus over several damage rolls for Maul,
   Swipe and Primal Bite; flat values for Demoralizing Roar and Faerie Fire; calibrate with a white
   hit (×1.3).
@@ -1626,9 +1627,10 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 **High · M4 (rank 1 at 42)**
 - **Assumes:** 15 per 3 s per stack, up to 5 stacks, plus an immediate hit of
   `0.10 × W_b × stacks already on the target` [?]; threat dmg × 1 plus, for the tooltip's "a high
-  amount of threat", 206 + 0.05 × AP per landed application, Forever's Sunder Armor r5 at the same
-  level by the wording table (D29; 261, Classic Era's rule, before build 1.60.1.70009) [?]. The only
-  numbers found are SoD values, refused.
+  amount of threat", a flat 206 per landed application, Forever's Sunder Armor r5 client value at
+  the same level by the wording table (D29; user decision, 2026-09-26; 261, Classic Era's rule,
+  before build 1.60.1.70009) [?]. Season of Discovery's Lacerate, the same spell (414644), has
+  Blizzard's 3.33 × damage on the hit and ticks: an allowed analog (D36, D37), not adopted.
 - **Test:** apply 1 to 5 stacks, log hits and ticks, and read threat after each application.
 - **Samples:** ≥10 full stack cycles.
 - **Changes:** Lacerate damage and bear TPS.

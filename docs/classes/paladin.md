@@ -506,7 +506,7 @@ These judgements are debuffs: taking one replaces your JotC.
 | **Holy Wrath** r2 (10318) | 490–576 Holy, AoE 20 yd, Undead/Demon only, now also stuns 2 s | 805 mana; 60 s; 2 s cast | Magic | [F]. Off by default |
 | Templar's Bulwark (1311015), new Prot talent | absorb = 100% max health for 8 s; Forbearance | 110 mana; 5 min (−60 s Sacred Duty); off GCD | — | [F] [F 1311015][f1311015]. No TPS effect; not modelled by default |
 | Swift Judgement (1310994), new Prot talent | finishes Judgement's cooldown; next Judgement free | 1 min; off GCD | — | [F] [F 1310994][f1310994] |
-| Retribution Aura r5 (10301) | **30 Holy + 0.08 × SP** to each attacker that hits a party member. Since 1.60.1.70009 it "will now dynamically update its values based on the caster's spell power" (the dev notes) [F]; the client carries no coefficient (0 on its aura), so the server holds it, and the sim takes Holy Shield's 0.08, the client's closest analog: a damage shield that deals its damage on each attack it meets [?] ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana), D29). Its share of JotC's bonus is its coefficient's | — | damage shield: the sim has it land on each of the boss's swings that lands on you, a blocked one too, and never crit [?] | [F] [F 10301][f10301]; 30 and the missing coefficient: [client] (SpellEffect, 1.60.1.70009) |
+| Retribution Aura r5 (10301) | **30 Holy + 0.08 × SP** to each attacker that hits a party member. Since 1.60.1.70009 it "will now dynamically update its values based on the caster's spell power" (the dev notes) [F]; the client carries no coefficient (0 on its aura), so the server holds it, and the sim takes Holy Shield's 0.08, the client's closest analog: a damage shield that deals its damage on each attack it meets [?] ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana), D29). The beta logs don't settle it ([open question 32](#open-questions)). Its share of JotC's bonus is its coefficient's | — | damage shield: the sim has it land on each of the boss's swings that lands on you, a blocked one too, and never crit [?] | [F] [F 10301][f10301]; 30 and the missing coefficient: [client] (SpellEffect, 1.60.1.70009) |
 | Devotion Aura r7 (10293) | +735 armor (party) | — | — | [F] [F 10293][f10293]. A Protection paladin's own is its duty (D26): the rotation puts it up before the pull ([Priority](#priority-defensive-balanced-or-max-tps)) |
 
 ### Blessings (for the buffs doc)
@@ -1845,6 +1845,18 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     the Major Mana Potion 1.1%; seed 31101, 20,000 fights, 2026-09-26). *Test:* the threat a Major Mana
     Potion adds on a threat meter while nothing else changes the mob's threat. Forever's client blocks the
     threat API, so it can't be measured in game for now.
+32. **Retribution Aura's spell damage coefficient in the beta logs** (2026-09-26; the logs of
+    [Seal of Fury](#the-beta-logs-seal-of-fury)): not well determined, so the sim keeps Holy Shield's
+    0.08 ([open question 29](#open-questions)). A paladin's own aura hitting what strikes it
+    (`DAMAGE_SHIELD`, rank 1, 7 base points): 166 non-crit hits at 10+ spell damage from 5 characters.
+    Their mean implied coefficient, (damage − 7) ÷ SP, is 0.131 ± 0.005, but no single coefficient
+    fits every hit, and the characters disagree: 18 at SP 79–88 (0.13) and 12 at SP 41 (0.12) for two
+    of them; 9 at SP 29 (0.07–0.10) and 7 at SP 14 (under 0.07) for two more; the fifth hit 11–12 at
+    SP 24 and at SP 0 alike. A value that updates only now and then (the dev notes' "dynamically update")
+    would explain it. 100 of its 1,467 hits in the logs were resisted (`DAMAGE_SHIELD_MISSED` RESIST);
+    the sim has it always land [?]. It's in no default setup (Devotion Aura is Protection's aura).
+    *Test:* at level 60, Retribution Aura's damage on a mob with and without +100 spell damage, recast
+    after each gear change.
 ---
 
 ## Sources

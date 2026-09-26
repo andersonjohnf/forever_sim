@@ -124,7 +124,9 @@ test.describe('Combat rogue', () => {
     await expect(results.getByText(/Eviscerate gains 3%/)).toHaveCount(0)
     await expect(results.getByText(/guild test/)).toHaveCount(0)
     await expect(results.getByText(/^A player’s in-game tests, shared on Discord and not yet repeated, measured the attack-power part of Eviscerate/)).toBeVisible()
-    await expect(results.getByText(/^The sim raises the attack-power part of Eviscerate and Rupture by your Improved Eviscerate/)).toBeVisible()
+    // Combat's default uses no Rupture, so the talent row names Eviscerate and its talents only (AV2-8).
+    await expect(results.getByText(/^The sim raises the attack-power part of Eviscerate by your Improved Eviscerate and Aggression,/)).toBeVisible()
+    await expect(results.getByText(/Serrated Blades/)).toHaveCount(0)
     await expect(results.getByText(/^The rogue’s 1 s global cooldown/)).toBeVisible()
     // Nothing of the warrior's or the druid's: rage, Execute, Clearcasting or Cat Form.
     await expect(results.getByText(/rage arrives|Execute|Clearcasting|Cat Form/)).toHaveCount(0)

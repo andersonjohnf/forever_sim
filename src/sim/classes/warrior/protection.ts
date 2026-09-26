@@ -108,9 +108,16 @@ export const PROTECTION_PRIORITY = { defensive: 'duties', balanced: 'balanced', 
 const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
 const BALANCED = { option: ID.priority, is: PROTECTION_PRIORITY.balanced } as const
 /**
- * Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 85, where Defensive's is 76, re-searched on TPS
- * for the boss melee of 2026-09-26 (Golemagg's, encounter.md §5): its smaller hits give less rage,
- * and 45 made less threat than Balanced.
+ * Defensive's Heroic Strike threshold (§5.4 "Build 1.60.1.70009 (Protection)"), tuned on threat: 95,
+ * re-searched on TPS for the boss melee of 2026-09-26 (Golemagg's, encounter.md §5; JL-5): the smaller
+ * hits give less rage, and 95 makes more threat than the old 76 (+0.41%, seed 9191, 100,000 paired
+ * fights), with 98 and 100 level with it.
+ */
+const DEFENSIVE_HS_MIN_RAGE = 95
+/**
+ * Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 85, re-searched on TPS for the boss melee of
+ * 2026-09-26 (Golemagg's, encounter.md §5): its smaller hits give less rage, and 45 made less threat
+ * than Balanced.
  */
 const MAX_TPS_HS_MIN_RAGE = 85
 /**
@@ -162,16 +169,16 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why
  * and 2026-09-26 with a raid druid's Thorns at 22 + 0.08 × its pre-raid gear's 313 spell damage, buffs
  * doc §1.2, and with Shield Slam's +254 and Sunder Armor's flat 206, threat.md#warrior; and again for
  * the boss melee of Golemagg's Classic Era log, 2,200–3,200 every 2.0 s, encounter.md §5, with Max TPS's
- * Heroic Strike from 85, §5.4 "Max TPS"): Defensive's
+ * Heroic Strike from 85, §5.4 "Max TPS", and Defensive's from 95, JL-5): Defensive's
  * TPS, DPS and damage taken a second, Balanced and Max TPS against it in percent, and Max TPS against
  * Balanced, since the two share their rows. protection-presets.test.ts measures them again, so a
  * change that moves them fails until they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 810.63, dps: 367.53, damageTaken: 322.44 },
-  balanced: { tpsPct: 6.79, dpsPct: 7.41, damageTakenPct: 21.49 },
-  maxTps: { tpsPct: 8.14, dpsPct: 7.52, damageTakenPct: 21.86 },
-  maxTpsOverBalanced: { tpsPct: 1.27, dpsPct: 0.099, damageTakenPct: 0.3 },
+  defensive: { tps: 813.96, dps: 369.44, damageTaken: 322.3 },
+  balanced: { tpsPct: 6.35, dpsPct: 6.86, damageTakenPct: 21.54 },
+  maxTps: { tpsPct: 7.7, dpsPct: 6.96, damageTakenPct: 21.91 },
+  maxTpsOverBalanced: { tpsPct: 1.27, dpsPct: 0.1, damageTakenPct: 0.3 },
 } as const
 
 /** A preset measured against another: its TPS, DPS and damage taken a second, in percent. */
@@ -195,8 +202,8 @@ const helpPct = (x: number, digits: number) => `${Math.abs(x).toFixed(digits)}%`
 const shownAsZero = (x: number, digits: number) => Number(Math.abs(x).toFixed(digits)) === 0
 /** A measured change with its direction: "0.4% more", "0.2% less", or "the same" when it shows as zero. */
 const moreOrLess = (x: number, digits: number) => (shownAsZero(x, digits) ? 'the same' : `${helpPct(x, digits)} ${x < 0 ? 'less' : 'more'}`)
-/** A measured change for a short line, signed: "+6%", "−0.2%", "±0%". */
-const signedPct = (x: number, digits: number) => `${shownAsZero(x, digits) ? '±' : x < 0 ? '−' : '+'}${helpPct(x, digits)}`
+/** A measured change for a short line, signed, or "the same" when it shows as zero: "+6% TPS", "−0.2% DPS", "the same TPS" ("±" reads as an interval, JU-3). */
+const signedPct = (x: number, digits: number, what: string) => (shownAsZero(x, digits) ? `the same ${what}` : `${x < 0 ? '−' : '+'}${helpPct(x, digits)} ${what}`)
 /** Damage taken against another preset, whole percent, so "the same" is anything under 0.5%: "21% more damage taken", "the same damage taken". */
 const damageTaken = (x: number) => `${moreOrLess(x, 0)} damage taken`
 /** The same for a short line, naming the other preset: "21% more damage taken than Defensive", "the same damage taken as Defensive". */
@@ -209,8 +216,18 @@ const damageTakenVs = (x: number, other: string) => `${damageTaken(x)} ${shownAs
  * share their rows. Every figure's direction comes from its value (W4U-6), so a re-measure that turns
  * one round, or brings damage taken within 0.5%, can't print a wrong word.
  */
-export function protectionPresetText(m: ProtectionPresetMeasures) {
+export function protectionPresetText(m: ProtectionPresetMeasures, hs: { maxTps: number; balancedPct: number } = { maxTps: MAX_TPS_HS_MIN_RAGE, balancedPct: BALANCED_HS_PCT }) {
   const vsBalanced = m.maxTpsOverBalanced
+  // Heroic Strike's two thresholds compared where the help states them, at the default 100 max rage
+  // (JL-11, JU-2): Max TPS's absolute rage against Balanced's share of the bar, so a re-search that
+  // turns the order round can't print a wrong direction.
+  const balancedHs = Math.round((hs.balancedPct / 100) * PROT_MAX_RAGE)
+  const hsVsBalanced =
+    hs.maxTps > balancedHs
+      ? `later than Balanced’s ${hs.balancedPct}% of your max rage (${balancedHs} of the default ${PROT_MAX_RAGE}), since rage kept for Sunder Armor makes more threat than Heroic Strike does`
+      : hs.maxTps < balancedHs
+        ? `sooner than Balanced’s ${hs.balancedPct}% of your max rage (${balancedHs} of the default ${PROT_MAX_RAGE})`
+        : `where Balanced’s ${hs.balancedPct}% of your max rage is at the default ${PROT_MAX_RAGE}`
   // Max TPS's advice follows its damage taken against Balanced (W4U-8): no more for a little more threat, or more.
   const takesMore = !shownAsZero(vsBalanced.damageTakenPct, 0) && vsBalanced.damageTakenPct > 0
   const maxTpsAdvice = takesMore
@@ -223,12 +240,12 @@ export function protectionPresetText(m: ProtectionPresetMeasures) {
       help: `Keeps Shield Block up, and Thunder Clap’s slow and Demoralizing Shout on the boss from the pull, so you take the least damage, and is tuned on threat: ${Math.round(m.defensive.tps)} TPS, ${Math.round(m.defensive.dps)} DPS and ${Math.round(m.defensive.damageTaken)} damage taken a second in the default setup. Pick it for progression fights.`,
     },
     balanced: {
-      summary: `Shield Block and 5 Sunders kept, no Thunder Clap or Shout: ${signedPct(m.balanced.tpsPct, 0)} TPS, ${signedPct(m.balanced.dpsPct, 0)} DPS, ${damageTakenVs(m.balanced.damageTakenPct, 'Defensive')}.`,
+      summary: `Shield Block and 5 Sunders kept, no Thunder Clap or Shout: ${signedPct(m.balanced.tpsPct, 0, 'TPS')}, ${signedPct(m.balanced.dpsPct, 0, 'DPS')}, ${damageTakenVs(m.balanced.damageTakenPct, 'Defensive')}.`,
       help: `The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from ${BALANCED_FILLER_PCT}% of your max rage (${BALANCED_FILLER_PCT} rage without Boundless Rage), and Heroic Strike from ${BALANCED_HS_PCT}%. Against Defensive in the default setup: ${moreOrLess(m.balanced.tpsPct, 1)} TPS, ${moreOrLess(m.balanced.dpsPct, 1)} DPS and ${damageTaken(m.balanced.damageTakenPct)}. ${buffsNote}`,
     },
     maxTps: {
-      summary: `Sunder Armor filler from its cost, Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage: about ${signedPct(vsBalanced.tpsPct, 1)} TPS over Balanced for ${damageTaken(vsBalanced.damageTakenPct)}.`,
-      help: `Balanced’s rotation spending more rage on threat: the Sunder Armor filler from its cost (12 rage with the default talents, 9 with Improved Sunder Armor 3/3) rather than ${BALANCED_FILLER_PCT}% of your max rage, and Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage rather than ${BALANCED_HS_PCT}% of your max rage. Like Balanced, it drops Thunder Clap and Demoralizing Shout and keeps Shield Block and Shield Slam, which make more threat than they cost. Against Balanced in the default setup: ${moreOrLess(vsBalanced.tpsPct, 1)} TPS, ${moreOrLess(vsBalanced.dpsPct, 1)} DPS and ${damageTaken(vsBalanced.damageTakenPct)}; against Defensive, ${moreOrLess(m.maxTps.tpsPct, 1)} TPS, ${moreOrLess(m.maxTps.dpsPct, 1)} DPS and ${damageTaken(m.maxTps.damageTakenPct)}. ${maxTpsAdvice} ${buffsNote}`,
+      summary: `Balanced, but the Sunder Armor filler from its cost: about ${signedPct(vsBalanced.tpsPct, 1, 'TPS')} over Balanced for ${damageTaken(vsBalanced.damageTakenPct)}.`,
+      help: `Balanced’s rotation with more of your rage on Sunder Armor: its filler from its cost (12 rage with the default talents, 9 with Improved Sunder Armor 3/3) rather than ${BALANCED_FILLER_PCT}% of your max rage, and Heroic Strike from ${hs.maxTps} rage, ${hsVsBalanced}. Like Balanced, it drops Thunder Clap and Demoralizing Shout and keeps Shield Block and Shield Slam, which make more threat than they cost. Against Balanced in the default setup: ${moreOrLess(vsBalanced.tpsPct, 1)} TPS, ${moreOrLess(vsBalanced.dpsPct, 1)} DPS and ${damageTaken(vsBalanced.damageTakenPct)}; against Defensive, ${moreOrLess(m.maxTps.tpsPct, 1)} TPS, ${moreOrLess(m.maxTps.dpsPct, 1)} DPS and ${damageTaken(m.maxTps.damageTakenPct)}. ${maxTpsAdvice} ${buffsNote}`,
     },
   }
 }
@@ -377,7 +394,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   },
   ...heroicStrikeOptions(
     ID,
-    76,
+    DEFENSIVE_HS_MIN_RAGE,
     {
       default: true,
       help: 'Queue Heroic Strike on the next main-hand swing when rage is high, to spend rage the global cooldowns can’t.',
@@ -387,7 +404,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     o.id === ID.hsMinRage && o.kind === 'number'
       ? {
           ...o,
-          help: `Queue it at or above this much rage. With Balanced it’s ${BALANCED_HS_PCT}% of your max rage by default (${BALANCED_HS_PCT} of 100), and with Max TPS ${MAX_TPS_HS_MIN_RAGE}, the most threat in the default setup: rage kept for Sunder Armor makes more than Heroic Strike does.`,
+          help: `Queue it at or above this much rage. With Defensive it’s ${DEFENSIVE_HS_MIN_RAGE} by default, with Balanced ${BALANCED_HS_PCT}% of your max rage (${BALANCED_HS_PCT} of 100), and with Max TPS ${MAX_TPS_HS_MIN_RAGE}, the most threat in the default setup: rage kept for Sunder Armor makes more than Heroic Strike does.`,
           defaultWhen: [
             { ...BALANCED, default: BALANCED_HS_PCT, pctOfMaxRage: true },
             { ...MAX_TPS, default: MAX_TPS_HS_MIN_RAGE },

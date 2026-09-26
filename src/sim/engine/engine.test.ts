@@ -719,6 +719,9 @@ describe('golden run (fixed config and seed)', () => {
   // - D37, as above: Shield Slam's threat 22.71 M → 18.76 M, Sunder Armor's 8.53 M → 6.33 M; TPS
   //   925.59 → 857.09, DPS unchanged.
   // - The boss melee of 2026-09-26, as above: TPS 861.03 → 814.43, DPS 389.07 → 369.65.
+  // - Defensive's Heroic Strike searched again on that boss (warrior.md §5.4, JL-5): from 95 rage for 76.
+  //   On this seed's 500 fights TPS 814.43 → 814.29, DPS 369.65 → 370.15 (over 100,000 paired fights on
+  //   seed 9191, +0.41% TPS); with 76 put back, the snapshot before it reproduces exactly.
   it('keeps the Defensive Protection warrior’s result unchanged', () => {
     const d = defaultConfig('warrior-protection')
     const bundle = buildPlan({ ...d, rotation: { 'warrior.protection.priority': 'duties' }, run: { mode: 'fixed', iterations: 500, seed: 12345 } })
@@ -753,7 +756,7 @@ describe('golden run (fixed config and seed)', () => {
   //   default before; its plans unchanged, bear-apl.test.ts) gives TPS 1,081.78, DPS 532.43 and 629.00
   //   damage taken a second, as before; Balanced TPS 1,114.45, DPS 547.00 and 633.32. The roar's
   //   3,747 casts go: Maul 35,653 → 36,750, Mangle 18,198 → 18,936, Lacerate 24,790 → 26,578.
-  //   Max TPS, which Mauls from 14 rather than 20 (tuned on TPS alone, druid.md §6.3 "Max TPS"; 16 since the boss melee of 2026-09-26):
+  //   Max TPS, which Mauls from 14 rather than 20 (tuned on TPS alone, druid.md §6.3 "Max TPS"; 20, Balanced's, since the boss melee of 2026-09-26, JL-1):
   //   TPS 1,115.32, DPS 545.44, damage taken 633.07.
   // - Build 1.60.1.70009 (druid.md §4.2, §4.3): Mangle is Primal Bite, which moves nothing here (the
   //   ability keeps its id); Lacerate's "high amount of threat" follows Forever's new Sunder Armor,

@@ -839,10 +839,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
     since a Classic Era feral would look for it. A tank's says which of its presets are tuned and
     which aren't yet, in players' words rather than the process's (D27): "Defensive and Max TPS were
-    tuned on an earlier game build and had a quick check on this one; Balanced, the default, hasn't
-    been fully tuned yet." (the warrior, whose presets had a first-pass check on 1.60.1.70009);
-    "Defensive is tuned for the default setup; Balanced, the default, and Max TPS haven't been fully
-    tuned yet." (the bear); "Defensive and Max TPS were tuned on an earlier game build and had a
+    tuned on an earlier game build and had a quick search on this one and the default boss; Balanced,
+    the default, hasn't been fully tuned yet." (the warrior, whose presets had a first-pass check on
+    1.60.1.70009, and whose Heroic Strike thresholds were searched again on Golemagg's boss melee);
+    "Defensive is tuned and had a quick check on the default boss; Balanced, the default, hasn't been
+    fully tuned yet, and Max TPS plays as it." (the bear); "Defensive and Max TPS were tuned on an earlier game build and had a
     quick search on this one; Balanced, the default, plays as Defensive." (the paladin, whose list,
     talents and thresholds had a first-pass search on 1.60.1.70009, the paladin review's PR-6).
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the

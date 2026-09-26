@@ -55,6 +55,8 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
       // keeps Shield Block (D26's rule), so 191 to 196 of the 200 cases moved in each snapshot.
       // Re-taken for Shield Slam's Classic Era +254 and Sunder Armor's flat 206 (D37; threat.md#warrior):
       // with +475 and 0.05 × attack power put back, the snapshot before it reproduces exactly.
+      // Re-taken for Defensive's Heroic Strike from 95 (76 before; warrior.md §5.4, JL-5): only Defensive's
+      // and the missing Priority's cases moved; with 76 put back, the snapshot before it reproduces exactly.
       const hashes = CASES.map(({ values, talents, context }) => {
         const none = protectionRotation(withPriority(values, priority), talents, noAura, context)
         expect(protectionRotation(withPriority(values, priority), talents, noAura, context, defaultAplOrder(PROTECTION_APL))).toEqual(none)

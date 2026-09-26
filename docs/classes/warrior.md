@@ -1944,7 +1944,7 @@ a value you set yourself still wins.
 | `demoShout.enabled` | on | off | off |
 | `sunder.refreshBelowSec` | 3 | 1.5 (the duty rule) | 3 |
 | `sunderFiller.minRage` | 9 (its cost) | 60% of max rage: 60 | 9 |
-| `heroicStrike.minRage` | 76 | 84% of max rage: 84 | 85 (45 before the boss melee of 2026-09-26) |
+| `heroicStrike.minRage` | 95 (76 before the boss melee of 2026-09-26) | 84% of max rage: 84 | 85 (45 before the boss melee of 2026-09-26) |
 
 **The duty rule.** The duties' timing follows one fixed rule, and the search never tunes it
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)'s amendment):
@@ -1976,7 +1976,7 @@ taken
 | 9 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends. It replaces the Buffs tab's Battle Shout | `warrior.protection.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
 | 10 | Sunder Armor | Fewer than 5 stacks on the boss, or at most `refreshBelowSec` left and they'd run out before the fight ends. It replaces the Buffs tab's Sunder Armor ×5 | `warrior.protection.sunder.enabled` (on), `.refreshBelowSec` (3; 1.5 with Balanced, the duty rule) | yes |
 | 11 | Sunder Armor (filler) | Rage ≥ `minRage`; with `waitForShieldSlam`, Shield Slam GCD-safe (without Shield Slam the setting changes nothing, and the Rotation tab dims it). It fills every GCD the rows above leave | `warrior.protection.sunderFiller.enabled` (on), `.minRage` (9: its cost; with Balanced 60% of the max rage, 60 at the default build's 100), `.waitForShieldSlam` (off) | yes |
-| 12 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`, or in the fight's last `anyRageLastSec` s whenever it can pay: rage left at the end is wasted; optional unqueue | `warrior.protection.heroicStrike.enabled` (on), `.minRage` (76; with Balanced 84% of the max rage, 84 at 100; 85 with Max TPS), `.anyRageLastSec` (12), `.unqueue` (off), `.unqueueBelow` (20) | yes |
+| 12 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`, or in the fight's last `anyRageLastSec` s whenever it can pay: rage left at the end is wasted; optional unqueue | `warrior.protection.heroicStrike.enabled` (on), `.minRage` (95, 76 before the boss melee of 2026-09-26; with Balanced 84% of the max rage, 84 at 100; 85 with Max TPS), `.anyRageLastSec` (12), `.unqueue` (off), `.unqueueBelow` (20) | yes |
 | 13 | Execute | Execute phase only: a dance to Battle Stance and back, which loses Defensive Stance's threat. The swap keeps at most 10 rage, +3 per Improved Tactical Mastery rank, and that must pay Execute's cost (12), so the default build can never use it | `warrior.protection.execute.enabled` (off) | no |
 
 Notes:
@@ -2111,7 +2111,7 @@ fight ends, which is what a high threshold cost in short fights.
   alone, against 3 s for both with the debuffs first (PV1's): −3.14 TPS (−0.32%, −3.27 to −3.01)
   and −1.41 DPS, for 0.26% less damage taken (seed 8101), with Thunder Clap up 98.96% of the fight
   where it was 97.64%, and Demoralizing Shout 98.90% where it was 99.01%.
-- **Heroic Strike.** From 76, and with any rage in the fight's last 12 s. Without the dump, a high
+- **Heroic Strike.** From 76 (95 since the boss melee of 2026-09-26: [Build 1.60.1.70009](#build-160170009-protection), JL-5), and with any rage in the fight's last 12 s. Without the dump, a high
   threshold lost in short fights (P1: 60–70 best at 180 s, −1.1% at 30 s against 45): the rage it
   pools isn't spent before the end. Under the duty rule, 72–80 with an 11–13 s dump were within
   0.22 TPS of each other, and 76 with 12 s was best or level with the best on each seed: 75 and 77
@@ -2412,7 +2412,19 @@ that changes a preset: the filler waiting for Shield Slam +0.22% (+0.14 to +0.29
   waiting for Shield Slam is level (+0.02%). The filler's 60 is the user's (D28). The filler off
   costs 7.5% of TPS and 10 DPS.
 - **Defensive:** Heroic Strike from 66 or 70 is level with 76 (+0.01%, +0.04%), 86 −0.23%; the filler
-  waiting for Shield Slam +0.04% and from 30 −0.13%. Nothing moves.
+  waiting for Shield Slam +0.04% and from 30 −0.13%. Nothing moves. **On Golemagg's boss melee
+  (2026-09-26, JL-5)** Heroic Strike was searched again on TPS: with Defensive as the baseline (76),
+  on seed 5151 (40,000 paired fights) 80 +0.12%, 85 +0.25%, 90 +0.35%, **95 +0.42% (95% CI +2.97 to
+  +3.83 TPS)** and 100 +0.40%, each with more DPS and no more damage taken; on seed 7474, 86 to 100 in
+  steps of 2, the same rise to a plateau from 94 to 100 (+0.39% to +0.41%). On the fresh seed 9191
+  (100,000 paired fights, 95 as the baseline), 76 is −0.41% (−3.58 to −3.05 TPS), 90 −0.07% and 92
+  −0.03%, each clearly worse, and 98 and 100 level (−0.02 and −0.01 TPS). So Defensive's Heroic Strike
+  is **95**, the top that both sweeps found, with 98 and 100 level: the smaller hits give less rage, and
+  what's kept goes to Sunder Armor, which makes more threat. Its fight-end dump (12 s, shared by every
+  preset) wasn't moved: on seed 9191 at 95, 8 s is +0.12% and 10 s +0.07%, which a tuning pass should
+  weigh across the three presets (docs/known-gaps.md). The bear's Defensive had the same quick check
+  (Maul from 16, 18, 22 and 25, Lacerate's refresh at 10 and 14 s, Swipe on; seed 5151, 40,000 paired
+  fights): nothing clears D23's bar, so nothing moves ([druid §6.3](druid.md#max-tps-b4)).
 - **Max TPS:** turning Shield Block back on is **+16.17 TPS (+1.72%, +15.48 to +16.86)**, −0.15 DPS,
   and 123 less damage taken a second: with Sunder Armor's threat down, rage spent on it returns more
   as blocks (5 rage each, Shield Specialization) and Revenges than as Sunders. By D26's rule (Max TPS
@@ -2441,22 +2453,29 @@ Defensive 925.39, 386.07 DPS; Balanced 984.94 (+6.44%); Max TPS 989.32 (+6.91%);
 base 22 (until a raid druid's Thorns took its pre-raid gear's 313 spell damage, 47 a swing, later on
 2026-09-26) Defensive 918.43, 381.50 DPS; Balanced 976.69 (+6.34%); Max TPS 981.07 (+6.82%).
 On Golemagg's boss melee (2026-09-26, [encounter §5](../mechanics/encounter.md#how-the-default-boss-melee-was-measured-)),
-with Max TPS's Heroic Strike from 85 ([Max TPS](#max-tps-p2)), on the same seed and fights; before it
-they were Defensive 860.60 TPS, 388.64 DPS, 616.34 taken; Balanced 914.41 (+6.25%), 411.57 DPS,
-745.71 taken; Max TPS 918.32 (+6.71%), 410.57 DPS, 746.42 taken. `PROTECTION_PRESET_MEASURES` holds
-these for the Rotation tab's help, and `protection-presets.test.ts` measures them again:
+with Max TPS's Heroic Strike from 85 ([Max TPS](#max-tps-p2)) and Defensive's from 95 (above, JL-5),
+on the same seed and fights; before the boss they were Defensive 860.60 TPS, 388.64 DPS, 616.34 taken;
+Balanced 914.41 (+6.25%), 411.57 DPS, 745.71 taken; Max TPS 918.32 (+6.71%), 410.57 DPS, 746.42 taken;
+and on the boss with Defensive's Heroic Strike from 76, Defensive 810.63, 367.53 DPS, 322.44 taken
+(Balanced +6.79%, Max TPS +8.14%). `PROTECTION_PRESET_MEASURES` holds these for the Rotation tab's
+help, and `protection-presets.test.ts` measures them again:
 
 | Preset | TPS | DPS | Damage taken a second |
 | --- | --- | --- | --- |
-| Defensive | 810.63 | 367.53 | 322.44 |
-| Balanced (the default) | 865.62, **+6.79%** | 394.78, +7.41% | 391.74, +21.5% |
-| Max TPS | 876.62, **+8.14%** | 395.17, +7.52% | 392.93, +21.9% |
+| Defensive | 813.96 | 369.44 | 322.30 |
+| Balanced (the default) | 865.62, **+6.35%** | 394.78, +6.86% | 391.74, +21.5% |
+| Max TPS | 876.62, **+7.70%** | 395.17, +6.96% | 392.91, +21.9% |
 
 **Max TPS against Balanced.** With Shield Block back, the two keep the same rows and differ only
 in thresholds: Max TPS uses the Sunder Armor filler from its cost (12 with the default build, 9
 with Improved Sunder Armor 3/3) rather than 60% of the max rage, and Heroic Strike from 45 rage
 rather than 84% of the max rage (from 85 since the boss melee of 2026-09-26: **+1.27% TPS**, +0.10%
-DPS and the same damage taken, +0.3%). On the 5,000 boss, from 45, that was **+3.92 TPS (+0.43%, +3.62 to +4.21)**
+DPS and the same damage taken, +0.3%). At 85 its Heroic Strike comes *later* than Balanced's 84 of the
+default 100 rage, so its extra threat is the filler's: rage kept for Sunder Armor makes more than
+Heroic Strike does. The preset's line leads with the filler ("Balanced, but the Sunder Armor filler
+from its cost: …"), and its help takes Heroic Strike's direction from the two thresholds at the
+default 100 max rage, "later" or "sooner" (`protectionPresetText`; JL-11, JU-2), so a re-search can't
+print a wrong one. On the 5,000 boss, from 45, that was **+3.92 TPS (+0.43%, +3.62 to +4.21)**
 (+4.39, +0.44%, with +475 and 0.05 × AP),
 −1.00 DPS (−0.24%, −1.17 to −0.82) and +0.70 damage taken a second (+0.09%, +0.61 to +0.80): the
 same damage taken. On 8/5/38 it was +9.11 TPS (+0.96%) and +1.63 DPS (+0.44%) (before the

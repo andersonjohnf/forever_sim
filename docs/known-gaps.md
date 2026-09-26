@@ -90,13 +90,13 @@ slice is worked:
 - **A DPS spec's "Setup changed" badge wraps to two lines** in the phone bar at 360 px (phone
   bar verification VF7, pre-existing). The bar stays 65 px and nothing overlaps.
 - **The Protection paladin's threat review lows** (T2; the review in `.cache/probes/tank-review-paladin`),
-  each under 2% of TPS, kept as they are until a guild test or the optimizer settles them:
+  each under 2% of TPS, kept as they are until an in-game test or the optimizer settles them:
   - **P9:** Holy Shield's 20% more threat multiplies Righteous Fury's (×2.28, not ×2.1, with Righteous
     Fury's +90% then; ×1.92, not ×1.8, since 1.60.1.70009's +60%) and its
-    damage never misses: both [?] lean high, about −1.9% and −3.4% the other way (guild test T6,
+    damage never misses: both [?] lean high, about −1.9% and −3.4% the other way (in-game test T6,
     paladin.md OQ 16).
   - **P10:** Consecration's ticks miss at the spell rate (14% against a boss); never missing would be
-    +1.8% (guild test T7, OQ 18).
+    +1.8% (in-game test T7, OQ 18).
   - **P11:** the talent variants: T2's fix round compared about 45 builds within the survival floor
     (paladin.md "The interim talents"), Sanctified Judgement, Vindication, Benediction and Holy
     Conduit among them, but not Improved Seals, which needs five Holy points first; the optimizer
@@ -178,9 +178,10 @@ slice is worked:
   before the pull), and with Backstab chosen as the builder from the front or without a main-hand
   dagger, the Rotation tab doesn't say that Hemorrhage builds instead
   ([rogue.md §5.3, §6.3](classes/rogue.md#63-subtlety-shipped)).
-- **The Classic Era profile's rogue finishers use Forever's attack-power shares** (rogue guild-test
-  review RG-5, pre-existing): the rogue's abilities aren't split by profile, as the poisons are, so
-  under Classic Era Eviscerate gains the guild-tested 4% of attack power a point (Classic Era sims'
+- **The Classic Era profile's rogue finishers use Forever's attack-power shares** (the 2026-09-25
+  rogue attack-power review, RG-5, pre-existing): the rogue's abilities aren't split by profile, as
+  the poisons are, so under Classic Era Eviscerate gains the 4% of attack power a point that a
+  player's tests shared on Discord found [?] (Classic Era sims'
   3%); Rupture's measured shares match Classic Era sims', so only Eviscerate differs. Low: the Classic Era profile is a comparison, and splitting the
   rows needs a per-profile ability table ([rogue.md §3.4, §3.5](classes/rogue.md#34-eviscerate-r9-31016)).
 - ~~Snap can't capture a finished run~~: `--click Simulate` now waits for the result, and
@@ -267,7 +268,7 @@ slice is worked:
     pre-existing, Destruction too): wrap the four choices 2 × 2 at phone width, or pad the button.
   - **The default Imp build rests on Q19** [?] (DV2, D30): it's the sim's best found build, 6% ahead
     of the Succubus only through Improved Imp's hidden effect read as Firebolt's cast time. The
-    optimizer (O4) confirms it on a fresh seed, and the guild's Firebolt test settles Q19. Demonic Pact
+    optimizer (O4) confirms it on a fresh seed, and an in-game Firebolt test settles Q19. Demonic Pact
     leaves one point free in its tree, which went from Improved Sayaad to Improved Shadow Bolt 4/5
     (DV2-4, +0.4%); Improved Sayaad's other 2 points still do nothing with the Imp, for O4's talent
     search.
@@ -313,19 +314,19 @@ slice is worked:
   the white-threat note ("stance or form"); Max TPS results naming "your" roar when it's off; the
   bear's swings table listing 0% parry and block; Enrage's damage-taken figure (0.16% vs 0.14%);
   setup-store tests for a known but hidden spec.
-- **The bear threat review's lows** (M5.6, `.cache/probes/tank-review-bear/report.md`; the guild's
+- **The bear threat review's lows** (M5.6, `.cache/probes/tank-review-bear/report.md`; in-game
   tests decide them, so the model keeps its Forever reading until then):
   - **BR7, rage from hits divides by the bear's maximum health.** Rage from hits taken is 46% of the
     bear's rage, and Forever's rule (`10 × damage before mitigation ÷ max health`,
     [rage.md](mechanics/rage.md#forever-)) divides by health that Dire Bear Form's +1,240 and Heart
     of the Wild raise, so a bear gets less rage a hit than a warrior of the same gear; the evidence
-    for bears is 33 low-level hits [?]. ±20% rage moves TPS about ±10%. Guild test G3: 30+ hits at
+    for bears is 33 low-level hits [?]. ±20% rage moves TPS about ±10%. In-game test G3: 30+ hits at
     two maximum-health levels, fit rage = k × damage ÷ max health.
   - **BR8, the bear's white rage uses the one-handed rate** (8.65 a landed swing; the two-handed
-    11.25 would be +0.8% to +2.4% TPS) [?] ([rage.md](mechanics/rage.md#bear-druid-rage)). Guild
+    11.25 would be +0.8% to +2.4% TPS) [?] ([rage.md](mechanics/rage.md#bear-druid-rage)). In-game
     test G4: 30+ auto attacks in Dire Bear Form.
   - **BR9, spell 414647** (20% weapon damage, server-triggered) may be Lacerate's hit; the model
-    follows the tooltip's 10% a stack already there (druid.md Q16). Guild test G5.
+    follows the tooltip's 10% a stack already there (druid.md Q16). In-game test G5.
 - **The shaman's review lows** ([its log](reviews/2026-09-24-enhancement-shaman.md)): Rockbiter
   with Windfury Totem (+3.6%, untried by the first pass); the imbue help's +653 AP against 783.6
   with Elemental Weapons; derived Dwarf and Skyborne base rows; the inferred 16361 link;
@@ -392,7 +393,7 @@ slice is worked:
     rests on Q19** ([warlock.md §11.6](classes/warlock.md#116-defaults)), the sim's reading of Improved
     Imp's hidden effect as Firebolt's cast time: without it the Imp default falls to 605.2, and the
     default would be the Succubus build, 632.7, 35 ahead of Destruction. The model stays as it is until
-    the guild's Q19 test (Firebolt's cast bar with Improved Imp 0/3 and 3/3) settles it.
+    an in-game Q19 test (Firebolt's cast bar with Improved Imp 0/3 and 3/3) settles it.
   - **Item effects the sim doesn't model count as zero** in the lists' rankings (DV2-4,
     [items.md](data/items.md#modelled-item-effects)); the ones on the caster lists: Eye of the Beast's +7%
     spell hit use (E7, [shaman.md](classes/shaman.md)), Burst of Knowledge's and Second Wind's mana

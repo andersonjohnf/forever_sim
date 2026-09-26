@@ -64,7 +64,8 @@ survival presets, known effects modelled as zero, and tank abilities treated dif
 same threat wording. The adversarial reviews (2026-09-24) are in `.cache/probes/tank-review-*`
 until each slice logs its own review. There's no numeric target for a tank (D29, user decision,
 2026-09-24, withdrawing the officers' earlier feel for one): results land where the cited mechanics
-put them, and a gap no mechanic explains is an observation for the guild's tests (T6).
+put them, and a gap no mechanic explains is an open question for in-game tests (T6), never a
+reason to move a value ([D37](decisions.md#d37-only-sourced-values-2026-09-26)).
 - [ ] **T1 Shared:** threat.md's wording table (D29); Classic Era Sunder back to 261; the
       armor-only data-integrity test and the random-suffix bases it finds; like-for-like tank
       presets built for threat (the gear review)
@@ -94,7 +95,7 @@ put them, and a gap no mechanic explains is an observation for the guild's tests
       - Paladin ([paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps)): plays as
         Defensive, Holy Strike kept for Iron Creed (user decision); Hammer of the Righteous a row,
         off, above Holy Strike
-- [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
+- [ ] **T6 In-game threat tests,** written up for the officers: Sunder, Lacerate,
       Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
       - **The three tanks on build 1.60.1.70009 (the paladin review's PR-7, 2026-09-24),** with
         every 1.60.1.70009 slice merged, a raid Restoration druid's Thorns (PR-4) and the paladin's
@@ -339,7 +340,7 @@ stats are simulated by then, the tanks' included.
 - Replace every D24 placeholder with a measured value. The base attributes, base health and base
   avoidance come from naked level-60 Classic Era sheets: character-stats.md OQ-1, OQ-2 and OQ-5.
 
-- Compare against guild beta logs and target-dummy tests
+- Compare against beta logs and in-game target-dummy tests
 - Resolve open questions, promote `[C]`/`[?]` values to `[F]` as they're verified
 
 ## M10: Tuning every spec 💤

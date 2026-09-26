@@ -1097,14 +1097,14 @@ Custodian).
 
 - `[?]` **Shield block value in Forever.** The client ships no `ShieldBlockRegular` table and no
   per-shield block value. Does the server give shields an innate block value, and how much?
-  Guild test: the character sheet's block value with and without a shield equipped.
+  In-game test: the character sheet's block value with and without a shield equipped.
 - `[?]` **Caster-weapon DPS.** The 0.195-DPS-per-spell-power cut and "no extra spell power when
   the stats carry some" are fits to 7 and 1 items. A caster weapon's tooltip at another item
   level or quality would confirm them.
 - `[?]` **Epic caster weapons' spell power.** The rule was fitted on Rare weapons; on an Epic it gives
   Mindfang, Sageclaw and Ironbark Staff +94 spell power (Classic Era: +30), which is most of the
   casters' pre-raid main-hand value (Mindfang alone is +41 to +55 DPS for a warlock,
-  [warlock.md §7.3](../classes/warlock.md#73-gear)). Guild test: Mindfang's or Sageclaw's tooltip in
+  [warlock.md §7.3](../classes/warlock.md#73-gear)). In-game test: Mindfang's or Sageclaw's tooltip in
   game (its spell power line), or Ironbark Staff's.
 - `[?]` **Hotfix-only rows.** 50 pool items (and all 16 no-row-anywhere items) exist only as
   server hotfixes, and the Undermine trinkets' cooldowns look hotfixed. The raw client files

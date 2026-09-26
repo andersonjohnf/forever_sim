@@ -215,7 +215,7 @@ with" the class buff they copy).
    the Blizzard forums) agrees that they don't work in instances ([bf-wbuffs]). Revisit only
    if Blizzard says otherwise ([doctrine §1](../doctrine.md#1-what-were-building)).
 8. **Testing constraints.** The beta is capped at level 20 (→ 30), there are no target
-   dummies ([fw-1]), and the modern addon API limits combat-log detail ([fw-2]). Guild tests
+   dummies ([fw-1]), and the modern addon API limits combat-log detail ([fw-2]). In-game tests
    of `+3` rules must use mobs 3 levels above the tester.
 9. **Third-party and secondary findings to repeat** [?]: the HS-queue off-hand result ([fw-2];
    [combat-tables open questions](combat-tables.md#open-questions)), whether ticks with the

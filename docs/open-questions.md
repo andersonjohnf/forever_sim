@@ -1628,7 +1628,9 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
   `0.10 × W_b × stacks already on the target` [?]; threat dmg × 1 plus, for the tooltip's "a high
   amount of threat", 206 + 0.05 × AP per landed application, Forever's Sunder Armor r5 at the same
   level by the wording table (D29; 261, Classic Era's rule, before build 1.60.1.70009) [?]. The only
-  numbers found are SoD values, refused.
+  other numbers found are Season of Discovery values, not used: they'd count only as Blizzard's own
+  SoD client data or patch notes for a spell the Forever client carries (D37; spell 414647, druid
+  Q16, is the one candidate).
 - **Test:** apply 1 to 5 stacks, log hits and ticks, and read threat after each application.
 - **Samples:** ≥10 full stack cycles.
 - **Changes:** Lacerate damage and bear TPS.

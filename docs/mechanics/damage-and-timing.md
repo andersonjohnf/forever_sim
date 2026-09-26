@@ -223,7 +223,7 @@ Rule for the engine: read the effect type from the class data. Don't hard-code t
   analog in this sim is Judgement of the Crusader, the same aura for Holy: a periodic tick gets
   the flat bonus by its spell-damage coefficient (Consecration's 0.095 a tick), and a bleed's
   ticks have none, so they get nothing; WarriorSim adds it to direct hits only, not to its Deep
-  Wounds or Rend ticks. Guild test: [B70](../open-questions.md#b70-classic-rules-that-only-a-post-sod-sim-encodes).
+  Wounds or Rend ticks. In-game test: [B70](../open-questions.md#b70-classic-rules-that-only-a-post-sod-sim-encodes).
 - Forever: no change found. Class docs note any talent that says "additively".
 
 ### 2.5 Crit, glancing, crushing and block multipliers

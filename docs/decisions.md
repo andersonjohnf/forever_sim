@@ -463,8 +463,8 @@ by D26's rule, since its blocks now make more threat than its rage would elsewhe
 ([warrior.md §5.4](classes/warrior.md#build-160170009-protection)). With every 1.60.1.70009 slice
 merged (the paladin review's PR-7, 2026-09-24; seed 31101, 100,000 fights), Balanced makes **1,001.6
 TPS for the warrior, 1,126.6 for the bear and 752.6 for the paladin**: the warrior 33.1% over the
-paladin and 11.1% under the bear. D29 sets no numeric target, so these gaps are observations for the
-guild's tests ([milestones T6](milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)), not
+paladin and 11.1% under the bear. D29 sets no numeric target, so these gaps are observations for
+in-game tests ([milestones T6](milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)), not
 failures.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
@@ -508,8 +508,8 @@ had no known number was modelled with none. Both are now rules:
   officers' "paladin and bear about 800–900 TPS, warrior no more than about 50% ahead" was a feel,
   not a measurement, and no longer applies: the model's numbers land where the cited mechanics put
   them. Unknown values still take reasoned defaults from allowed sources, and the sanity checks
-  above still apply; a gap no cited mechanic explains is an open question for the guild's in-game
-  tests or combat logs, not a reason to move a value.
+  above still apply; a gap no cited mechanic explains is an open question for in-game tests or
+  combat logs, not a reason to move a value.
 
 ### D30: The sim finds the best talents, gear and rotation itself; defaults are its results (2026-09-24)
 User decision, now the top priority. The feature is called **the Optimizer** (user's name for it;

@@ -559,7 +559,7 @@ What it's worth: at 100% it leads the trinkets of every list that ranks it, +9.7
 counts as zero. It **breaks even near a 12% chance** for Destruction, the Fire mage and Elemental and
 near 17% for Affliction and Demonology (paired against the next trinket, 20,000 fights on seed 2701,
 1.60.1.70009), so it stays in each default's pair of trinkets at any chance above about a fifth. The results' assumptions
-show it (`draconicEmblemChance`), and a guild test (its buff's uptime on a target dummy) is a known gap.
+show it (`draconicEmblemChance`), and an in-game test (its buff's uptime on a target dummy) is a known gap.
 
 Eye of the Beast's use (+7% spell hit for 20 s, 5 min) isn't modelled: the aura model has no spell-hit
 buff yet (known gap E7, [shaman.md](../classes/shaman.md)).

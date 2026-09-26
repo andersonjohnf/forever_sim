@@ -899,3 +899,77 @@ Classic-based default), D36 (the Season of Discovery exception) and [doctrine §
 D29's other rules stand: equal threat wording across tanks (now the bonus used as is), talent
 builds and presets suited to how the spec is played, and the plausibility check, whose finding is
 closed by a cited mechanic or recorded as an open question, never by moving a value.
+
+### D38: The values audit's calls (2026-09-26)
+User decisions, on the questions the values audit of 2026-09-26 left open: where the allowed
+sources disagree, or where none gives a value. Slices H and I of
+[M5.669](milestones.md#m5669-only-sourced-values--next-update) put them in the sim, except those
+that keep today's model; the effects are the audit's estimates. **The no-value rule is
+confirmed:** [D37](#d37-only-sourced-values-2026-09-26)'s fallback order, with the third-party
+exception at step 2 ([doctrine §2](doctrine.md#2-where-numbers-come-from-non-negotiable)).
+1. **No level-based spell resistance on the boss in `forever`**, from the beta logs' 810 non-Holy
+   hits with no partial resist (D22), `[?]`; `classicEra` keeps Classic's rule. Most casters
+   about +5–7%, Frost +2% ([spells §3](mechanics/spells.md#3-resistances)).
+2. **Crit suppression against a +3 boss is Classic's rule:** 3 + 1.8 = 4.8 points. The melee specs
+   about −1.6 to −3.1% ([combat-tables §4.4](mechanics/combat-tables.md#44-crit-suppression)).
+3. **Ironfoe procs 6% of the time,** the client's `ProcChance`, not halved. Fury with it about +3.7%
+   ([damage-and-timing §5.2](mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples)).
+4. **Arcane Blast's stacks and Missile Barrage are modelled,** in their own slice (M5.669 I); a
+   known gap until then ([mage.md](classes/mage.md)).
+5. **Arcane Power blocking Power Infusion stays,** labelled; no change.
+6. **Ignite and Curse of the Elements keep today's reading,** with both readings in the open
+   questions; no change ([mage.md](classes/mage.md#open-questions)).
+7. **The rogue's attack-power shares stay,** labelled as a player's Discord tests, under D37's
+   exception; `classicEra` takes the reading from before them
+   ([rogue.md Q3, Q16](classes/rogue.md#10-open-questions)).
+8. **Felstriker and Alcor's Sunrazor proc once a minute,** other sims' rate (step 4), labelled.
+   Assassination and Subtlety at least +2%.
+9. **Seal Fate triggers from either Mutilate hand, one point at most,** as the client's 0.5 s
+   proc cooldown gives. Assassination gains ([rogue.md](classes/rogue.md#10-open-questions) Q7).
+10. **Gear mp5 pays at the intended rate;** the beta's every-second bug is noted, not modelled. No
+    change ([spells §8](mechanics/spells.md#8-mana)).
+11. **Boss melee is measured from Classic Era public logs** of Golemagg and Ragnaros (Molten Core),
+    in this build. The tanks' damage taken changes
+    ([encounter §5](mechanics/encounter.md#5-boss-melee-tank-modeling)).
+12. **The consumable presets are rebuilt:** the tanks' like for like and for threat, every spec
+    what its players use ([buffs doc](mechanics/buffs-debuffs-consumables.md)).
+13. **"Crit with melee attacks" (item effects 7597 and 7598) is melee only,** per Forever's
+    tooltip, `[?]`.
+14. **Protection paladin enchants are re-picked for threat** within the effective-health floor
+    ([paladin.md](classes/paladin.md)).
+15. **The boss has no creature type by default,** disclosed in the results, and a Fight setting
+    ([encounter §6](mechanics/encounter.md#6-creature-type-biome-and-zone-forever)).
+16. **A DPS spec's damage taken stays 0,** disclosed; no change.
+17. **Pets inherit 10% of your attack power and your crit,** a labelled exception (a testers'
+    wiki); the hit and spell-damage inheritance by analogy is dropped
+    ([ranged-and-pets §6.1](mechanics/ranged-and-pets.md#61-what-a-pet-inherits-from-you)).
+18. **Unbridled Wrath stays at the talent's 12% a rank** (Blizzard says the beta's lower rate is
+    a bug being fixed); the measured 7.5% a rank is shown in the results
+    ([warrior.md](classes/warrior.md#w22-unbridled-wrath-expected-rage)).
+19. **Earth Shock's threat is ×2 its damage,** labelled with Maul's lineage (every Classic threat
+    tool carries it; never measured). The same-wording rule stays for the tanks' abilities
+    ([threat.md](mechanics/threat.md#per-ability-threat-at-max-rank)).
+20. **PvP rank rewards (ranks 7–10) aren't pre-raid gear for the presets;** Enhancement's trinket
+    and relic are re-ranked within non-PvP gear ([shaman.md](classes/shaman.md)).
+21. **The warlock's demon keeps its stats** (the emulator placeholder, D24) **and its attack power
+    and swing** (a Blizzard-forum report on hunter pets), relabelled plainly under D37; its mana
+    regeneration follows the warlock's five-second rule too, the analog used as is
+    ([warlock.md §11.2](classes/warlock.md#112-your-demon)).
+22. **Base spell crit of 1.7% for warlock, mage and priest stays,** labelled: from wowsims (step
+    4); a pre-SoD RatingBuster reads 0.3 points lower
+    ([character-stats](mechanics/character-stats.md#other-base-values-at-level-60)).
+23. **Darkmoon Faire rewards** (Verimonde's Last Resort, say) **stay out of the presets' gear pool**
+    for now; the picker still offers them.
+24. **Lacerate stays 206 flat** ([D37](#d37-only-sourced-values-2026-09-26)), though Blizzard's own
+    SoD hotfix (2 December 2024) sets 3.33 × damage for the same spell (414644, Forever's rank 1):
+    the same-wording rule across tanks wins, and ×3.33 would put the bear about 48% over the
+    warrior. No change ([druid.md §4.3](classes/druid.md#43-lacerate-r3-1235827)).
+25. **Primal Bite's threat is back to 1 per damage:** its tooltip names no extra threat, and Forever
+    reworked the spell (ranks 2–4 are new ids), so SoD's Mangle (Bear) ×1.5 doesn't carry over.
+    The bear's TPS drops ([druid.md §4.2](classes/druid.md#42-primal-bite-bear-only-1238073-at-level-60)).
+26. **Maelstrom Weapon's chance is the client's 50, read as 50% a melee hit,** kept and labelled:
+    the tooltip describes a chance but never shows it, 50 is the client's only number for it, and
+    zero is certainly wrong. No change ([shaman.md](classes/shaman.md#maelstrom-weapon)).
+27. **Hammer of the Righteous reads its tooltip literally:** 3 × the main hand's damage per second,
+    without attack power, by default; "with attack power" stays a setting (Character → Advanced).
+    Its damage and threat drop ([paladin.md](classes/paladin.md#other-abilities)).

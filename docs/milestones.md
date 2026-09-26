@@ -208,9 +208,9 @@ paladins; the research is in the Judgement of the Crusader notes (B18).
 The user's rules of 2026-09-26 ([D37](decisions.md#d37-only-sourced-values-2026-09-26)): no
 invented multipliers, ratios, scalings or fitted terms; an undescribed client dummy models as zero;
 other sims are unconfirmed data we may consider, never authoritative, and used only as the last
-resort before zero, labelled; the user's offhand numbers are never evidence. Each slice replaces the values that broke them
-with an allowed source's, used as is, and re-measures the headlines it moves. The paladin's own
-provenance is M5.668's P3.
+resort before zero, labelled; the user's offhand numbers are never evidence. Each slice replaces
+the values that broke them with an allowed source's, used as is, and re-measures the headlines it
+moves. The paladin's own provenance is M5.668's P3.
 - [ ] **A Doctrine and provenance:** D37 in the doctrine, CLAUDE.md and the agents; the rogue's
       "guild test" relabelled as a player's Discord tests; planned tests called in-game tests
 - [ ] **B1 Warrior threat:** Shield Slam 254, Sunder Armor 206 flat, the parry check
@@ -219,10 +219,24 @@ provenance is M5.668's P3.
 - [ ] **B3 Deep Wounds under D37:** Blizzard's SoD patch notes for spell 412609 or Classic Era's
       restart; the user's D36 decision stands until then
       ([B79](open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer))
-- [ ] **C Bear threat:** Lacerate 206 flat, Primal Bite, the rage fit, Maul's ×1.75 provenance
+- [ ] **C Bear threat:** Lacerate 206 flat, Primal Bite at 1 threat per damage (D38), the rage
+      fit, Maul's ×1.75 provenance
 - [ ] **E Casters:** the epic weapons, Improved Imp, Maelstrom Weapon, Earth Shock, Thorns
 - [ ] **F Class quest sets:** Dungeon Set 2 for each class, the bear's head re-picked
 - [ ] **G Damage truncated per hit**
+- [ ] **H Audit fixes ([D38](decisions.md#d38-the-values-audits-calls-2026-09-26)):**
+  - combat: no level-based spell resistance in `forever`; crit suppression 4.8 vs +3; Ironfoe 6%
+  - procs and talents: Felstriker and Alcor's Sunrazor at 1 a minute; Seal Fate from either
+    Mutilate hand; "crit with melee attacks" melee only; Unbridled Wrath's measured rate shown
+  - tanks: boss melee from Classic Era Molten Core logs; Protection paladin enchants for threat;
+    Hammer of the Righteous without attack power by default, "with attack power" a setting
+  - presets: consumables rebuilt; no PvP rank rewards (Enhancement's trinket and relic); no
+    Darkmoon Faire rewards
+  - pets: 10% of attack power and crit only; the demon's mana under the five-second rule
+  - labels: Earth Shock ×2, Maelstrom Weapon's 50%, Arcane Power and Power Infusion, Ignite and
+    Curse of the Elements, gear mp5, the creature type, DPS damage taken, the demon's stats, base
+    spell crit
+- [ ] **I Arcane Blast's stacks and Missile Barrage** (D38 #4)
 
 ## M5.67: Item tooltips ✅
 

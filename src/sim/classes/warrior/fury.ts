@@ -293,9 +293,9 @@ export const FURY_OPTIONS: RotationOption[] = [
     id: ID.rendEnabled,
     group: 'Fillers',
     label: 'Rend (stance dance)',
-    // Why first (W4U-1): a Fury player from Classic Era never Rends. "About 0.1%": Rend off costs 0.11% in the
-    // default setup (warrior.md §5.2 "The Rend dance"). Partial uptime, not "keep it up" (W4U-4).
-    help: 'Rend adds a little to your damage, about 0.1% in the default setup. When your rage is low, swap to Battle Stance for it and back while Bloodthirst and Whirlwind are cooling down, outside the execute phase, so it’s up for part of the fight. Each swap keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank.',
+    // Why first (W4U-1): a Fury player from Classic Era never Rends. "About 1.4%": Rend off costs 1.37–1.42% in the
+    // default setup (warrior.md §5.2 "The Rend dance"; 1.42% on 2026-09-26, 100,000 paired fights). Partial uptime, not "keep it up" (W4U-4).
+    help: 'In Forever, Rend’s ticks gain from your attack power, so it adds about 1.4% to your damage. When your rage is low, swap to Battle Stance for it and back while Bloodthirst and Whirlwind are cooling down, outside the execute phase, so it’s up for part of the fight. Each swap keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank.',
     default: true,
   },
   {
@@ -688,6 +688,7 @@ export function furyRotation(
     // at most refreshBelowSec of ticks left (unless it lasts to the end of the fight), at rage ≤
     // maxRage, Bloodthirst and Whirlwind GCD-safe, and never in the execute phase, where the GCDs are
     // Execute's; nor with less than one tick (3 s) of the fight left, when it would never tick (W4L-2).
+    // Its ticks add 0.02 × AP in forever, WarriorSim’s value [?] (§3.1 "Rend’s attack power", Q37).
     rend: () => {
       if (!v.on(ID.rendEnabled)) return
       const def = rend(ctx.profile)

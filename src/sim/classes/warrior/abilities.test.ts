@@ -341,16 +341,22 @@ describe('Arms talents on the abilities (warrior.md §4.1)', () => {
     expect(ticks[3] * REND.dotTicks).toBeCloseTo(198.45, 12)
   })
 
-  it('W13 in `forever`: no attack-power term [?] (the client has none, and the beta logs measure no sheet coefficient), so both profiles tick 21 × Improved Rend', () => {
-    expect(REND_AP_PER_TICK).toEqual({ forever: 0, classicEra: 0 })
+  it('W13 in `forever`: each tick adds 0.02 × AP [?] (WarriorSim’s value, Q37), and Improved Rend 3/3 multiplies the whole tick: 76.95 at 1800 AP, 538.65 over 7', () => {
+    expect(REND_AP_PER_TICK).toEqual({ forever: 0.02, classicEra: 0 })
     expect(rend(CLASSIC_ERA)).toBe(REND)
-    expect(rend(FOREVER)).toBe(REND)
-    // The client's 11574 has one effect, the flat periodic damage (warrior.md §3.1 "Rend's attack power").
+    expect(rend(FOREVER)).toEqual({ ...REND, dotTickApCoefficient: 0.02 })
+    // The client's 11574 has one effect, the flat periodic damage: no allowed source gives the term, so it's another sim's (warrior.md §3.1 "Rend's attack power", Q37).
     expect(spells['11574'].effects.map((e) => [e.effectAura, e.effectBasePointsF])).toEqual([[PERIODIC_DAMAGE, 21]])
     const r3 = withTalents(rend(FOREVER), t([['Improved Rend', 3]]))
     expect(r3.dotTickDamage).toBeCloseTo(28.35, 12)
-    expect(r3.dotTickDamage * r3.dotTicks).toBeCloseTo(198.45, 12)
-    expect(r3.dotTickApCoefficient).toBeUndefined()
+    expect(r3.dotTickApCoefficient).toBeCloseTo(0.027, 12)
+    const tick = (ap: number) => r3.dotTickDamage + r3.dotTickApCoefficient! * ap
+    expect(tick(1800)).toBeCloseTo(76.95, 12)
+    expect(tick(1800) * r3.dotTicks).toBeCloseTo(538.65, 12)
+    expect(tick(2000)).toBeCloseTo(82.35, 12)
+    // Without the talent the term is the bare 0.02.
+    expect(withTalents(rend(FOREVER), t([])).dotTickApCoefficient).toBe(0.02)
+    expect(withTalents(REND, t([['Improved Rend', 3]])).dotTickApCoefficient).toBeUndefined()
   })
 
   it('W4: Improved Slam takes 0.25 s per rank off Slam’s cast and GCD and 1.5 s off its 18 s cooldown, and any rank leaves the swing timers alone', () => {
@@ -1241,9 +1247,8 @@ describe('furyRotation: the Overpower dance and Slam (warrior.md §5.2 rows 10 a
     expect(lines.map((e) => e.conditions)).toEqual([
       [notExec, { code: COND.abilityAuraRefresh, a: rend, b: 3000 }, tickLeft, { code: COND.maxRage, a: 250, b: 0 }, safe((1 << bt) | (1 << ww))],
     ])
-    // Its ticks have no attack-power term (§3.1 "Rend's attack power"), and Improved Rend isn't in these talents.
-    expect(r.abilities[rend]).toMatchObject({ costTenths: 100, stances: STANCE.battle | STANCE.defensive, dotTickDamage: 21 })
-    expect(r.abilities[rend].dotTickApCoefficient).toBeUndefined()
+    // Its ticks add 0.02 × AP in `forever` (D36), and Improved Rend isn't in these talents.
+    expect(r.abilities[rend]).toMatchObject({ costTenths: 100, stances: STANCE.battle | STANCE.defensive, dotTickApCoefficient: 0.02 })
     // The settings: the refresh window and the rage limit; without Execute, no phase condition; off, no Rend.
     const set = furyRotation({ 'warrior.fury.execute.enabled': false, 'warrior.fury.rend.refreshBelowSec': 0, 'warrior.fury.rend.maxRage': 40 }, talents, noAura)
     expect(linesOf(set, 'rend').map((e) => e.conditions)).toEqual([

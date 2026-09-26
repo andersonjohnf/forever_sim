@@ -331,7 +331,7 @@ export const SPEARING_STRIKE: AbilityDef = {
  * 0x200) (warrior.md §3.1, W13; damage-and-timing §4). The application rolls miss, dodge and
  * parry and can't crit; a miss, dodge or parry refunds 80% [C]
  * (rage.md#rage-refunds-on-avoided-abilities). Improved Rend multiplies the ticks (modifiers.ts),
- * an attack-power part included if a profile has one (`rend(profile)`; none today).
+ * their attack-power part in `forever` included (`rend(profile)`).
  * Its `aura` marks the bleed on the target for 21 s. Threat: each tick's dmg × 1 [C]
  * (threat.md#warrior).
  */
@@ -366,16 +366,17 @@ export const REND: AbilityDef = {
 }
 
 /**
- * Rend's attack power per tick, read as each tick lands (warrior.md §3.1 "Rend's attack power", W13):
- * - `forever`: none [?]. The client's 11574 has no attack-power term [F], and Classic Era's Rend has
- *   none [C]. The Forever beta logs show the ticks growing with the log's attack-power field, but that
- *   field isn't the character sheet's, so they measure no coefficient (Q37); WarriorSim's 0.02 is
- *   another sim's unconfirmed value, not a source.
+ * Rend's attack power per tick, read as each tick lands (warrior.md §3.1 "Rend's attack power", W13, Q37):
+ * - `forever`: 0.02 [?], **another sim's value**: WarriorSim's Forever mode, which reports it from its
+ *   own live test around level 10 (D37's fallback, step 4). No allowed source gives a coefficient: the
+ *   client's 11574 has no attack-power term, and Classic Era's Rend none. The public beta logs show the
+ *   ticks growing with attack power, so Classic Era's none is contradicted in Forever; their slope
+ *   (0.0091 × the log's AP field, about 0.016 × sheet AP) agrees in size but isn't adopted.
  * - `classicEra`: none [C], as Classic Era's Rend.
  */
-export const REND_AP_PER_TICK = { forever: 0, classicEra: 0 } as const
+export const REND_AP_PER_TICK = { forever: 0.02, classicEra: 0 } as const
 
-/** Rend in the rule profile: `REND`, its ticks adding `REND_AP_PER_TICK` where a profile has one. */
+/** Rend in the rule profile: `classicEra`'s is `REND`; `forever`'s ticks add `REND_AP_PER_TICK`. */
 export function rend(profile: RulesProfile): AbilityDef {
   const ap = REND_AP_PER_TICK[profile.id]
   return ap > 0 ? { ...REND, dotTickApCoefficient: ap } : REND

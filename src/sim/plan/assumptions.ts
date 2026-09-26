@@ -366,9 +366,9 @@ const REGISTRY = {
     docRef: `${WAR}#31-damage-abilities`,
   },
   rendTickCrits: {
-    // warrior.md §3.1 "Rend's attack power", Q32, Q37.
-    text: 'Rend’s ticks deal their flat damage, with nothing from your attack power, as the Forever client and Classic Era give it. Low-level beta logs show the ticks growing with attack power by an amount nobody has measured, so Rend may be worth more. The ticks can crit, as those logs show, at your special-attack crit chance when Rend landed, with the same bonus as your abilities’ crits (×2.2 with Impale 2/2).',
-    docRef: `${WAR}#25-crits-impale-flurry-deep-wounds`,
+    // warrior.md §3.1 "Rend's attack power" (WarriorSim's 0.02, D37's step 4), Q32, Q37. Shown in `forever` only.
+    text: 'Each Rend tick adds 2% of your attack power as it lands. The game’s data gives Rend no attack-power share, but low-level beta logs show its ticks growing with attack power, and nobody has measured by how much, so the sim uses another warrior sim’s 2%, unconfirmed at 60. The ticks can crit, as those logs show, at your special-attack crit chance when Rend landed, with the same bonus as your abilities’ crits (×2.2 with Impale 2/2).',
+    docRef: `${WAR}#31-damage-abilities`,
   },
   executeRageTenths: {
     text: 'Execute turns all the rage left after its cost into damage, tenths of a rage point included (15 damage per rage); the server may count whole points only.',

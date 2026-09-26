@@ -583,7 +583,7 @@ for daggers. `weapon` means the real speed. Both are defined in
 | Execute (5, 20662) | 15 | none | yes | Battle, Berserker | Only on targets at or below 20% health. **600 + 15 × (rage − cost)**; a successful hit spends all rage. The 15 per rage is client data, not a server script: the damage effect's `EffectChainAmplitude` 1.5, which the tooltip's `$*10;F1` shows as 15 (ranks 1–5: 3, 6, 9, 12, 15) | [F] [sb] [client] (SpellEffect, 1.60.1.69913); rage rules [C] [marrow] [ws-spell] |
 | Overpower (4, 11585) | 5 | 5 s | yes | Battle | MH `normalized` + 35. Can't be dodged, parried or blocked. Improved Overpower adds +25% crit chance per rank. Needs the Overpower window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)), which it closes | [F] [sb] [tal] [client] (SpellPower, SpellEffect, 1.60.1.69913) |
 | Hamstring (3, 7373) | 10 | none | yes | Battle, Berserker | 45 physical damage (flat, rolls on the melee table) and a 50% snare. Used to fish for procs | [F] [sb] [db-eff] |
-| Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick, with no attack-power term in either profile [?] ("Rend's attack power" below). Improved Rend multiplies the whole tick by 1 + 0.12 / 0.23 / 0.35. The application rolls miss, dodge and parry and can't crit; the ticks ignore armor and, in `forever`, may crit ([§2.5](#25-crits-impale-flurry-deep-wounds)). It enables Bloodthrill | [F] [sb] [tal] [db-eff] [client] (SpellEffect, SpellMisc, 1.60.1.69913); no AP term [?] |
+| Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick. **In `forever` each tick adds 0.02 × AP**, read as the tick lands: WarriorSim's value, for want of an allowed source [?] ("Rend's attack power" below). Improved Rend multiplies the whole tick by 1 + 0.12 / 0.23 / 0.35. The application rolls miss, dodge and parry and can't crit; the ticks ignore armor and, in `forever`, may crit ([§2.5](#25-crits-impale-flurry-deep-wounds)). It enables Bloodthrill | [F] [sb] [tal] [db-eff] [client] (SpellEffect, SpellMisc, 1.60.1.69913); AP term [?] (another sim's) |
 | Spearing Strike (1310222) | 15 | 20 s | yes | any, two-hander only | **0.40 × MH `normalized`**. Against **Giants, Dragonkin and mounted targets**, 1.20 × (+80%) | [F] [tal] [db-eff] (effect 121 + weapon-% effect 31 = 40) [?] (Q13) |
 | Thunder Clap (6, 11581) | 20 | **6 s** | yes | Battle, **Defensive** | 103 damage to up to 4 targets. Rolls as a spell-type attack (defense type 1), so it can't be dodged or parried. Also a −20% attack-speed debuff for 30 s. The beta logs show low ranks hitting for more than their base, an unmeasured term (Q38), and crits at about 0.3% (Q33) | [F] [sb] [client] (SpellCategories, 1.60.1.69913). Threat is in [threat.md](../mechanics/threat.md) |
 | Revenge (5, 11601) | 5 | 5 s | yes | Defensive | **109–133** (121, `Variance` 0.197, 121 ± 12 in whole numbers) × (1 + 0.20 × Improved Revenge rank). Rank 6 (25288, 138–168) is an Ahn'Qiraj book (D36, Q25). Needs the Revenge window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)). The beta logs show rank 1 hitting for about three times its base, an unmeasured term the sim leaves out (Q38) | [F] [sb] [db-eff] |
@@ -626,16 +626,26 @@ Specialization's OH hit) and can crit (Impale applies) and proc on-hit effects [
 **Bloodthirst details.** The AP used is the warrior's full melee attack power after all
 buffs. It is physical, so armor applies, and it uses the special attack table [F] [sb].
 
-**Rend's attack power** [?]. Each Rend tick deals 21 in both profiles, with the bleed's snapshot
-rules (the physical multipliers and crit chance at the application, [§7](#7-implementation-notes)
-"Rend is a bleed ability"), times Improved Rend. The client's 11574 has no attack-power term (one
-periodic-damage effect of 21) [F], and neither has Classic Era's Rend [C]. The Forever beta logs
-show the ticks growing with attack power, but the log's attack-power field isn't the character
-sheet's, so they measure no coefficient; the sim keeps Classic Era's none until one is measured
-(question 37). WarriorSim's Forever mode adds 0.02 × AP a tick, which D36 took and this sim used
-until 2026-09-26; another sim's value is no source. The results' assumptions list it with Rend's
-tick crits. The engine still takes an attack-power part per tick (`REND_AP_PER_TICK`, read as the
-tick lands and multiplied by Improved Rend) for when a measurement sets one.
+**Rend's attack power** [?]. In `forever` each Rend tick deals `21 + 0.02 × AP`, the attack
+power read as the tick lands, and the rest of the tick keeps the bleed's snapshot rules (the
+physical multipliers and crit chance at the application, [§7](#7-implementation-notes) "Rend is a
+bleed ability"). Improved Rend multiplies the whole tick. `classicEra` has no term [C].
+- **Why a term at all.** The client's 11574 has no attack-power term (one periodic-damage effect
+  of 21) [F], and neither has Classic Era's Rend [C]. But the public beta logs show the ticks
+  growing with attack power (question 37), so Classic Era's none is contradicted in Forever.
+- **Where 0.02 comes from: another sim.** No allowed source gives the coefficient, no third-party
+  test measures it in sheet attack power, and no similar known value exists. So the sim takes
+  WarriorSim's Forever mode's 0.02 × AP a tick ([its notes][wsf-mech], "verified via live testing
+  around player level 10", with no log published), the last resort before zero in D37's
+  fallback order, tagged [?] as another sim's value. It came in with
+  [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25).
+- **The logs agree on the size, but aren't adopted.** Their slope, 0.0091 × the log's
+  attack-power field, with the field about 1.75 × sheet attack power on the one posted sheet
+  (Raelyna: 222 on the sheet, 389 in the log, question 37), puts it near 0.016 × sheet AP. That's
+  one sheet's conversion of a fit, not a measurement, so it corroborates the order of magnitude
+  and the sim keeps 0.02.
+
+The results' assumptions list it with Rend's tick crits, saying where the value comes from.
 
 ### 3.2 Buffs, debuffs and cooldowns
 
@@ -836,7 +846,7 @@ Death Wish, Recklessness and the Mighty Rage Potion follow the execute phase.
 | 8 | Bloodthirst | Off cooldown; rage ≥ cost | `fury.bloodthirst.enabled` (on) | yes |
 | 9 | Whirlwind | Off cooldown; rage ≥ 25 + `reserve`; Bloodthirst cooldown ≥ `btCdMinSec` | `fury.whirlwind.enabled` (on), `.reserve` (0), `.btCdMinSec` (0.5) | yes |
 | 10 | Overpower (stance dance) | Window open; rage ≤ `maxRage`; Bloodthirst and Whirlwind are GCD-safe. Swap to Battle, Overpower, swap back; the swap keeps at most 19 with the default build (25 with Improved Tactical Mastery 5/5), so above that it loses the rest. See the notes | `fury.overpower.enabled` (on), `.maxRage` (45; 40 until W4) | yes |
-| 10b | Rend (stance dance) | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does; more than one tick (3 s) of the fight left (VW4-1); rage ≤ `maxRage`; Bloodthirst and Whirlwind are GCD-safe; outside the execute phase. Swap to Battle, Rend, swap back. New in W4, now that Rend's ticks add 0.02 × AP (D36). See the notes | `fury.rend.enabled` (on), `.refreshBelowSec` (3), `.maxRage` (25) | yes |
+| 10b | Rend (stance dance) | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does; more than one tick (3 s) of the fight left (VW4-1); rage ≤ `maxRage`; Bloodthirst and Whirlwind are GCD-safe; outside the execute phase. Swap to Battle, Rend, swap back. New in W4, now that Rend's ticks add 0.02 × AP (D36; WarriorSim's value, Q37). See the notes | `fury.rend.enabled` (on), `.refreshBelowSec` (3), `.maxRage` (25) | yes |
 | 11 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`; with `unqueue` on, unqueue if rage falls below `unqueueBelow` before the swing. In both phases unless `heroicStrikeInExecute` (row 7) is off | `fury.heroicStrike.enabled` (on), `.minRage` (40), `.unqueue` (on), `.unqueueBelow` (20) | yes |
 | 12 | Hamstring (filler to fish for procs) | Rage ≥ `minRage`; Bloodthirst and Whirlwind are GCD-safe; optionally only when Flurry is down | `fury.hamstring.enabled` (off), `.minRage` (60), `.onlyWhenFlurryDown` (off) | no |
 | 13 | Berserker Rage | With Improved Berserker Rage: on cooldown, when GCD-safe and rage ≤ max − 10. Without it: not used (its only other effect is Q20's extra rage from damage taken) | `fury.berserkerRage.enabled` (on; the plan skips it without Improved Berserker Rage), `.maxRage` (max − 10) | with the talent |
@@ -922,11 +932,11 @@ Notes:
   is in [§7](#7-implementation-notes) ("Stance dancing").
 - **The Rend dance** (row 10b), new and on by default since W4: when your Rend has at most 3 s of
   ticks left (or is missing), rage is at most 25 and Bloodthirst and Whirlwind are GCD-safe, the
-  warrior swaps to Battle Stance, uses Rend, and swaps back, as the Overpower dance does. W4 tuned
-  it with Rend's ticks at `21 + 0.02 × AP` (WarriorSim's, D36), about 540 damage a Rend at 1,800
-  AP; since 2026-09-26 they're 21 × Improved Rend 3/3's 1.35, 198 a Rend (W13, question 37), for 10
-  rage and a GCD that would otherwise go to nothing. The 13/38/0 build keeps Improved Rend for Deep
-  Wounds anyway.
+  warrior swaps to Battle Stance, uses Rend, and swaps back, as the Overpower dance does. Rend was
+  a 21-damage tick before D36; with its ticks at `21 + 0.02 × AP` (WarriorSim's value, [?],
+  [§3.1](#31-damage-abilities) "Rend's attack power"), times Improved Rend 3/3's 1.35 (W13), a Rend
+  is worth about 540 damage over 21 s at 1,800 AP for 10 rage and a GCD that would otherwise go to
+  nothing, and the 13/38/0 build keeps Improved Rend for Deep Wounds anyway.
   It comes below the Overpower dance, which then takes a window first (+0.6% over above it), and
   it stays out of the execute phase. Nor is it cast with one tick (3 s) or less of the fight
   left, when it would never tick (VW4-1) (W4's fix round, W4L-2; Arms' row 2 likewise): without an execute
@@ -934,11 +944,12 @@ Notes:
   rage, a GCD and a dance for nothing. Like the refresh's "unless it lasts to the end", this floor
   is the upkeep's own, so it doesn't list the known-timings assumption. Because it waits for low
   rage and leaves the phase alone, Rend is up for part of the fight (about 60% in the default
-  setup), and the setting's help says so rather than "keep it up". With the attack-power term it
-  was +1.4% DPS (below); without it, **+0.11%** (831.81 against 830.93 with it off, the default
-  seed, 100,000 fights), still the better choice, so it stays on and its help gives 0.1%. Its
-  refresh and rage limit were tuned with the term; at 0.1% they're not worth re-tuning. An engine
-  choice, measured; no source covers a Fury warrior dancing for Rend.
+  setup), and the setting's help says so rather than "keep it up". With the tuned defaults it's
+  +1.4% DPS (below; turning it off costs 1.37–1.42%, the figure its help gives: 1.42% on
+  2026-09-26, 842.86 against 830.93, the default seed, 100,000 paired fights). Without the
+  attack-power term it would be worth 0.11% (question 37), so the dance rests on WarriorSim's 0.02.
+  An engine choice, measured; no source covers a Fury warrior dancing for Rend, though WarriorSim's
+  comparison for D36 noted the AP term would make it worth it.
 - **Heroic Strike in the execute phase** (`heroicStrikeInExecute`, on since M2.5b). The queue
   keeps running at its `minRage`, and its cancel below `unqueueBelow` applies there too, so a
   queued one gives way when an Execute empties the bar first. With it off, the phase stops the
@@ -1226,8 +1237,8 @@ on seed 5201 (`node scripts/tune/rotation.mjs --spec warrior-fury --fights 40000
 
 [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25) changed what a Fury warrior's
 points and global cooldowns are worth: Deep Wounds rolls (every crit's bleed pays out), Unbridled
-Wrath procs only from auto attacks, Rend's ticks add 0.02 × AP (dropped on 2026-09-26, question
-37), and the ranks are the trainers'
+Wrath procs only from auto attacks, Rend's ticks add 0.02 × AP (WarriorSim's value, question 37),
+and the ranks are the trainers'
 (Heroic Strike r8, Battle Shout r6). W4 re-tuned the talents and the rotation on those rules,
 2026-09-25, in the default Fury setup (Human, pre-raid BiS, the Standard raid buffs with the Mighty
 Rage Potion, 180 s ± 10%, 20% execute, armor 3,731), with the tools of M2.5b: paired fights on the
@@ -2814,7 +2825,8 @@ seed 12345). The enchants stay the spec's
   special-attack crit chance, crit suppression included [?]
   ([damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)), and ticks 7
   times, every 3 s. In `forever` each tick adds 0.02 × the attack power as it lands, under the
-  snapshotted multipliers, Improved Rend's included ([§3.1](#31-damage-abilities)) [?]. The ticks
+  snapshotted multipliers, Improved Rend's included (WarriorSim's value,
+  [§3.1](#31-damage-abilities)) [?]. The ticks
   ignore armor, never miss, make threat at dmg × 1 and no rage. In
   `forever` each tick rolls crit at that chance and deals the ability's crit multiplier (×2.2
   with Impale 2/2, [§2.5](#25-crits-impale-flurry-deep-wounds)) [?]. A tick crit fires no crit
@@ -3020,8 +3032,9 @@ hand, whichever hand crit.
 ### W13: Rend with Improved Rend 3/3
 
 - `classicEra`: `147 × 1.35 = 198.45` over 21 s, or 28.35 per tick for 7 ticks.
-- `forever`: the same, 28.35 a tick at any attack power [?]: Rend has no attack-power term until
-  one is measured (question 37).
+- `forever` at 1800 AP: each tick is `(21 + 0.02 × 1800) × 1.35 = 57 × 1.35 = 76.95`, so 538.65
+  over 7 ticks [?] (WarriorSim's 0.02, question 37). At 2000 AP a tick is `(21 + 40) × 1.35 =
+  82.35`: the attack power is read as each tick lands.
 
 ### W14: Revenge rank 5, Protection
 
@@ -3444,31 +3457,40 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     the same weapon and attack power.
 
 37. **Rend's attack power.** The client's Rend 11574 has no attack-power term (one periodic
-    effect, 21 a tick) [F], and Classic Era's Rend has none [C], so the sim's Rend ticks for 21
-    (× Improved Rend) in both profiles. Until 2026-09-26 the `forever` profile added 0.02 × AP a
-    tick, WarriorSim's Forever value (D36), which no allowed source backs. **The beta logs show a
-    term exists:** over about 1,900 Rend ticks (ranks 1–3, some 60 warriors), each tick's base
-    exceeds the spell's by 0.0091 × the log's attack-power field (±0.0005, intercept 0.04), with
-    every rank-1 Rend ticking 6–7 where its base is 5. But the log's field isn't the character
-    sheet's attack power: a level-12 warrior logs 388–532, and for five one-weapon warriors a white
-    hit's average is within about 6% of the field ÷ 14 × weapon speed, as if the field counts the
-    weapon's damage too. Per character the ratio
-    runs from 0.004 to 0.021, beyond what Improved Rend explains. So no coefficient in sheet attack
-    power is measured, and the sim keeps Classic Era's none [?]. Against the former 0.02: Fury
-    −1.3% DPS (the Rend dance now adds 0.11%, [§5.2](#52-fury-dual-wield)), Arms −2.0% (Rend stays
-    for Bloodthrill: off costs 12%). **Test:** at a known sheet attack power, log Rend's ticks
-    with no Improved Rend; change the attack power (a buff, gear) and log again. The difference in
-    tick over the difference in sheet AP is the coefficient.
+    effect, 21 a tick) [F], and Classic Era's Rend has none [C]. **The beta logs show a term
+    exists:** over about 1,900 Rend ticks (ranks 1–3, some 60 warriors), each tick's base exceeds
+    the spell's by 0.0091 × the log's attack-power field (±0.0005, intercept 0.04), with every
+    rank-1 Rend ticking 6–7 where its base is 5. But the log's field isn't the character sheet's
+    attack power: Raelyna posted a level-20 sheet with 222 attack power ([magey/forever-warrior
+    discussion 16][fw-d16]), and the log from that session reads 389, about 1.75 times as much; and
+    for five one-weapon warriors a white hit's average is within about 6% of the field ÷ 14 ×
+    weapon speed, as if the field counts the weapon's damage too. Per character the ratio runs
+    from 0.004 to 0.021, beyond what Improved Rend explains. So no coefficient in sheet attack
+    power is measured. With no allowed source, no measurement and no similar known value, the
+    `forever` profile keeps **WarriorSim's 0.02 × AP a tick** [?], another sim's value stated as
+    such ([§3.1](#31-damage-abilities) "Rend's attack power"); `classicEra` keeps none. The logs
+    corroborate its size: the slope times Raelyna's 1.75 is about 0.016 × sheet AP, a conversion of
+    a fit through one sheet that the sim doesn't adopt. Without the term Fury would make 1.3% less
+    DPS (the Rend dance would add only 0.11%, [§5.2](#52-fury-dual-wield)) and Arms about 2% less
+    (Rend stays for Bloodthrill: off costs 12%). **Test:** at a known sheet attack power, log
+    Rend's ticks with no Improved Rend; change the attack power (a buff, gear) and log again. The
+    difference in tick over the difference in sheet AP is the coefficient.
 38. **Revenge's and Thunder Clap's damage.** Neither client carries an attack-power term for them
     (Revenge's effect has an `EffectBonusCoefficient` of 1, a spell-power field a warrior has no
     use for; Thunder Clap has none), and Classic Era's have none [C], so the sim uses their flat
     damage [F]. **The beta logs show much more at low level:** Revenge rank 1 (22 ± 1.7) hits
     Shwn, Raelyna and Zev for 69–78 on average over 670 hits, and Thunder Clap rank 1 (10) hits for
     16–19, rank 2 (23) for 32–46. Something scales them, most likely attack power; one posted sheet
-    puts Revenge's extra at about 0.21 × its attack power, but one sheet is no measurement, and the
+    (Raelyna's, [discussion 16][fw-d16]: about 46.5 over the base at 222 attack power) puts
+    Revenge's extra at about 0.21 × its attack power, but one sheet is no measurement, and the
     log's attack-power field isn't the sheet's (question 37). If Revenge gained 0.21 × AP at 60 it
     would add roughly 300 damage a Revenge before modifiers, a large rise in Protection's threat.
-    **Test:** as question 37: Revenge and Thunder Clap hits at two known sheet attack powers.
+    Unlike Rend's, no other sim carries a value to fall back on: WarriorSim's Forever mode has no
+    Revenge, and its Thunder Clap deals the flat base. So with no allowed source, measurement,
+    similar known value or other sim's value, the sim adds nothing [?], the last step of D37's
+    fallback order, and the question stays open (open questions B86): Revenge deals 109–133 (×1.6
+    with Improved Revenge 3/3, 174–213, as the default Protection build takes it) and Thunder Clap
+    103. **Test:** as question 37: Revenge and Thunder Clap hits at two known sheet attack powers.
 
 ## 10. Sources
 
@@ -3599,6 +3621,11 @@ the claim check read the raw 1.15.9.69722 files for the "(Classic …)" halves. 
   Heroic Strike queue choice conflicts with Q6. Its note that Dual Wield Specialization's
   values are "the same at every rank" conflicts with the Forever rank curves. **Do not adopt
   its values.**
+- [wsf-mech]: <https://github.com/tzcnt/WarriorSim/blob/069329b/data/forever/ABILITY_MECHANICS.md>.
+  WarriorSim's Forever-mode notes: Rend's 0.02 × AP a tick, "verified via live testing around
+  player level 10 - exact number is slightly approximated", with no log published. The sim uses
+  it as another sim's value, [?], for want of anything better ([§3.1](#31-damage-abilities)
+  "Rend's attack power", question 37).
 
 [cls]: https://foreverchanges.pro/class/warrior
 [sb]: https://foreverchanges.pro/spellbook/warrior
@@ -3627,8 +3654,10 @@ the claim check read the raw 1.15.9.69722 files for the "(Classic …)" halves. 
 [ws-player]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js
 [ws-spells]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/spells.js
 [wsf-golden]: https://github.com/tzcnt/WarriorSim/blob/069329b/test/wasm/golden-reports.json
+[wsf-mech]: https://github.com/tzcnt/WarriorSim/blob/069329b/data/forever/ABILITY_MECHANICS.md
 [fw-2]: https://github.com/magey/forever-warrior/issues/2
 [fw-4]: https://github.com/magey/forever-warrior/issues/4
+[fw-d16]: https://github.com/magey/forever-warrior/discussions/16
 [fb-105]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/105
 [fd-logs]: https://github.com/tzcnt/forever-data/tree/c7d17462c50d1eb0103aa5e2aff52f77f33e3418/raw-logs
 [marrow-logs]: https://github.com/ppach/marrow.github.io/tree/master/eternal/data/logs

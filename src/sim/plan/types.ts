@@ -771,8 +771,8 @@ export interface AbilityPlan {
   dotTickMs: number
   /**
    * `bleed`: this share of the attack power as each tick lands, added to `dotTickDamage` and under
-   * the same snapshotted multipliers (Rend's 0.02 in `forever` [?], × Improved Rend's factor,
-   * warrior.md §3.1, W13). Absent: none.
+   * the same snapshotted multipliers (Rend's 0.02 in `forever` [?], WarriorSim's value, × Improved Rend's factor,
+   * warrior.md §3.1, W13, Q37). Absent: none.
    */
   dotTickApCoefficient?: number
   /**

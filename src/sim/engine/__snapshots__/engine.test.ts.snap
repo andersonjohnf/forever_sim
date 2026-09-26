@@ -368,7 +368,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "rend",
-      2040104.6126996307,
+      4939592.215734549,
       8757,
       34573,
       16042,
@@ -408,15 +408,15 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
   ],
   "dps": {
-    "ci95": 3.7289858205982345,
-    "mean": 805.995160955081,
-    "stdev": 60.16482266295166,
+    "ci95": 3.7392153773002654,
+    "mean": 822.1354473393252,
+    "stdev": 60.329870076513444,
   },
   "durationSec": 179.690222,
   "tps": {
-    "ci95": 2.1427695824284596,
-    "mean": 458.65918651745784,
-    "stdev": 34.57222905548431,
+    "ci95": 2.148535832836423,
+    "mean": 467.69774689263477,
+    "stdev": 34.66526385097988,
   },
 }
 `;
@@ -801,7 +801,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "rend",
-      1351070.2800000203,
+      3329879.0903999917,
       5589,
       24265,
       11243,
@@ -821,15 +821,15 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
   ],
   "dps": {
-    "ci95": 2.99355574167773,
-    "mean": 833.2959013078541,
-    "stdev": 48.29912447905398,
+    "ci95": 2.993283286744933,
+    "mean": 844.2970675280461,
+    "stdev": 48.29472859140409,
   },
   "durationSec": 179.690222,
   "tps": {
-    "ci95": 1.7744791412607384,
-    "mean": 487.3299554178298,
-    "stdev": 28.630096221693748,
+    "ci95": 1.7743506632260768,
+    "mean": 493.490608501138,
+    "stdev": 28.62802331003804,
   },
 }
 `;

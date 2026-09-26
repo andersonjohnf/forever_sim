@@ -605,9 +605,6 @@ describe('golden run (fixed config and seed)', () => {
   // - D36's re-tune (W4, warrior.md §5.2 "Re-tuning after D36"): the 13/38/0 build (Precision 3, Improved Execute 2,
   //   no Impale or Anger Management), the Rend dance below the Overpower dance, and that dance up to 45 rage. DPS
   //   805.35 → 844.30, TPS 473.51 → 493.49; Execute's cost 15 → 10, and Rend's 0.02 × AP ticks join the bleeds.
-  // - No invented values (2026-09-26, warrior.md §3.1 "Rend's attack power", Q37): Rend loses WarriorSim's
-  //   0.02 × AP a tick, 21 × 1.35 in both profiles. Only Rend's damage moves (3.33 M → 1.35 M on this seed's
-  //   fights): Fury DPS 844.30 → 833.30, TPS 493.49 → 487.33; Arms 822.14 → 806.00, TPS 467.70 → 458.66.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

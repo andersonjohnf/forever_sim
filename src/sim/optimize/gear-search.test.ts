@@ -3,11 +3,11 @@ import { describe, expect, it } from 'vitest'
 import { defaultConfig } from '../defaults'
 import type { GearSlot, SimConfig } from '../types'
 import { localFightRunner } from './fights'
-import { gearContext, type Gear, POOL, SEARCHED_SLOTS, slotPool } from './gear'
+import { gearContext, type Gear, groupGears, POOL, SEARCHED_SLOTS, slotPool } from './gear'
 import { decodeTalentCode, talentsInCodeOrder } from '@/data/talents/types'
 import { TALENT_DATA } from '../defaults'
-import { type GearSearchOptions, optimizeGear, optimizeTogether } from './gear-search'
-import { gearKey } from './optimize'
+import { type GearSearchOptions, gearPools, optimizeGear, optimizeTogether, rankGear } from './gear-search'
+import { gearKey, setupCandidate } from './optimize'
 
 const OPEN: GearSlot[] = ['head', 'neck', 'finger1', 'finger2']
 
@@ -94,5 +94,21 @@ describe('the gear search', () => {
     expect(gearKey(b.answer!.gear!)).toBe(gearKey(answer))
     expect(b.fights).toBe(a.fights)
     expect(b.starts[0].steps.map((s) => [s.group, s.changed, s.fights])).toEqual(a.starts[0].steps.map((s) => [s.group, s.changed, s.fights]))
+  })
+})
+
+describe('a pair with one slot locked (O2L-2)', () => {
+  it('is ranked through the other slot, and its step races', { timeout: 120_000 }, async () => {
+    const config: SimConfig = { ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 0, seed: 1 } }
+    for (const lock of ['trinket1', 'finger1', 'trinket2'] as const) {
+      const ctx = gearContext(config, { locked: [lock] })
+      const pools = gearPools(ctx)
+      const { rankings } = await rankGear({ config, candidate: setupCandidate(config), ctx, pools, goal: 'balanced', runner: localFightRunner(), weightFights: 20, measureFights: 10 })
+      const list = lock.startsWith('finger') ? 'finger' : 'trinket'
+      expect(rankings.items.get(list)?.size ?? 0).toBeGreaterThan(10)
+      const gears = groupGears(ctx, list === 'finger' ? 'rings' : 'trinkets', config.gear, rankings, pools)
+      expect(gears.length).toBeGreaterThanOrEqual(5)
+      for (const g of gears) expect(g[lock]).toEqual(config.gear[lock])
+    }
   })
 })

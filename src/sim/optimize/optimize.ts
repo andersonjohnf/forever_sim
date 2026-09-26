@@ -793,12 +793,25 @@ export function candidateKey(config: SimConfig, c: Candidate): string {
   return `${c.talents}|${JSON.stringify(Object.keys(rotation).sort().map((k) => [k, rotation[k]]))}|${gearKey(c.gear ?? config.gear)}`
 }
 
-/** A gear map's identity: each filled slot's item and enchant, in slot order. */
+/**
+ * A gear map's identity: each filled slot's item and enchant, in slot order, with a ring or trinket
+ * pair unordered (O2L-7): the same two rings in the other slots are the same gear set. The gear search
+ * keeps a pair's current slots whenever it can (`groupGears`), and the first of two such sets seen is
+ * the one kept.
+ */
 export function gearKey(gear: SimConfig['gear']): string {
+  const entry = (slot: keyof typeof gear) => (gear[slot] ? `${gear[slot]!.itemId}${gear[slot]!.enchantId ? `+${gear[slot]!.enchantId}` : ''}` : '-')
+  const pairs: Record<string, 'fingers' | 'trinkets'> = { finger1: 'fingers', finger2: 'fingers', trinket1: 'trinkets', trinket2: 'trinkets' }
   return (Object.keys(gear) as (keyof typeof gear)[])
     .filter((slot) => gear[slot])
+    .map((slot) => {
+      const pair = pairs[slot]
+      if (!pair) return `${slot}:${entry(slot)}`
+      const [a, b] = pair === 'fingers' ? (['finger1', 'finger2'] as const) : (['trinket1', 'trinket2'] as const)
+      return `${pair}:${[entry(a), entry(b)].sort().join('|')}`
+    })
     .sort()
-    .map((slot) => `${slot}:${gear[slot]!.itemId}${gear[slot]!.enchantId ? `+${gear[slot]!.enchantId}` : ''}`)
+    .filter((part, i, all) => all.indexOf(part) === i)
     .join(',')
 }
 

@@ -13,6 +13,7 @@ import { ITEM_EFFECTS } from '../effects/items'
 import { catalogueEffects, type FlatStat } from '../effects/types'
 import { canUse, fitsFaction, fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
 import { type ContentOf, itemContent } from './content'
+import { gearKey } from './optimize'
 import { PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_META } from '../specs'
 import type { ClassId, EquippedItem, GearSlot, SimConfig, SpecId } from '../types'
@@ -158,6 +159,24 @@ export type GearGroup =
   | 'sets'
 
 export const GEAR_GROUPS: readonly GearGroup[] = ['head', 'neck', 'shoulder', 'back', 'chest', 'wrist', 'hands', 'waist', 'legs', 'feet', 'rings', 'trinkets', 'weapons', 'ranged', 'sets']
+
+/** The two slots of a ring or trinket pair, by either one. */
+export const PAIR_OF: Partial<Record<GearSlot, readonly [GearSlot, GearSlot]>> = {
+  finger1: ['finger1', 'finger2'],
+  finger2: ['finger1', 'finger2'],
+  trinket1: ['trinket1', 'trinket2'],
+  trinket2: ['trinket1', 'trinket2'],
+}
+
+/**
+ * The slot a pair's ranking list is measured through (O2L-2): the pair's first slot the player didn't
+ * lock, or null for a single slot (its own) or a pair locked whole.
+ */
+export function pairRankSlot(slot: GearSlot, locked: ReadonlySet<GearSlot>): GearSlot | null {
+  const pair = PAIR_OF[slot]
+  if (!pair) return null
+  return pair.find((s) => !locked.has(s)) ?? null
+}
 
 export const GROUP_SLOTS: Record<Exclude<GearGroup, 'sets'>, readonly GearSlot[]> = {
   head: ['head'],
@@ -522,25 +541,18 @@ function put(gear: Gear, slot: GearSlot, item: Item | undefined, enchantId?: str
   return slot === 'ranged' && item ? matchSupplies(next, item) : next
 }
 
-/** Each gear set once, and none that's the base, in order. */
+/** Each gear set once (a ring or trinket pair unordered, `gearKey`), and none that's the base, in order. */
 function distinct(ctx: GearContext, base: Gear, sets: Gear[]): Gear[] {
-  const seen = new Set<string>([keyOf(base)])
+  const seen = new Set<string>([gearKey(base)])
   const out: Gear[] = []
   for (const g of sets) {
-    const key = keyOf(g)
+    const key = gearKey(g)
     if (seen.has(key)) continue
     seen.add(key)
     if (gearProblems(ctx, g, base).length === 0) out.push(g)
   }
   return out
 }
-
-const keyOf = (gear: Gear) =>
-  (Object.keys(gear) as GearSlot[])
-    .filter((s) => gear[s])
-    .sort()
-    .map((s) => `${s}:${gear[s]!.itemId}+${gear[s]!.enchantId ?? ''}`)
-    .join(',')
 
 /** An item with each enchant a step tries on it, and its current enchant when it's the slot's current item. */
 function withEnchants(rankings: Rankings, slot: GearSlot, item: Item, current: EquippedItem | undefined, k: number): (string | undefined)[] {
@@ -565,8 +577,21 @@ export function groupGears(ctx: GearContext, group: GearGroup, gear: Gear, ranki
   const e = options.enchantsPerItem ?? ENCHANTS_PER_ITEM
   const locked = new Set(ctx.filters.locked ?? [])
   const current = (slot: GearSlot) => itemIn(gear, slot)
-  const candidatesFor = (slot: GearSlot, pool: readonly Item[] = pools.get(slot) ?? []) => {
-    const top = topItems(rankings, slot, pool, k)
+  const worn = wornItems(gear)
+  /**
+   * A slot's top items and its current one. An item that breaks a Unique rule with what the slots
+   * outside `open` hold never takes a top place (O2L-2: a locked ring's own copy in the other ring's
+   * list), since no gear set could wear it.
+   */
+  const candidatesFor = (slot: GearSlot, pool: readonly Item[] = pools.get(slot) ?? [], open: readonly GearSlot[] = [slot]) => {
+    const kept: Partial<Record<GearSlot, Item>> = { ...worn }
+    for (const s of open) delete kept[s]
+    const top = topItems(
+      rankings,
+      slot,
+      pool.filter((i) => uniqueConflicts(kept, slot, i).length === 0),
+      k,
+    )
     const now = current(slot)
     return now && !top.some((i) => i.id === now.id) ? [...top, now] : top
   }
@@ -604,15 +629,21 @@ export function groupGears(ctx: GearContext, group: GearGroup, gear: Gear, ranki
     return distinct(ctx, gear, out)
   }
   if (slots.length === 2) {
-    // Rings or trinkets: every pair of the top items and the current two.
+    // Rings or trinkets: every pair of the top items and the current two, unordered (O2L-7): an item
+    // already worn keeps its slot, so the current pair never races swapped.
     const [a, b] = slots
-    const pool = candidatesFor(a)
+    const pool = candidatesFor(a, undefined, [a, b])
     const other = current(b)
     const list = other && !pool.some((i) => i.id === other.id) ? [...pool, other] : pool
+    const nowA = current(a)?.id
+    const nowB = current(b)?.id
     for (let i = 0; i < list.length; i++)
       for (let j = i; j < list.length; j++) {
         if (i === j && (list[i].unique || list[i].uniqueEquipped)) continue
-        out.push(put(put(gear, a, list[i]), b, list[j]))
+        const kept = Number(list[i].id === nowA) + Number(list[j].id === nowB)
+        const swapped = Number(list[j].id === nowA) + Number(list[i].id === nowB)
+        const [first, second] = swapped > kept ? [list[j], list[i]] : [list[i], list[j]]
+        out.push(put(put(gear, a, first), b, second))
       }
     return distinct(ctx, gear, out)
   }

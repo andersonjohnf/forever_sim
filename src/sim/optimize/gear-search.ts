@@ -36,8 +36,11 @@ import {
   GROUP_SLOTS,
   type GroupOptions,
   itemFieldValues,
+  PAIR_OF,
+  pairRankSlot,
   POOL,
   type RankList,
+  rankList,
   type Rankings,
   SEARCHED_SLOTS,
   slotPool,
@@ -292,14 +295,18 @@ export async function rankGear(options: {
   const locked = new Set(ctx.filters.locked ?? [])
   const currentMain = gear.mainHand ? POOL.get(gear.mainHand.itemId) : undefined
   for (const slot of SEARCHED_SLOTS) {
-    if (locked.has(slot) || slot === 'finger2' || slot === 'trinket2' || slot === 'offHand') continue
+    if (locked.has(slot) || slot === 'offHand') continue
+    // A ring or trinket pair is ranked once, through its first unlocked slot (O2L-2), against that
+    // slot empty and the other as it is when it's locked, both empty when it isn't.
+    const pair = PAIR_OF[slot]
+    if (pair && pairRankSlot(slot, locked) !== slot) continue
     for (const item of pools.get(slot) ?? []) {
-      const list: RankList = slot === 'finger1' ? 'finger' : slot === 'trinket1' ? 'trinket' : slot === 'mainHand' && isTwoHand(item) ? 'twoHand' : (slot as RankList)
+      const list = rankList(slot, item)
       if (weighedItem(ctx, item)) {
         set(list, item.id, weighValues(itemFieldValues(ctx, item), weights.weights))
         continue
       }
-      const context = slot === 'finger1' ? without(gear, 'finger1', 'finger2') : slot === 'trinket1' ? without(gear, 'trinket1', 'trinket2') : slot === 'mainHand' ? without(gear, 'mainHand', 'offHand') : without(gear, slot)
+      const context = pair ? without(gear, ...pair.filter((s) => !locked.has(s))) : slot === 'mainHand' ? without(gear, 'mainHand', 'offHand') : without(gear, slot)
       measure(list, context, slot, item)
     }
   }
@@ -380,7 +387,7 @@ export function rankingPlans(ctx: GearContext, pools: ReadonlyMap<GearSlot, read
   const locked = new Set(ctx.filters.locked ?? [])
   let measurePlans = 0
   for (const slot of SEARCHED_SLOTS) {
-    if (locked.has(slot) || slot === 'finger2' || slot === 'trinket2') continue
+    if (locked.has(slot) || (PAIR_OF[slot] && pairRankSlot(slot, locked) !== slot)) continue
     const measured = (pools.get(slot) ?? []).filter((i) => !weighedItem(ctx, i)).length
     if (measured > 0) measurePlans += measured + 1
   }

@@ -668,7 +668,8 @@ is what it's worth against the slot empty, in the goal's score:
   (`ITEM_EFFECTS`: Hand of Justice, Earthstrike), and items with a weapon skill or a stat the plan
   applies outside the stat block (a weapon's "+x damage"). Each is the gear with the slot empty
   against the gear with the item in it, 300 fights each (`MEASURE_FIGHTS`): a ring or trinket with
-  both of the pair's slots empty; a two-hander, or a one-hander in the main hand, with no weapons; an
+  both of the pair's slots empty, in the first (the pair is one list, `finger` or `trinket`; with one
+  slot locked, it's measured in the other, beside the locked item: O2L-2); a two-hander, or a one-hander in the main hand, with no weapons; an
   off hand beside the current one-hander (the best measured one when the main hand holds a
   two-hander). So a two-hander's value and a main and an off hand's sum are comparable. A base the
   sim can't run (a hunter with no ranged weapon) is replaced by the current gear, the same for the
@@ -693,7 +694,11 @@ The groups, in paper-doll order: head, neck, shoulder, back, chest, wrist, hands
   (`enchantsPerItem`) and every one that fits but couldn't be measured, and the current item with its
   current enchant too. So an item and its enchant race together (D30's build plan: "enchants searched
   with their slot").
-- **Rings and trinkets:** every pair of the top items and the current two.
+- **Rings and trinkets:** every pair of the top items and the current two, each pair once: a pair is
+  one gear set in either order (`gearKey`), and an item already worn keeps its slot, so the current
+  pair never races swapped (O2L-7; two on-use trinkets keep the order the player gave them). With one
+  slot locked, the other races alone, and an item that would break a Unique rule with the locked one
+  (its own copy) takes no place in the top list (O2L-2).
 - **The weapons:** the top two-handers, each with its top enchants and the off hand empty, against
   every pair of the top main hands and off hands, each with its best enchant, and the current pair
   with each hand's top enchants. A dual wielder's off hands are one-handed weapons (and held-in-off-hand

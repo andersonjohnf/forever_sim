@@ -253,6 +253,57 @@ describe('the rules a gear set keeps', () => {
   })
 })
 
+describe('ring and trinket pairs', () => {
+  it('never races the current pair swapped, and keeps a worn item in its slot (O2L-7)', () => {
+    for (const spec of ['warrior-fury', 'warrior-protection', 'rogue-combat'] as const) {
+      const config = setup(spec)
+      for (const [group, a, b] of [
+        ['rings', 'finger1', 'finger2'],
+        ['trinkets', 'trinket1', 'trinket2'],
+      ] as const) {
+        const [nowA, nowB] = [config.gear[a]?.itemId, config.gear[b]?.itemId]
+        const gears = groups(config, group)
+        expect(gears.length).toBeGreaterThan(0)
+        // Each unordered pair once, and never the current one.
+        const pairs = gears.map((g) => [g[a]?.itemId, g[b]?.itemId].sort().join('/'))
+        expect(new Set(pairs).size).toBe(pairs.length)
+        expect(pairs).not.toContain([nowA, nowB].sort().join('/'))
+        // An item worn in one slot never moves to the other (two copies of a ring that isn't Unique aside).
+        if (nowA !== nowB)
+          for (const g of gears.filter((x) => x[a]?.itemId !== x[b]?.itemId)) {
+            expect(g[b]?.itemId).not.toBe(nowA)
+            expect(g[a]?.itemId).not.toBe(nowB)
+          }
+      }
+    }
+  })
+
+  it('is the same gear set in either order', () => {
+    const gear = setup('warrior-fury').gear
+    const swapped = { ...gear, trinket1: gear.trinket2, trinket2: gear.trinket1, finger1: gear.finger2, finger2: gear.finger1 }
+    expect(gearKey(swapped)).toBe(gearKey(gear))
+    expect(gearKey({ ...gear, trinket1: { itemId: 21180 } })).not.toBe(gearKey(gear))
+    expect(gearKey({ ...gear, finger2: undefined })).not.toBe(gearKey(gear))
+  })
+
+  it('keeps a locked slot’s Unique item out of the other slot’s top list (O2L-2)', () => {
+    // Protection warrior: Adaptive Combat Assistant and Hand of Justice, both Unique, and two Unique rings.
+    const config = setup('warrior-protection')
+    for (const lock of ['trinket1', 'trinket2', 'finger1', 'finger2'] as const) {
+      const [other, group] = ({ trinket1: ['trinket2', 'trinkets'], trinket2: ['trinket1', 'trinkets'], finger1: ['finger2', 'rings'], finger2: ['finger1', 'rings'] } as const)[lock]
+      const lockedItem = item(config.gear[lock]!.itemId)
+      expect(lockedItem.unique || lockedItem.uniqueEquipped).toBeTruthy()
+      const gears = groups(config, group, { locked: [lock] })
+      // Every place in the other slot's top list is a set it can wear: the top 6, less the current one.
+      expect(gears.length).toBeGreaterThanOrEqual(5)
+      for (const g of gears) {
+        expect(g[lock]).toEqual(config.gear[lock])
+        expect(g[other]!.itemId).not.toBe(lockedItem.id)
+      }
+    }
+  })
+})
+
 describe('enchants with their slot', () => {
   const config = setup('warrior-fury')
 

@@ -739,8 +739,8 @@ export interface AbilityPlan {
   threatMult: number
   threatBonus: number
   /**
-   * A share of the attack power at the moment it lands added to its threat bonus: Sunder Armor's
-   * "threat generated from Attack Power" (threat.md#warrior, warrior.md Q1). Absent = 0.
+   * A share of the attack power at the moment it lands added to its threat bonus: Lacerate's
+   * (threat.md#druid-bear, druid.md §4.3). Sunder Armor has none (threat.md#warrior). Absent = 0.
    */
   threatApCoefficient?: number
   /**

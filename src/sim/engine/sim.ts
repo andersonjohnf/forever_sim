@@ -638,7 +638,7 @@ export class Sim {
   private readonly abRefund: Float64Array
   private readonly abThreatMult: Float64Array
   private readonly abThreatBonus: Float64Array
-  /** Its threat bonus's share of the attack power when it lands (Sunder Armor, threat.md#warrior); 0 for most. */
+  /** Its threat bonus's share of the attack power when it lands (Lacerate, threat.md#druid-bear); 0 for most. */
   private readonly abThreatApCoef: Float64Array
   private readonly abSource: Int32Array
   private readonly abStances: Int32Array
@@ -3687,7 +3687,7 @@ export class Sim {
     // finisher spends them, after its damage read them.
     if (main && (this.abCp[a] !== 0 || this.abFinisher[a] === 1)) this.landComboPoints(a, crit)
     // docs/mechanics/threat.md#base-rule-and-how-modifiers-stack: (dmg × mult + bonus) × global, the
-    // bonus with its share of the attack power (Sunder Armor, threat.md#warrior).
+    // bonus with its share of the attack power (Lacerate, threat.md#druid-bear).
     const bonus = this.abThreatBonus[a] + this.abThreatApCoef[a] * (this.ap + bonusAp)
     this.addDamage(source, damage, (damage * this.abThreatMult[a] + bonus) * this.threatMult)
     // A landed strike puts its debuff on the boss: Sunder Armor adds a stack (warrior.md §7). An

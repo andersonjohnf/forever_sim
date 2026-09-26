@@ -2,19 +2,20 @@ import type { Item } from '@/data/items/types'
 import { summarizeItem } from '@/lib/items'
 // Which effects the engine models, read the way the plan builder reads them (build.ts, "Gear stats,
 // set bonuses and item effects"). item-flags.test.ts holds this to the plan's own lists.
-import { modelledItemEffects, type SpecId } from '@/sim'
+import { fightEquipEffects, modelledItemEffects, type SpecId } from '@/sim'
 
 /**
  * The item's effects the sim doesn't simulate, as their tooltip lines: equip and chance-on-hit
  * effects with no engine override, extra weapon damage, and use effects the rotation can't press.
  * The result lists the same items in its assumptions ("Some item effects aren’t simulated yet").
- * For a spec, an effect that names only other specs' abilities isn't one (Idol of Brutality, a cat).
+ * For a spec, an effect that names only other specs' abilities isn't one (Idol of Brutality, a cat),
+ * and for any, one that only moves the character isn't (run speed: `fightEquipEffects`, JL-12).
  */
 export function unsimulatedEffects(item: Item, spec?: SpecId): string[] {
   const modelled = modelledItemEffects(item.id, spec)
   const lines: string[] = []
   if (!modelled.equip) {
-    lines.push(...item.procs.map((e) => e.raw), ...item.otherEquip.map((e) => e.raw))
+    lines.push(...item.procs.map((e) => e.raw), ...fightEquipEffects(item.otherEquip).map((e) => e.raw))
     for (const extra of item.weapon?.extraDamage ?? []) {
       lines.push(`Adds ${extra.min}–${extra.max}${extra.school ? ` ${extra.school}` : ''} damage.`)
     }

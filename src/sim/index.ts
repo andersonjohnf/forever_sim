@@ -11,7 +11,7 @@ import { TALENT_DATA } from './defaults'
 import { throwHolds } from './classes/shared-consumables'
 import { BUFFS } from './effects/buffs'
 import { ENCHANTS } from './effects/enchants'
-import { ITEM_EFFECTS, itemEffectsApply } from './effects/items'
+import { fightEquipEffects, ITEM_EFFECTS, itemEffectsApply } from './effects/items'
 import { filledBuffGroups, presetBuffIds } from './effects/presets'
 import { catalogueEffects, catalogueSummary, type OnUseSpec } from './effects/types'
 import { buildPlan, mainHandWeapon, UnsupportedSetupError, wieldsShield } from './plan/build'
@@ -344,6 +344,8 @@ export function enchantCatalogueFor(profile: RuleProfileId): EnchantDefinition[]
  * names only other specs' abilities (Totem of Rebirth's Riptide, for a damage spec) counts as
  * modelled: there's nothing in it to simulate.
  */
+export { fightEquipEffects }
+
 export function modelledItemEffects(itemId: number, spec?: SpecId): { equip: boolean; use: boolean } {
   const override = ITEM_EFFECTS[itemId]
   // An equip effect that names only another spec's abilities has nothing to simulate for this one.

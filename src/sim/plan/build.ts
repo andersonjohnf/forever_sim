@@ -29,7 +29,7 @@ import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrio
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
 import { BUFFS_BY_ID, EZ_THRO_DARK_BOMB, POWER_INFUSION } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
-import { ITEM_EFFECTS, itemEffectsApply } from '../effects/items'
+import { fightEquipEffects, ITEM_EFFECTS, itemEffectsApply } from '../effects/items'
 import { buffGroupFillers, buffProvided, buffUnusedReason, forSpecClass } from '../effects/presets'
 import { racialEffects, TOUCH_OF_THE_GRAVE } from '../effects/racials'
 import { type AuraSpec, catalogueEffects, type Condition, type DruidForm, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
@@ -554,8 +554,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     const override = ITEM_EFFECTS[item.id]
     if (override) apply(typeof override.effects === 'function' ? override.effects(profile) : override.effects, origin)
     // An effect that names only another spec's abilities (Totem of Rebirth's Riptide for a damage
-    // spec) does nothing here, so it isn't listed.
-    else if ((item.procs.length > 0 || item.otherEquip.length > 0 || (item.weapon?.extraDamage?.length ?? 0) > 0) && itemEffectsApply(item.id, config.spec))
+    // spec), or only moves the character (run speed, JL-12), does nothing here, so it isn't listed.
+    else if ((item.procs.length > 0 || fightEquipEffects(item.otherEquip).length > 0 || (item.weapon?.extraDamage?.length ?? 0) > 0) && itemEffectsApply(item.id, config.spec))
       unmodelled.push(item.name)
     if (override?.use) itemUses.push(override.use)
     else if (item.useEffects.length > 0) onUseItems.push(item.name)

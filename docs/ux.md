@@ -544,7 +544,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     - **Effect not simulated** for items with an equip, chance-on-hit or use effect the sim
       leaves out (Blackblade of Shahram's summon), the same items the result's assumptions
       list. An effect that names only another spec's abilities isn't one: Idol of Brutality's
-      Maul and Swipe, a bear's, aren't flagged for a cat.
+      Maul and Swipe, a bear's, aren't flagged for a cat. Nor is one that only moves you, since
+      the fight is stationary: run speed (the Defiler's boots), Ghost Wolf's speed and Sprint's
+      duration (`MOVEMENT_ONLY_EQUIP_SPELLS`, JL-12).
 
     The two flags open a popover on tap, click or Enter that explains them and, for effects,
     quotes each one; the popover is named by its heading ("Classic stats"). They sit over the

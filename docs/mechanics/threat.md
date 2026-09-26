@@ -197,8 +197,11 @@ No paladin tooltip says "high", "very high" or "moderate" threat, in 1.60.1.6991
 client, so 1.60.1.70009's changes move no paladin value: the paladin slice follows this table only
 if a later tooltip adds the words. The bear's Lacerate is the one tank ability outside the warrior's
 that the "high" row reaches, and the druid slice owns its follow-up (above). A DPS ability with the
-words, the shaman's Earth Shock, keeps its own Classic Era value, 2 × its damage [?] ([shaman](#shaman-dps-context)):
-the row's rule is for an ability with no value of its own. A Classic Era ability
+words, the shaman's Earth Shock, has no tier 1–2 value either, so the rule would give it dmg + 206;
+it takes **2 × its damage** [?] instead, **by name, as a user decision (D38, 2026-09-26)**: the value
+of the Maul ×1.75 lineage, which every Classic Era threat tool carries and nobody has measured
+([shaman](#shaman-dps-context)). The exception is Earth Shock's alone: the rule stands for the
+tanks' abilities. A Classic Era ability
 that had the words but no measured value stays a question here, never a zero: its row names the
 analog and the scaling its default uses.
 
@@ -287,7 +290,7 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 
 | Ability (rank, spell id) | Classic Era threat | Forever | Notes and sources |
 | --- | --- | --- | --- |
-| Earth Shock (r7, 10414) | **2 × dmg** [?] (LTC2; wowsims' classic and sod sims) | [?] the same | Maul's lineage: every Classic Era and Season of Discovery threat tool carries it, [LTC2 Shaman.lua](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Shaman.lua) among them; Classic Era's shaman tanks leaned on it; never measured on Classic Era or Forever. Both clients' tooltips say "Causes a high amount of threat": it keeps its own Classic Era value rather than the [wording table](#threat-wording-table)'s flat bonus, as a known value of the same ability comes first (doctrine §2). [shaman.md](../classes/shaman.md#shocks-and-lightning-bolt) (open question 8) |
+| Earth Shock (r7, 10414) | **2 × dmg** [?] (LTC2; wowsims' classic and sod sims) | [?] the same | Maul's lineage: every Classic Era and Season of Discovery threat tool carries it, [LTC2 Shaman.lua](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Shaman.lua) among them; Classic Era's shaman tanks leaned on it; never measured on Classic Era or Forever. Both clients' tooltips say "Causes a high amount of threat", and no tier 1–2 source has a value, so the [wording table](#threat-wording-table) would give dmg + 206; the ×2 stands **by name, a user decision (D38, 2026-09-26)**, labelled with the lineage it shares with Maul's ×1.75. The same-wording rule stays for the tanks' abilities. [shaman.md](../classes/shaman.md#shocks-and-lightning-bolt) (open question 8) |
 
 ---
 

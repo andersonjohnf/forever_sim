@@ -252,7 +252,9 @@ Measured on the default setup (20,000 fights, seed 1): the rule is worth **+1.17
   clients, and every Classic Era and Season of Discovery threat tool carries ×2 (LibThreatClassic2's
   shaman module, wowsims' classic and sod sims), the lineage of the bear's Maul ×1.75
   ([threat](../mechanics/threat.md#shaman-dps-context)). Never measured in Classic Era or Forever.
-  `EARTH_SHOCK_THREAT_MULT`.
+  No tier 1–2 source has a value, so the threat wording table's rule would give it dmg + 206
+  (Sunder's Forever value); the ×2 is Earth Shock's **by name, a user decision (D38, 2026-09-26)**,
+  and the rule stays for the tanks' abilities. `EARTH_SHOCK_THREAT_MULT`.
 
 ---
 
@@ -1119,8 +1121,10 @@ the default setup's DPS unless stated.
    placeholders. The base spell crit sources conflict: 2.3% (wowsims/classic) or −0.7% (RatingBuster).
    *Test:* a naked level-60 shaman's character sheet per race (the sheet shows spell crit). *Effect:*
    −0.7% instead of 2.3% is −0.49%; the attributes under ±0.5%.
-8. **Earth Shock's extra threat**: the sim gives it 2 × its damage, the value every Classic Era
-   threat tool carries (never measured; [Shocks](#shocks-and-lightning-bolt)). *Test:* a threat
+8. **Earth Shock's extra threat**: the sim gives it 2 × its damage by name, a user decision (D38,
+   2026-09-26): the value of the Maul ×1.75 lineage, which every Classic Era threat tool carries
+   and nobody has measured ([Shocks](#shocks-and-lightning-bolt)). The threat wording table's rule
+   would give dmg + 206 (about +5.4% TPS instead of +10.4%); it stays for the tanks. *Test:* a threat
    meter on a single Earth Shock against its damage in the combat log. *Effect:* none on DPS;
    Enhancement's TPS +10.4% over ×1 (383.2 → 423.2, 10,000 fights); the Elemental default casts no
    Earth Shock.

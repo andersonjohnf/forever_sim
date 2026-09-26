@@ -76,6 +76,13 @@ describe('worked example 1: Lightning Bolt rank 10', () => {
     expect(base.min).toBeCloseTo(189.3814893, 6)
     expect(buildPlan({ ...d, gear: { ranged: { itemId: 23199 } } }).assumptions.map((a) => a.id)).toContain('totemOfTheStorm')
   })
+
+  it('notes Earth Shock’s ×2 threat only when the rotation casts Earth Shock (shaman.md open question 8)', () => {
+    const d = defaultConfig(ELE)
+    const ids = (rotation: Record<string, boolean>) => buildPlan({ ...d, rotation: { ...d.rotation, ...rotation } }).assumptions.map((a) => a.id)
+    expect(ids({})).not.toContain('earthShockThreat')
+    expect(ids({ [ID.earthShock]: true })).toContain('earthShockThreat')
+  })
 })
 
 describe('worked example 2: Lightning Bolt rank 4', () => {

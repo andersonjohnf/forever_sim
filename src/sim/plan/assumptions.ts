@@ -664,7 +664,7 @@ const REGISTRY = {
     docRef: `${SHAM}#stormstrike`,
   },
   earthShockThreat: {
-    text: 'Earth Shock’s threat is twice its damage, as every Classic threat meter and simulator has it; it has never been measured, in Classic Era or Forever.',
+    text: 'Earth Shock’s threat is twice its damage: the value Classic’s threat meters have always given it, as they give Maul its extra threat. No one has measured it, in Classic Era or Forever.',
     docRef: `${SHAM}#shocks-and-lightning-bolt`,
   },
   lightningBoltCast: {

@@ -118,7 +118,9 @@ const SPELL = {
  * Earth Shock's threat: 2 × its damage [?] (shaman.md#shocks-and-lightning-bolt, open question 8). No client value or
  * measurement exists; every Classic Era and Season of Discovery threat tool carries ×2 (LibThreatClassic2's
  * shaman module, wowsims' classic and sod Earth Shock), the lineage Maul's ×1.75 has (threat.md), and
- * Classic Era's shaman tanks leaned on it. Never measured on Classic Era or Forever.
+ * Classic Era's shaman tanks leaned on it. Never measured on Classic Era or Forever. No tier 1–2 value exists, so
+ * the threat wording table's rule would give dmg + 206; the ×2 is Earth Shock's by name, a user decision (D38,
+ * 2026-09-26; docs/mechanics/threat.md#threat-wording-table), and the rule stays for the tanks' abilities.
  */
 export const EARTH_SHOCK_THREAT_MULT = 2
 

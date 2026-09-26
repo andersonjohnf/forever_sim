@@ -1091,8 +1091,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B84. Earth Shock's threat
 **Medium · Enhancement shaman (TPS only) · ≤20 (Earth Shock r1, level 4)**
-- **Assumes** [?]: 2 × its damage, the value every Classic Era threat tool carries (never measured);
-  its tooltip says "Causes a high amount of threat".
+- **Assumes** [?]: 2 × its damage, by name as a user decision (D38, 2026-09-26): the value of the
+  Maul ×1.75 lineage, which every Classic Era threat tool carries and nobody has measured. Its
+  tooltip says "Causes a high amount of threat"; the wording table's rule (dmg + 206, Sunder's
+  Forever value) stays for the tanks' abilities.
 - **Test:** the threat macro before and after single Earth Shocks on a fresh mob, against each
   shock's damage in the combat log; a Lightning Bolt the same way calibrates ×1.
 - **Samples:** ≥8 shocks.

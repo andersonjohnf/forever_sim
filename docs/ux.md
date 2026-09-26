@@ -1749,7 +1749,12 @@ Every view handles these states:
   reset.", "Greater Stoneshield Potion shares a cooldown with Mighty Rage Potion, so it was turned
   off." Up to three changes are spelled out; past that, the first two and "3 other parts changed
   too." An entry turned off that was locked off for the spec anyway (an Enhancement shaman's second
-  stone) did nothing, so it isn't mentioned.
+  stone) did nothing, so it isn't mentioned. A setting the sim no longer has, or whose default
+  changed under a setup that relied on it, counts as a change when it moves the results: "Judgement
+  of the Crusader's “All of it” setting is gone: its share is measured now.", "Hammer of the
+  Righteous now counts your weapon's own DPS by default; choose “With attack power” in Character →
+  Advanced for the old reading." A visit's stored setup takes the same changes without a word, as
+  above; the release's What's New entry is where a returning visitor reads of them.
 - **Notices.** Toasts are plain notices, with no buttons. Each goes after 10 s, paused while
   you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A notice that
   says more (a load's changes, a talent build's refunds, a race change's set bonus) stays long

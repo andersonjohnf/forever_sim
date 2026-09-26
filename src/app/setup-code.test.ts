@@ -127,7 +127,7 @@ describe('reading a code', () => {
       expect(await readSetupCode(`#s=${await code(value)}`), JSON.stringify(value)).toEqual({ ok: false, error: CODE_ERRORS.notASetup })
       expect((await readSetupCode(await code(value))).ok, JSON.stringify(value)).toBe(false)
     }
-    expect(await readSetupCode(await code({ ...fresh('warrior-arms'), version: 3 }))).toEqual({ ok: false, error: CODE_ERRORS.newer })
+    expect(await readSetupCode(await code({ ...fresh('warrior-arms'), version: 4 }))).toEqual({ ok: false, error: CODE_ERRORS.newer })
     expect(CODE_ERRORS.newer).toBe('That code is from a newer version of Forever Sim. Reload this page to update it, then try again.')
     for (const spec of ['mage-spellblade', undefined, 7]) {
       expect(await readSetupCode(await code({ ...fresh('warrior-arms'), spec })), String(spec)).toEqual({ ok: false, error: CODE_ERRORS.unknownSpec })

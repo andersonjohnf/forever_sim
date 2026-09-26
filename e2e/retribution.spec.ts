@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { openLinkNotice } from './links.ts'
 
 // Retribution, the first paladin spec (track C, C2): switching to it, its Rotation, Fight and
 // Buffs tabs, a run whose results say how its seals, judgements, Consecration and mana went, and a
@@ -147,6 +148,16 @@ test.describe('Retribution', () => {
     await expect(character.getByText('Count untested ratings')).toBeVisible()
     await expect(character.getByText('Judgement of the Crusader’s bonus')).toHaveCount(0)
     await expect(character.getByRole('radio', { name: 'All of it' })).toHaveCount(0)
+  })
+
+  test('a link that had “All of it” for Judgement of the Crusader loads with the measured share, and says so (DL-8)', async ({ page }) => {
+    const LINE = 'Judgement of the Crusader’s “All of it” setting is gone: its share is measured now.'
+    const rules = (jotcBonus: string) => ({ profile: 'forever', unmeasuredRatings: 'apply', jotcBonus })
+    await page.goto('./')
+    await expect(await openLinkNotice(page, { version: 2, spec: 'paladin-retribution', rules: rules('flat') })).toContainText(LINE)
+    await expect(page.getByRole('button', { name: /^Spec: Retribution Paladin/ })).toBeVisible()
+    // The old default's rule changes nothing, so the load says nothing about it.
+    await expect(await openLinkNotice(page, { version: 2, spec: 'paladin-retribution', rules: rules('coefficient') })).not.toContainText('All of it')
   })
 
   test('its own Judgement of the Crusader makes the Buffs tab’s, another paladin’s, its own (T2)', async ({ page }) => {

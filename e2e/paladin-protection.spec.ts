@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { openLinkNotice } from './links.ts'
 
 // The Protection paladin, shipped in C3, as a visitor gets to it: from the spec switcher, its
 // Rotation tab's presets (decisions D26, D28: Balanced by default, Defensive and Max TPS), the Buffs
@@ -247,6 +248,31 @@ test.describe('Protection paladin', () => {
     await expect(buffs.getByRole('switch', { name: 'Devotion Aura', exact: true })).toBeEnabled()
     expect(new URL(other.url()).hash).toBe('')
     await other.context().close()
+  })
+
+  test('a link from before Hammer of the Righteous counted the weapon’s own DPS says the default changed, and one with “All of it” that it’s gone (DL-8)', async ({ page }) => {
+    const HOTR = 'paladin.protection.hammerOfTheRighteous.enabled'
+    const HOTR_LINE = 'Hammer of the Righteous now counts your weapon’s own DPS by default; choose “With attack power” in Character → Advanced for the old reading.'
+    const JOTC_LINE = 'Judgement of the Crusader’s “All of it” setting is gone: its share is measured now.'
+    const rules = { profile: 'forever', unmeasuredRatings: 'apply' }
+    await page.goto('./')
+    const notice = await openLinkNotice(page, { version: 2, spec: 'paladin-protection', rotation: { [HOTR]: true }, rules: { ...rules, jotcBonus: 'flat' } })
+    await expect(notice).toContainText(HOTR_LINE)
+    await expect(notice).toContainText(JOTC_LINE)
+    await expect(page.getByRole('button', { name: /^Spec: Protection Paladin/ })).toBeVisible()
+    // It loaded on today's default reading, which the setting shows.
+    const character = await openTab(page, 'Character')
+    await character.getByRole('button', { name: /^Advanced/ }).click()
+    const hammer = character.getByRole('radiogroup', { name: 'Hammer of the Righteous’s weapon DPS' })
+    await expect(hammer.getByRole('radio', { name: 'Weapon only' })).toBeChecked()
+    await expect(character.getByText('Not used: Hammer of the Righteous is off in Rotation.')).toHaveCount(0)
+    // Today's link, or an old one that chose its reading, has nothing to say about it.
+    await expect(await openLinkNotice(page, { version: 3, spec: 'paladin-protection', rotation: { [HOTR]: true } })).not.toContainText('Hammer of the Righteous')
+    const chose = await openLinkNotice(page, { version: 2, spec: 'paladin-protection', rotation: { [HOTR]: true }, rules: { ...rules, hotrWeaponDps: 'withAttackPower' } })
+    await expect(chose).not.toContainText('Hammer of the Righteous')
+    const again = await openTab(page, 'Character')
+    await again.getByRole('button', { name: /^Advanced/ }).click()
+    await expect(again.getByRole('radiogroup', { name: 'Hammer of the Righteous’s weapon DPS' }).getByRole('radio', { name: 'With attack power' })).toBeChecked()
   })
 })
 

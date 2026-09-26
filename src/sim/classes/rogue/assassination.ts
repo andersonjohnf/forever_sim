@@ -161,7 +161,7 @@ export function assassinationRotation(
 ): ClassRotation {
   const ctx = { race: context.race ?? '', items: context.items ?? [], consumables: context.consumables ?? [] }
   const v = reader(ASSASSINATION_OPTIONS, values, talents)
-  const b = new RogueRotationBuilder(talents)
+  const b = new RogueRotationBuilder(talents, context.profile?.id)
   const daggers = context.weaponTypes === undefined || (context.weaponTypes[0] === 'dagger' && context.weaponTypes[1] === 'dagger')
 
   compileAplRows(ASSASSINATION_APL, order, {

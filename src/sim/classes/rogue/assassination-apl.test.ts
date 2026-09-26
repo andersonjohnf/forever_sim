@@ -36,6 +36,8 @@ describe('the Assassination rogue’s priority list (D31)', () => {
     // §3.4): the plan carries the coefficient, and with 0.03 the earlier snapshot still matched.
     // Re-taken 2026-09-25 again only for the poisons' attack power (a player's Discord tests, rogue.md §4.1, §4.2):
     // their procs carry `apCoefficient`, and without it the earlier snapshot still matched.
+    // Re-taken 2026-09-26 only for `classicEra`'s Eviscerate share, back to 3% per point (rogue.md §3.4):
+    // with `classicEra` at 4% the earlier snapshot still matched.
     const cases = assassinationCases(ASSASSINATION_OPTIONS, 200)
     const plans = cases.map((config) => buildPlan(config).plan)
     const hashes = plans.map((plan) => fingerprint(planJson(plan)))

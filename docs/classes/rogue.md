@@ -227,6 +227,11 @@ tooltip says only "increased by Attack Power" and the client carries no coeffici
 (`BonusCoefficientFromAP` 0). Improved Eviscerate and Aggression multiply the attack-power term with
 the rest [?], as in Classic Era; the test didn't separate them, and if its 4% already included them
 the sim counts them twice ([Q3](#10-open-questions); the results' `rogueFinisherTalents` assumption).
+It stands under the user's exception for third-party measurements (2026-09-26,
+[D37](../decisions.md#d37-only-sourced-values-2026-09-26),
+[D38](../decisions.md#d38-the-values-audits-calls-2026-09-26) #7). **`classicEra`** keeps the
+reading from before the test: **3% per point** [?], the share Classic Era sims use (other sims'
+data, step 4 of doctrine §2's fallback order), as the sim had before the Discord tests.
 
 ### 3.5 Rupture (r6, 11275)
 
@@ -235,7 +240,8 @@ Blades (+10% per rank) [F] [client] (SpellEffect, SpellDuration `DurationPerReso
 term, **1% a tick at 1 point, 2% at 2 and 3% at 3 to 5**, is [?] [discord-0925]: a player measured
 it in game and shared it on Discord, unchanged from Classic Era sims' (4/10/18/21/24% of AP over the whole bleed at
 1–5 points). Serrated Blades multiplies the attack-power term with the rest [?], as Improved
-Eviscerate does Eviscerate's ([Q3](#10-open-questions)). It ignores armor and
+Eviscerate does Eviscerate's ([Q3](#10-open-questions)). **`classicEra`** takes the same share [?]
+as Classic Era sims' (other sims' data), not the Discord tests. It ignores armor and
 snapshots at application; its ticks crit in `forever` ([damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)).
 
 ### 3.6 Expose Armor (r5, 11198)
@@ -745,7 +751,9 @@ R11–R13 are in `subtlety.test.ts`.
   ([discord-0925]), a third-party measurement [?] until the user or a guild member reproduces it: Eviscerate
   4% of AP per point (Classic Era sims' 3%), Rupture 1% per point per tick up to 3 points (unchanged),
   both in the sim (§3.4, §3.5) and in the results' assumptions whenever the plan uses Eviscerate
-  or Rupture. **Still open: the tester's talents.** The test reported totals
+  or Rupture (`rogueFinisherAp`, naming only the finishers the plan uses; in `classicEra` it names
+  Classic Era sims' shares instead, and the talent line below doesn't show). **Still open: the
+  tester's talents.** The test reported totals
   without the build or sample size. The sim multiplies the measured shares by Improved Eviscerate
   and Aggression (Eviscerate) and Serrated Blades (Rupture) [?], as Classic Era does, and lists it in
   the results' assumptions (`rogueFinisherTalents`) whenever the plan uses a finisher one of them
@@ -759,13 +767,14 @@ R11–R13 are in `subtlety.test.ts`.
   tester's talents are known.
   Test: the tester's build, or 20 Eviscerates at 5 points without Improved Eviscerate or Aggression
   and 20 Rupture ticks at 3 points without Serrated Blades, each at two attack-power levels.
-  **Doctrine conflict, for the user to decide.** These shares, and Q16's poison shares, are the
-  defaults on one outside tester's numbers that nobody has repeated. The doctrine (§2's
-  secondary evidence, D22, D24's 1% rule, D37's list of allowed sources) doesn't let an
-  unreplicated third-party test set a default, so they stay only pending the user's decision.
-  The alternative is the reading before the test: Eviscerate at the 3% Classic Era sims use
-  (itself only other sims' data, [?]; the client's coefficient is 0) and no attack-power share on
-  the poisons. It would move the defaults Combat −1%, Assassination −2% and Subtlety −0.7%.
+  **User decision (2026-09-26, [D38](../decisions.md#d38-the-values-audits-calls-2026-09-26) #7):
+  the shares stay, labelled.** No allowed source has a value, so they stand under the user's
+  exception for third-party measurements (step 2 of
+  [doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)'s fallback order), each in
+  the results' assumptions as a player's unrepeated Discord tests. The reading before the test,
+  Eviscerate at the 3% Classic Era sims use (itself only other sims' data, [?]; the client's
+  coefficient is 0) and no attack-power share on the poisons, would move the defaults Combat −1%,
+  Assassination −2% and Subtlety −0.7%. It's what the `classicEra` profile uses.
 - **Q4 Two rolls.** Eviscerate and Expose Armor roll to hit and then crit, as the warrior's melee
   spells; untested for rogues.
 - **Q5 Poison hit and crit.** Spell hit (with Precision's), partial resists and spell crit ×1.5
@@ -806,8 +815,9 @@ R11–R13 are in `subtlety.test.ts`.
   when it's applied, and Vile Poisons and Venom multiply the share. Test: Deadly Poison's ticks with
   5 stacks on the boss before and after an attack-power buff lands (a Juju Might), without a new
   application; Instant Poison's hits with Vile Poisons 5/5 at two AP levels. These shares stand
-  on one outside tester's unrepeated numbers, which the doctrine doesn't let set a default: they
-  stay pending the user's decision, and Q3 gives the alternative and its effect.
+  on one outside tester's unrepeated numbers: **the user decided to keep them, labelled**
+  (2026-09-26, D38 #7), under the exception for third-party measurements; Q3 gives the
+  alternative and its effect, and `classicEra` has no poison share, as Classic Era's client.
 
 ---
 

@@ -1115,6 +1115,22 @@ export const powerInfusionText = (arcanePower: boolean): string =>
     ? 'A priest casts Power Infusion on you once, as your Arcane Power ends: +20% spell damage for the 15 s after it. The two don’t stack, as patch 1.12 had it (Power Infusion can’t land while Arcane Power is up, and Arcane Power ends it), so the priest holds it until then. It isn’t cast again, though its 3-minute cooldown would allow a second in a fight over 3 minutes. Untested in Classic Era or Forever.'
     : REGISTRY.powerInfusion.text
 
+/**
+ * The finishers' attack-power shares (rogue.md §3.4, §3.5, Q3), naming only the finishers the plan
+ * uses: in `forever` a player's Discord tests (D38 #7), in `classicEra` Classic Era sims' shares.
+ */
+export const rogueFinisherApText = (o: { eviscerate: boolean; rupture: boolean; classicEra: boolean }): string => {
+  const parts = [
+    ...(o.eviscerate ? [`Eviscerate (${o.classicEra ? 3 : 4}% of your attack power per combo point)`] : []),
+    ...(o.rupture ? ['Rupture (1% per combo point a tick, up to 3%)'] : []),
+  ]
+  if (parts.length === 0) return REGISTRY.rogueFinisherAp.text
+  const what = parts.join(' and of ')
+  return o.classicEra
+    ? `The attack-power part of ${what} is the share Classic Era sims use; the game’s data doesn’t give it. Untested.`
+    : `A player’s in-game tests, shared on Discord and not yet repeated, measured the attack-power part of ${what}, without saying which talents the tester had.`
+}
+
 /** Items in prose: "a", "a and b", "a, b and c". */
 const prose = (items: readonly string[]) => (items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)
 

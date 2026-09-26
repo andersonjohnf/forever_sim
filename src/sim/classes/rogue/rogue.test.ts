@@ -58,6 +58,7 @@ import {
   withRogueTalents,
 } from './modifiers'
 import { rogueAssumptions, rogueEnergy } from './setup'
+import { rogueFinisherApText } from '../../plan/assumptions'
 import { ROGUE_TALENT_EFFECTS } from './talents'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
@@ -342,7 +343,7 @@ describe('worked examples (rogue.md §9)', () => {
   it('R3b: the Discord tests’ 4% of attack power per point: a 5-point Eviscerate at 2,000 AP adds 400 (1,727.4 on average with Combat’s talents)', () => {
     // docs/classes/rogue.md#34-eviscerate-r9-31016: a player's in-game tests shared on Discord, 2026-09-25 (Classic Era sims' 3%).
     expect(EVISCERATE.apCoefficientPerComboPoint).toBe(0.04)
-    expect(EVISCERATE_AP_PER_CP * 5 * 2000).toBeCloseTo(400, 9)
+    expect(EVISCERATE_AP_PER_CP.forever * 5 * 2000).toBeCloseTo(400, 9)
     const plan = quiet(combatWith({ 'rogue.combat.eviscerate.enabled': true }))
     alwaysLandNoCrit(plan)
     setAttackPower(plan, 2000)
@@ -374,7 +375,7 @@ describe('worked examples (rogue.md §9)', () => {
 
   it('R5b: the Discord tests’ Rupture AP share per tick, 1% at 1 point, 2% at 2, 3% at 3 and above; a 3-point Rupture at 2,000 AP ticks 109.19, 655.1 in all', () => {
     // docs/classes/rogue.md#35-rupture-r6-11275: a player's in-game tests shared on Discord, 2026-09-25.
-    expect([1, 2, 3, 4, 5].map((cp) => RUPTURE_AP_PER_CP_PER_TICK * Math.min(cp, RUPTURE_AP_CP_CAP))).toEqual([0.01, 0.02, 0.03, 0.03, 0.03])
+    expect([1, 2, 3, 4, 5].map((cp) => RUPTURE_AP_PER_CP_PER_TICK.forever * Math.min(cp, RUPTURE_AP_CP_CAP))).toEqual([0.01, 0.02, 0.03, 0.03, 0.03])
     const tick = (cp: number) => 35 + 4.73 * cp + 0.01 * Math.min(cp, 3) * 2000
     expect(tick(3)).toBeCloseTo(109.19, 9)
     expect(6 * tick(3)).toBeCloseTo(655.14, 9)
@@ -549,6 +550,65 @@ describe('worked examples (rogue.md §9)', () => {
     expect(rogueAssumptions(forever, ranks([['Serrated Blades', 3]])).includes('rogueFinisherTalents')).toBe(withRupture)
     const noFinishers = { ...forever, abilities: forever.abilities.filter((a) => a.id !== 'eviscerate' && a.id !== 'rupture') }
     expect(rogueAssumptions(noFinishers, ranks([['Improved Eviscerate', 3], ['Serrated Blades', 3]]))).not.toContain('rogueFinisherTalents')
+  })
+
+  it('takes the reading from before the Discord tests in `classicEra`: Eviscerate 3% per point, Rupture 1% a tick per point (rogue.md §3.4, §3.5)', () => {
+    expect(EVISCERATE_AP_PER_CP).toEqual({ forever: 0.04, classicEra: 0.03 })
+    expect(RUPTURE_AP_PER_CP_PER_TICK).toEqual({ forever: 0.01, classicEra: 0.01 })
+    const classicOf = (config: SimConfig) => buildPlan({ ...config, rules: { ...config.rules, profile: 'classicEra' } }).plan
+    const on = { 'rogue.combat.eviscerate.enabled': true, 'rogue.combat.rupture.enabled': true }
+    const ability = (plan: Plan, id: string) => plan.abilities.find((a) => a.id === id)!
+    const forever = buildPlan(combatWith(on)).plan
+    const classic = classicOf(combatWith(on))
+    // Combat's talents (Improved Eviscerate 3/3, Aggression 3/3) scale the share in both.
+    expect(ability(forever, 'eviscerate').apCoefficientPerComboPoint! / ability(classic, 'eviscerate').apCoefficientPerComboPoint!).toBeCloseTo(4 / 3, 9)
+    expect(ability(classic, 'rupture').dotApCoefficientPerComboPoint).toBe(ability(forever, 'rupture').dotApCoefficientPerComboPoint)
+    // A 5-point Eviscerate at 2,000 AP adds 300 before talents in `classicEra`, 400 in `forever`.
+    const quietClassic = quiet({ ...combatWith({ 'rogue.combat.eviscerate.enabled': true }), rules: { ...combatWith({}).rules, profile: 'classicEra' } })
+    alwaysLandNoCrit(quietClassic)
+    setAttackPower(quietClassic, 2000)
+    expectMean(damages(quietClassic, row(quietClassic, 'eviscerate'), 20), 1.272 * (108 + 850 + 300))
+    // Every spec's plan resolves the same way.
+    for (const spec of ['rogue-combat', 'rogue-assassination', 'rogue-subtlety'] as const) {
+      const evisc = ability(classicOf(defaultConfig(spec)), 'eviscerate')
+      const base = ability(buildPlan(defaultConfig(spec)).plan, 'eviscerate')
+      expect(evisc.apCoefficientPerComboPoint! / base.apCoefficientPerComboPoint!, spec).toBeCloseTo(3 / 4, 9)
+    }
+  })
+
+  it('words the finishers’ attack-power shares for the plan and the profile: only the finishers it uses, and no Discord tests in `classicEra` (rogue.md Q3)', () => {
+    const texts = (config: SimConfig) => new Map(buildPlan(config).assumptions.map((a) => [a.id, a.text]))
+    const classic = (config: SimConfig) => ({ ...config, rules: { ...config.rules, profile: 'classicEra' as const } })
+    const both = { 'rogue.combat.eviscerate.enabled': true, 'rogue.combat.rupture.enabled': true }
+    const eviscerateOnly = { 'rogue.combat.eviscerate.enabled': true }
+    const ruptureOnly = { 'rogue.combat.rupture.enabled': true }
+    // `forever`: the Discord tests, naming only what the plan uses; both is the registry's text.
+    const f = texts(combatWith(both)).get('rogueFinisherAp')!
+    expect(f).toBe(rogueFinisherApText({ eviscerate: true, rupture: true, classicEra: false }))
+    expect(f).toMatch(/Discord/)
+    expect(f).toMatch(/Eviscerate \(4%/)
+    expect(f).toMatch(/Rupture/)
+    const fe = texts(combatWith(eviscerateOnly)).get('rogueFinisherAp')!
+    expect(fe).toMatch(/Eviscerate \(4%/)
+    expect(fe).not.toMatch(/Rupture/)
+    const fr = texts(combatWith(ruptureOnly)).get('rogueFinisherAp')!
+    expect(fr).toMatch(/Rupture/)
+    expect(fr).not.toMatch(/Eviscerate/)
+    // Combat's default plan uses Eviscerate and no Rupture, so its row names no Rupture.
+    const combatDefault = buildPlan(defaultConfig('rogue-combat')).plan
+    expect(combatDefault.abilities.some((a) => a.id === 'rupture')).toBe(false)
+    expect(texts(defaultConfig('rogue-combat')).get('rogueFinisherAp')).not.toMatch(/Rupture/)
+    // `classicEra`: Classic Era sims' shares, never the Discord tests, and no talent double count.
+    for (const on of [both, eviscerateOnly, ruptureOnly]) {
+      const t = texts(classic(combatWith(on)))
+      expect(t.get('rogueFinisherAp')).toMatch(/Classic Era sims/)
+      expect(t.get('rogueFinisherAp')).not.toMatch(/Discord|tests/)
+      expect(t.has('rogueFinisherTalents')).toBe(false)
+    }
+    expect(texts(classic(combatWith(eviscerateOnly))).get('rogueFinisherAp')).toMatch(/Eviscerate \(3%/)
+    for (const spec of ['rogue-combat', 'rogue-assassination', 'rogue-subtlety'] as const) {
+      for (const a of buildPlan(classic(defaultConfig(spec))).assumptions) expect(a.text, `${spec} ${a.id}`).not.toMatch(/Discord/)
+    }
   })
 
   it('lists the finishers’ Discord-tested attack-power shares whenever the plan uses Eviscerate or Rupture, talents or not (rogue.md Q3)', () => {

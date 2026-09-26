@@ -8,6 +8,7 @@
 import { CRIT_MULTIPLIER } from '../../core/formulas'
 import type { AuraSpec, OnUseSpec } from '../../effects/types'
 import { type AbilityDef, STANCE_ANY } from '../../plan/types'
+import type { RuleProfileId } from '../../types'
 import { NO_STRIKE } from '../druid/abilities'
 
 export type { AbilityDef } from '../../plan/types'
@@ -209,8 +210,14 @@ export const PREMEDITATION: AbilityDef = {
 
 // --- Finishers (rogue.md §3.3–§3.6) -----------------------------------------------------------------
 
-/** Eviscerate's attack power per combo point, 4% [?] (a player's in-game tests shared on Discord, 2026-09-25; rogue.md §3.4). */
-export const EVISCERATE_AP_PER_CP = 0.04
+/**
+ * Eviscerate's attack power per combo point in each rule profile [?] (rogue.md §3.4, Q3):
+ * - `forever`: 4%, a player's in-game tests shared on Discord, 2026-09-25, kept under the user's
+ *   exception for third-party measurements (docs/decisions.md D37, D38 #7);
+ * - `classicEra`: 3%, the reading before those tests: the share Classic Era sims use (other sims'
+ *   data, doctrine §2's fallback step 4).
+ */
+export const EVISCERATE_AP_PER_CP = { forever: 0.04, classicEra: 0.03 } as const
 
 /**
  * Eviscerate rank 9 (spells.json 31016): 35 Energy and every combo point, GCD 1000; `SCHOOL_DAMAGE`
@@ -228,7 +235,7 @@ export const EVISCERATE: AbilityDef = {
   flatDamage: 54,
   flatDamageRange: 108,
   damagePerComboPoint: 170,
-  apCoefficientPerComboPoint: EVISCERATE_AP_PER_CP,
+  apCoefficientPerComboPoint: EVISCERATE_AP_PER_CP.forever,
   finisher: true,
   auraCrit: COLD_BLOOD_CRIT,
 }
@@ -255,10 +262,12 @@ export const SLICE_AND_DICE: AbilityDef = {
 }
 
 /**
- * Rupture's attack power per combo point per tick, 1%, counting at most 3 points: 1% a tick at 1
- * point, 2% at 2, 3% at 3 to 5 [?] (a player's in-game tests shared on Discord, 2026-09-25; rogue.md §3.5).
+ * Rupture's attack power per combo point per tick in each rule profile, counting at most 3 points:
+ * 1% a tick at 1 point, 2% at 2, 3% at 3 to 5 [?] (rogue.md §3.5):
+ * - `forever`: a player's in-game tests shared on Discord, 2026-09-25 (D38 #7);
+ * - `classicEra`: the same 1%, from Classic Era sims (other sims' data), as before those tests.
  */
-export const RUPTURE_AP_PER_CP_PER_TICK = 0.01
+export const RUPTURE_AP_PER_CP_PER_TICK = { forever: 0.01, classicEra: 0.01 } as const
 export const RUPTURE_AP_CP_CAP = 3
 
 /**
@@ -278,13 +287,27 @@ export const RUPTURE: AbilityDef = {
   finisher: true,
   dotTickDamage: 35,
   dotTickPerComboPoint: 4.73,
-  dotApCoefficientPerComboPoint: RUPTURE_AP_PER_CP_PER_TICK,
+  dotApCoefficientPerComboPoint: RUPTURE_AP_PER_CP_PER_TICK.forever,
   comboPointApCap: RUPTURE_AP_CP_CAP,
   dotTicks: 3,
   dotTicksPerComboPoint: 1,
   dotTickMs: 2000,
   periodicCanCrit: true,
   aura: { id: 'rupture', name: 'Rupture', durationMs: 6000, mods: {} },
+}
+
+/**
+ * A rogue ability in the rule profile: Eviscerate and Rupture take the profile's attack-power shares
+ * (rogue.md §3.4, §3.5); every other ability is the same in both.
+ */
+export function rogueAbilityFor(def: AbilityDef, profile: RuleProfileId): AbilityDef {
+  if (def.id === EVISCERATE.id && def.apCoefficientPerComboPoint !== EVISCERATE_AP_PER_CP[profile]) {
+    return { ...def, apCoefficientPerComboPoint: EVISCERATE_AP_PER_CP[profile] }
+  }
+  if (def.id === RUPTURE.id && def.dotApCoefficientPerComboPoint !== RUPTURE_AP_PER_CP_PER_TICK[profile]) {
+    return { ...def, dotApCoefficientPerComboPoint: RUPTURE_AP_PER_CP_PER_TICK[profile] }
+  }
+  return def
 }
 
 /** Expose Armor rank 5 (11198): −450 armor per combo point, −2,250 at 5 [F] (rogue.md §3.6). */

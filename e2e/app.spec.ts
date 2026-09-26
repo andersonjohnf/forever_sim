@@ -148,7 +148,7 @@ test.describe('talents', () => {
   test('pastes a build code, and rejects a broken one', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Talents', exact: true }).click()
-    await expect(page.getByText('17 / 34 / 0')).toBeVisible()
+    await expect(page.getByText('13 / 38 / 0')).toBeVisible()
 
     await page.getByRole('button', { name: /Paste/ }).click()
     const dialog = page.getByRole('dialog', { name: 'Paste a build code' })

@@ -349,7 +349,7 @@ for (const width of [1280, 390]) {
       const tab = await openRotation(page)
       for (const button of await tab.getByRole('button', { name: /^Advanced settings for/ }).all()) await button.click()
       await unitsClear(page, 1)
-      // Every Fury row's settings, beside the list or in a sheet on a phone; eleven rows have numbers.
+      // Every Fury row's settings, beside the list or in a sheet on a phone; twelve rows have numbers.
       const scope = width < 1024 ? '[role="dialog"]' : 'aside[aria-label$=" settings"]'
       const withNumbers: string[] = []
       for (const id of await page.locator('[data-apl-row]').evaluateAll((rows) => rows.map((r) => r.getAttribute('data-apl-row')!))) {
@@ -368,7 +368,7 @@ for (const width of [1280, 390]) {
           await expect(page.getByRole('dialog')).toHaveCount(0)
         }
       }
-      expect(withNumbers).toEqual(['Battle Shout', 'Death Wish', 'Recklessness', 'Bloodrage', 'Bloodthirst in the execute phase', 'Execute', 'Whirlwind', 'Overpower (stance dance)', 'Heroic Strike', 'Hamstring filler', 'Berserker Rage'])
+      expect(withNumbers).toEqual(['Battle Shout', 'Death Wish', 'Recklessness', 'Bloodrage', 'Bloodthirst in the execute phase', 'Execute', 'Whirlwind', 'Overpower (stance dance)', 'Rend (stance dance)', 'Heroic Strike', 'Hamstring filler', 'Berserker Rage'])
 
       await page.getByRole('button', { name: /^Spec: / }).click()
       await page.getByRole('menuitem', { name: /Feral \(Cat\)/ }).click()

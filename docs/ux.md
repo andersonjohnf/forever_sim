@@ -295,7 +295,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     grows as specs ship (principle 8): a druid sees the Feral cat's build and the bear's, and a
     paladin sees Retribution's and Protection's. The spec
     default is selected. Only the current spec's default is marked "(default)"; another spec's
-    reads plainly ("Arms default"), so the menu never shows two defaults.
+    reads plainly ("Arms default"), so the menu never shows two defaults. Each build shows its
+    point split beside its name in muted text ("17/34/0"), so builds tell apart before one is
+    picked; the closed menu shows the name alone, as the section's line above already gives the
+    points. A spec's popular build stays a preset when the default moves past it, so a player
+    who runs it gets back to it in one click.
   - While the build is the spec's default, a quiet line under the buttons says so, as Gear's does
     for its set: a check and "Using the default build." in muted text. It's gone once a point
     changes, and it's what follows newer defaults

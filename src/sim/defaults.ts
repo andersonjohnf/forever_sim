@@ -14,6 +14,7 @@ import priestTalents from '@/data/talents/priest.json'
 import hunterTalents from '@/data/talents/hunter.json'
 import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
+import { POPULAR_WARRIOR_TALENTS } from './classes/warrior/popular-builds'
 import { presetBuffIds } from './effects/presets'
 import { canUse, fitsFaction, uniqueConflicts, usesSupplies } from './equip'
 import { firesAmmo } from './plan/ranged'
@@ -106,13 +107,17 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
   warrior: [
     // docs/classes/warrior.md#61-talent-builds: Fury 13/38/0
     { name: 'Fury (default)', code: DEFAULT_TALENTS['warrior-fury'] },
-    // docs/classes/warrior.md#61-talent-builds: "Fury + Precision" 15/36/0, the Fury alternative: the former popular 17/34/0
-    // with Precision for Impale
-    { name: 'Fury + Precision', code: '30305013-050520035150310051-' },
+    // docs/classes/warrior.md#61-talent-builds: the popular Fury 17/34/0, the default until W4, ahead of it only in short
+    // fights without an execute phase (§5.2 "Re-tuning after D36")
+    { name: 'Fury popular build (better in short fights)', code: POPULAR_WARRIOR_TALENTS['warrior-fury'] },
     // docs/classes/warrior.md#61-talent-builds: Arms 35/16/0
     { name: 'Arms (default)', code: DEFAULT_TALENTS['warrior-arms'] },
+    // docs/classes/warrior.md#61-talent-builds: the popular Arms 37/14/0, the default until W4
+    { name: 'Arms popular build', code: POPULAR_WARRIOR_TALENTS['warrior-arms'] },
     // docs/classes/warrior.md#61-talent-builds: Protection 13/5/33
     { name: 'Protection (default)', code: DEFAULT_TALENTS['warrior-protection'] },
+    // docs/classes/warrior.md#61-talent-builds: Protection 8/5/38, the popular build, the default from P2's review until W4
+    { name: 'Protection earlier default', code: POPULAR_WARRIOR_TALENTS['warrior-protection'] },
     // docs/classes/warrior.md#61-talent-builds: Protection 5/5/41, the former 8/5/38 with Improved Thunder Clap 3 for Improved
     // Heroic Strike 3
     { name: 'Protection + Improved Thunder Clap', code: '05-05-552131233301210531' },

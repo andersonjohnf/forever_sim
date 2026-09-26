@@ -1235,8 +1235,8 @@ seed 36501, 400,000 paired fights) the result is **+40.25 DPS (+5.02%, 95% CI +4
   fight length and execute phase. The new build's Improved Execute pays in the phase; in short
   fights without one, the popular 17/34/0's Impale and Anger Management do better (at 30 s with no
   phase it's +3.24% over the new build with the new rotation, seed 36509, while the Rend dance
-  still gains 0.76% there). Its code is in [§6.1](#61-talent-builds), for a player whose fights
-  are short with no phase.
+  still gains 0.76% there). It's a preset, "Fury popular build (better in short fights)"
+  ([§6.1](#61-talent-builds)), for a player whose fights are short with no phase.
 
   | Fight | 0% | 10% | 20% |
   | --- | --- | --- | --- |
@@ -2398,13 +2398,15 @@ every crit, and so Deep Wounds, Impale and the crit talents, worth more. The can
 defaults, WarriorSim's Forever builds (its optimizer's, at `069329b`), the sim's own optimizer
 (`scripts/tune/optimize.mjs`) and every one-point change from the leader; the numbers are in
 [§5.2](#re-tuning-after-d36-w4) and [§5.3](#re-tuning-after-d36-w4-arms), and Protection's below.
-All decode and validate ([data/talents.md](../data/talents.md#build-codes-verified)).
+All decode and validate ([data/talents.md](../data/talents.md#build-codes-verified)). Each spec's
+popular build, its default until W4, stays a preset, so a player who runs it gets back to it in one
+click (user decision, W4's fix round); the preset menu shows each build's point split beside its name.
 
-| Spec | Build (points) | Code | Fit | Alternative preset |
+| Spec | Build (points) | Code | Fit | Alternative presets |
 | --- | --- | --- | --- | --- |
-| Fury | 13/38/0 | `20303203-050520035152310051-` | **WarriorSim's Forever build, which the sim's search confirms.** Arms: Improved Heroic Strike 2, Improved Rend 3, Improved Tactical Mastery 3, Improved Overpower 2, Deep Wounds 3. Fury: Cruelty 5, Unbridled Wrath 5, Improved Cleave 2, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows, Enrage 5, **Improved Execute 2**, **Precision 3**, Death Wish, Flurry 5, Bloodthirst. **No Impale or Anger Management.** +27.01 DPS (+3.31%) over the popular 17/34/0 with the tuned rotation (seed 36504, 400,000 paired fights); the popular build is better only in short fights without an execute phase (+3.2% at 30 s) | **"Fury + Precision" 15/36/0: `30305013-050520035150310051-`**, the popular build with Precision 3/3 for Impale 2/2 and a point of Improved Cleave: −23.36 DPS (−2.77%) against the default (Q23). The popular 17/34/0 itself, the default until W4, is `30305013002-050530035150010051-` |
-| Arms | 35/16/0 | `20305213032515201-050520030001-` | **WarriorSim's Forever build.** Every damage talent in Arms but Spearing Strike, with Improved Heroic Strike 2 (Arms doesn't queue Heroic Strike by default), plus Cruelty 5, Unbridled Wrath 5 (2 rage per proc with a two-hander), Improved Cleave 2 (for Boundless Rage's tier), Boundless Rage 3 and **Improved Execute 1**. +5.52 DPS (+0.68%) over the popular 37/14/0 with the tuned rotation (seed 36505). The sim's search puts an Improved Slam point in Improved Execute instead, 0.02% ahead; the default keeps WarriorSim's | none. The popular 37/14/0 (Spearing Strike, Piercing Howl, Improved Heroic Strike 3), the default until W4, is `30305213132515201-05050103-` |
-| Protection | 13/5/33 | `25300003-05-552001233000210531` | **Balanced, with Deep Wounds.** Arms: Improved Heroic Strike 2, Deflection 5, Improved Rend 3, **Deep Wounds 3**. Fury: Cruelty 5. Protection: Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Last Stand, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Shield Wall 2, Concussion Blow, Bastion 5, Focused Rage 3, Shield Slam. The survival talents a raid tank takes stay; Deep Wounds' 6 points come from Improved Sunder Armor 3, Vanguard, Toughness 1 and an Improved Heroic Strike point. +39.64 TPS (+4.19%) and +34.78 DPS (+9.3%) over 8/5/38, for 6.5 more damage taken a second (seed 7105, 200,000 paired fights) | **"Protection + Improved Thunder Clap" 5/5/41: `05-05-552131233301210531`**, 8/5/38 with Improved Thunder Clap 3 for Improved Heroic Strike 3: −53.13 TPS (−5.4%) and −39.48 DPS against the default (seed 7105), −50.08 TPS with Max TPS. The 8/5/38 itself, the default from P2's review until W4, is `35-05-552101233301210531`: −39.64 TPS (Max TPS −35.13) |
+| Fury | 13/38/0 | `20303203-050520035152310051-` | **WarriorSim's Forever build, which the sim's search confirms.** Arms: Improved Heroic Strike 2, Improved Rend 3, Improved Tactical Mastery 3, Improved Overpower 2, Deep Wounds 3. Fury: Cruelty 5, Unbridled Wrath 5, Improved Cleave 2, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows, Enrage 5, **Improved Execute 2**, **Precision 3**, Death Wish, Flurry 5, Bloodthirst. **No Impale or Anger Management.** +27.01 DPS (+3.31%) over the popular 17/34/0 with the tuned rotation (seed 36504, 400,000 paired fights); the popular build is better only in short fights without an execute phase (+3.2% at 30 s) | **"Fury popular build (better in short fights)" 17/34/0: `30305013002-050530035150010051-`**, the most popular Forever Fury build and the default until W4: −27.01 DPS (−3.21%) against the default in the default fight, but +3.24% at 30 s with no execute phase ([§5.2](#re-tuning-after-d36-w4)). The "Fury + Precision" 15/36/0 (`30305013-050520035150310051-`), a preset until W4's fix round, is dropped: it loses to the default in long fights (−2.77%) and to 17/34/0 in short ones without a phase (Q23), so it's never the best pick |
+| Arms | 35/16/0 | `20305213032515201-050520030001-` | **WarriorSim's Forever build.** Every damage talent in Arms but Spearing Strike, with Improved Heroic Strike 2 (Arms doesn't queue Heroic Strike by default), plus Cruelty 5, Unbridled Wrath 5 (2 rage per proc with a two-hander), Improved Cleave 2 (for Boundless Rage's tier), Boundless Rage 3 and **Improved Execute 1**. +5.52 DPS (+0.68%) over the popular 37/14/0 with the tuned rotation (seed 36505). The sim's search puts an Improved Slam point in Improved Execute instead, 0.02% ahead; the default keeps WarriorSim's | **"Arms popular build" 37/14/0: `30305213132515201-05050103-`** (Spearing Strike, Piercing Howl, Improved Heroic Strike 3), the most popular Forever Arms build and the default until W4: −5.52 DPS (−0.68%) against the default |
+| Protection | 13/5/33 | `25300003-05-552001233000210531` | **Balanced, with Deep Wounds.** Arms: Improved Heroic Strike 2, Deflection 5, Improved Rend 3, **Deep Wounds 3**. Fury: Cruelty 5. Protection: Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Last Stand, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Shield Wall 2, Concussion Blow, Bastion 5, Focused Rage 3, Shield Slam. The survival talents a raid tank takes stay; Deep Wounds' 6 points come from Improved Sunder Armor 3, Vanguard, Toughness 1 and an Improved Heroic Strike point. +39.64 TPS (+4.19%) and +34.78 DPS (+9.3%) over 8/5/38, for 6.5 more damage taken a second (seed 7105, 200,000 paired fights) | **"Protection earlier default" 8/5/38: `35-05-552101233301210531`**, the popular build and the default from P2's review until W4: −39.64 TPS (Max TPS −35.13) against the default. **"Protection + Improved Thunder Clap" 5/5/41: `05-05-552131233301210531`**, 8/5/38 with Improved Thunder Clap 3 for Improved Heroic Strike 3: −53.13 TPS (−5.4%) and −39.48 DPS against the default (seed 7105), −50.08 TPS with Max TPS |
 
 The variant codes and the defaults decode and validate by `decodeTalentCode`,
 `validateTalentBuild` (no violations) and a byte-exact round trip through `encodeTalentCode`
@@ -3004,7 +3006,7 @@ from t = 1 to t = 10 s, for 30 in total. Without the talent: 10, then 1 per seco
 
 ### W20: Rage-cost table, Protection 8/5/38
 
-The 8/5/38 build, the default until W4: Sunder Armor 9, Shield Slam 17, Revenge 2, Heroic Strike 9,
+The 8/5/38 build, the default until W4 and the "Protection earlier default" preset since: Sunder Armor 9, Shield Slam 17, Revenge 2, Heroic Strike 9,
 Thunder Clap 17, Demoralizing Shout 7, Battle Shout 10, Shield Block 10, Death Wish (if talented) 7.
 With the Improved Thunder Clap preset instead ([§6.1](#61-talent-builds)): Heroic Strike 12, Thunder
 Clap 11. The default since W4, 13/5/33 (Improved Heroic Strike 2/3, no Improved Sunder Armor):
@@ -3012,9 +3014,9 @@ Sunder Armor 12, Heroic Strike 10, the rest the same.
 
 ### W21: Rage-cost table, Fury 17/34/0
 
-The popular 17/34/0, the default until W4: Heroic Strike 12, Cleave 15, Bloodthirst 30, Whirlwind
-25, Execute 15, Hamstring 10, Overpower 5, Battle Shout 10, Death Wish 10. The "Fury + Precision"
-variant has Improved Cleave 2/3, so Cleave costs 16. The default since W4, 13/38/0 (Improved Heroic
+The popular 17/34/0, the default until W4 and a preset since: Heroic Strike 12, Cleave 15,
+Bloodthirst 30, Whirlwind 25, Execute 15, Hamstring 10, Overpower 5, Battle Shout 10, Death Wish 10.
+The former "Fury + Precision" 15/36/0 has Improved Cleave 2/3, so Cleave costs 16. The default since W4, 13/38/0 (Improved Heroic
 Strike 2/3, Improved Cleave 2/3, Improved Execute 2/2): Heroic Strike 13, Cleave 16, Execute 10,
 Rend 10, the rest the same.
 
@@ -3248,8 +3250,9 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     WarriorSim's 13/38, which takes Precision 3/3 and Improved Execute 2/2 and drops Impale and
     Anger Management: +27.96 (+3.48%) over 17/34 there, and, with the re-tuned rotation, 17/34
     −27.01 and 15/36 −23.36 against it (seed 36504, 400,000 paired fights). 13/38 is the default
-    since W4, and "Fury + Precision" stays a preset. Only in short fights without an execute phase
-    does 17/34 still lead (+3.2% at 30 s, [§5.2](#re-tuning-after-d36-w4)). Protection's: its
+    since W4. Only in short fights without an execute phase does 17/34 still lead (+3.2% at 30 s,
+    [§5.2](#re-tuning-after-d36-w4)), so 17/34 is the Fury preset beside the default and "Fury +
+    Precision", never the best of the three, is no longer one (W4's fix round). Protection's: its
     default (13/5/33 since W4) beats its Improved Thunder Clap preset by 53.13 TPS (5.4%).
 24. **Arms base stance.** Battle, with Rend, Bloodthrill and Overpower, or Berserker, with
     +3% crit and Whirlwind? Settle this with the sim. **The sim's first answer** (M2.3c, the

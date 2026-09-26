@@ -199,10 +199,10 @@ every tree, talent and max rank, position by position.
 | Warrior | `20303203-050520035152310051-` | Fury default since W4, WarriorSim's Forever build ([warrior.md §6.1](../classes/warrior.md#61-talent-builds)) | 13/38/0 | new | yes |
 | Warrior | `20305213032515201-050520030001-` | Arms default since W4, WarriorSim's Forever build (§6.1) | 35/16/0 | new | yes |
 | Warrior | `25300003-05-552001233000210531` | Protection default since W4, with Deep Wounds (§6.1) | 13/5/33 | new | yes |
-| Warrior | `30305013002-050530035150010051-` | The popular Fury build, the default until W4, kept for saved setups (§6.1) | 17/34/0 | yes | yes |
-| Warrior | `30305013-050520035150310051-` | Fury + Precision (§6.1) | 15/36/0 | yes | yes |
-| Warrior | `30305213132515201-05050103-` | The popular Arms build, the default until W4, kept for saved setups (§6.1) | 37/14/0 | yes | yes |
-| Warrior | `35-05-552101233301210531` | The Protection default from P2's review until W4, kept for saved setups (§6.1) | 8/5/38 | yes | yes |
+| Warrior | `30305013002-050530035150010051-` | The popular Fury build, the default until W4, a preset since W4's fix round (§6.1) | 17/34/0 | yes | yes |
+| Warrior | `30305013-050520035150310051-` | The former Fury + Precision preset, kept for saved setups (§6.1) | 15/36/0 | yes | yes |
+| Warrior | `30305213132515201-05050103-` | The popular Arms build, the default until W4, a preset since W4's fix round (§6.1) | 37/14/0 | yes | yes |
+| Warrior | `35-05-552101233301210531` | The Protection default from P2's review until W4, a preset since W4's fix round (§6.1) | 8/5/38 | yes | yes |
 | Warrior | `05-05-552131233301210531` | Protection + Improved Thunder Clap (§6.1) | 5/5/41 | yes | yes |
 | Warrior | `05-05-552001233201210531` | The former Protection default, kept for saved setups (§6.1) | 5/5/36 | yes | yes |
 | Warrior | `32-05-552001233201210531` | The former Protection "TPS" preset, kept for saved setups (§6.1) | 5/5/36 | yes | yes |

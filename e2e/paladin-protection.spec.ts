@@ -130,7 +130,7 @@ test.describe('Protection paladin', () => {
     await presets.click()
     // Only this spec's default is "(default)": Retribution's reads plainly (TU10). The popular build,
     // v1's default, stays a preset (T2).
-    await expect(page.getByRole('option')).toHaveText(['Retribution default', 'Protection (default)', 'Protection popular build'])
+    await expect(page.getByRole('option')).toHaveText(['Retribution default 9/8/34', 'Protection (default) 8/35/8', 'Protection popular build 2/42/7'])
     await page.keyboard.press('Escape')
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()

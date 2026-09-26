@@ -24,7 +24,8 @@ export const TALENT_SUCCESSORS: Readonly<Record<string, Partial<Record<ClassId, 
   '1.60.1.69913': {
     warrior: {
       '30305013002-050530035150010051-': { default: 'warrior-fury' },
-      '30305013-050520035150310051-': { preset: 'Fury + Precision', label: 'the Fury + Precision build' },
+      // A preset until W4's fix round; today's trees keep its digits.
+      '30305013-050520035150310051-': { same: 'the former Fury + Precision preset' },
       '30305213132515201-05050103-': { default: 'warrior-arms' },
       '35-05-552101233301210531': { default: 'warrior-protection' },
       '05-05-552131233301210531': { preset: 'Protection + Improved Thunder Clap', label: 'the Protection + Improved Thunder Clap build' },

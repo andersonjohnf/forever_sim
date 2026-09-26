@@ -118,7 +118,7 @@ test.describe('Hunters', () => {
     await expect(presets).toHaveText('Marksmanship (default)')
     await expect(page.getByText('10 / 41 / 0')).toBeVisible()
     await presets.click()
-    await expect(page.getByRole('option')).toHaveText([/^Marksmanship \(?default\)?$/, /^Marksmanship with a pet$/, /^Beast\sMastery \(?default\)?$/, /^Survival \(?default\)?$/])
+    await expect(page.getByRole('option')).toHaveText([/^Marksmanship \(?default\)? 10\/41\/0$/, /^Marksmanship with a pet 10\/41\/0$/, /^Beast\sMastery \(?default\)? 31\/20\/0$/, /^Survival \(?default\)? 0\/21\/30$/])
     await page.keyboard.press('Escape')
 
     await page.getByRole('button', { name: 'More' }).click()

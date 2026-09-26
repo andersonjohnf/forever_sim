@@ -37,9 +37,12 @@ It runs entirely in your browser (no server), hosted on Firebase Hosting:
 ## Where the numbers come from
 
 1. WoW Forever beta data: the beta client's own data tables through the
-   [wago.tools API](https://wago.tools/apis), and the guild's in-game testing.
+   [wago.tools API](https://wago.tools/apis), reproducible analyses of public beta logs, and
+   in-game tests recorded with their build and method.
 2. Where Forever data doesn't exist yet, **Classic Era** values.
-3. Never Season of Discovery, Season of Mastery, original Vanilla, TBC+ or Retail values.
+3. Never Season of Discovery, Season of Mastery, original Vanilla, TBC+ or Retail values, with one
+   exception: where Forever reuses a Season of Discovery spell, Blizzard's own SoD data for it
+   ([D37](docs/decisions.md#d37-only-sourced-values-2026-09-26)). Other sims are unconfirmed data, never a source.
 
 Every mechanic is documented, with sources, in [docs/](docs/README.md). The full rules are in
 [docs/doctrine.md](docs/doctrine.md).

@@ -493,7 +493,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   correction "on all ranks, including a small increase to threat generated from Attack Power". So
   whether 1013 replaced or added to 261 is moot, and rank 1's "1" is gone.
 - **Assumes now:** **206 flat** [F] per landed Sunder at rank 5. The notes' attack power term has
-  no value: no client carries a coefficient and nobody has measured it, so the sim adds none (until
+  no value: no client carries a coefficient and nobody has measured it, so the sim adds 0 [?] (until
   2026-09-26 it assumed 0.05 × AP, a share we chose; D37 removed it, −3.0% on the default
   Protection warrior's TPS). The results list it.
 - **Test:** at 60, Defensive Stance with Defiance 3/3 and a shield (×1.495), auto attack off: one
@@ -1602,9 +1602,9 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 **High · M3**
 - **Assumes:** Classic values for the trainer's top ranks at 60 (D36: no Ahn'Qiraj book's rank) [?]:
   Heroic Strike r8 + 145, Revenge r5 2.25 × dmg + 243, Thunder Clap, Battle Shout r6, Demoralizing
-  Shout r5; and Shield Slam dmg + **254** [C], Classic Era's rank 4 (Magey's 1.13.6 and
+  Shout r5; and Shield Slam dmg + **254** [?] (Classic Era's rank 4 [C], Magey's 1.13.6 and
   Resultsmayvary's 1.13.2 measurements). Forever's tooltip says "very high" where Classic's said "high", and no
-  allowed source gives the extra a value, so it adds nothing
+  allowed source gives the extra a value, so it adds 0 [?]
   ([wording table](mechanics/threat.md#threat-wording-table)).
 - **Test:** as [B13](#b13-warrior-ability-threat-at-low-ranks) at 60 with max ranks. Shield Slam
   first: in Defensive Stance with Defiance 3/3 and a shield, threat ÷ 1.495 − its logged damage =
@@ -1612,7 +1612,7 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 - **Samples:** ≥8 casts per ability.
 - **Changes:** Prot TPS per ability. Shield Slam is about a quarter of the default Protection
   warrior's threat, so its bonus moves the headline most: the + 475 the sim assumed until 2026-09-26
-  (254 scaled by the damage ratio, removed by D37) gave the default 4.75% more TPS. It decides no
+  (254 scaled by the damage ratio, removed by D37) gave the default 5.0% more TPS (removing it cost 4.75%). It decides no
   preset: off, Balanced loses 18.4% of its TPS ([warrior Q34](classes/warrior.md#9-open-questions)).
 - **Docs:** [threat OQ 1](mechanics/threat.md#open-questions);
   [warrior §5.4](classes/warrior.md#54-protection-tps)

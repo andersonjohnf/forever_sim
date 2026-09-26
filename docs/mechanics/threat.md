@@ -498,13 +498,13 @@ threat-value scale with a plain white hit in a known stance.
    Blow at 60. **Shield Slam** matters most: its tooltip now says "very high", which no allowed
    source values, so the sim keeps Classic Era's +254 (the [wording table](#threat-wording-table)).
    It's about a quarter of the default warrior's threat, and the 475 the sim assumed until
-   2026-09-26 gave the default 4.8% more TPS ([warrior.md §5.4](../classes/warrior.md#build-160170009-protection),
+   2026-09-26 gave the default 5.0% more TPS (removing it cost 4.75%; [warrior.md §5.4](../classes/warrior.md#build-160170009-protection),
    Q34).
 2. **Sunder in play** (same as [warrior.md Q1](../classes/warrior.md#9-open-questions)). Build
    1.60.1.70009 settled the base: the client's 206 at rank 5 (34 at rank 1, no longer the "1" that
    looked like a bug). What's open is the attack power term the notes add, which no client
    carries: the sim adds none until it's measured (the 0.05 × AP it assumed until 2026-09-26 gave
-   the default 3.0% more TPS). Test at 60 in Defensive Stance with Defiance 3/3 and a shield
+   the default 3.1% more TPS; removing it cost 3.0%). Test at 60 in Defensive Stance with Defiance 3/3 and a shield
    (×1.495), a landed Sunder at two attack powers: threat ÷ 1.495 − 206 is the term, and its change
    over the AP change the coefficient.
 3. **Defiance with Defensive Stance**: ×1.495 (multiplicative) or ×1.45 (additive)? Compare a

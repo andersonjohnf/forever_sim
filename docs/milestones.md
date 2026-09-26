@@ -192,7 +192,7 @@ research only). They ship as soon as the gate passes, ahead of the tooltips.
 - [x] **W3 Skyborne warriors and hunters:** the class-row placeholder (D24) in place of the refusal
 - [x] **W4 Re-tune:** the warrior defaults after W1–W2, with every spec's headline checked (D29)
 
-## M5.668: Sharper paladin numbers 🚧 next update
+## M5.668: Sharper paladin numbers ✅
 
 What the beta logs and the first guild test (the user's level-20 paladin, 2026-09-25) settle for
 paladins; the research is in the Judgement of the Crusader notes (B18).
@@ -209,35 +209,46 @@ paladins; the research is in the Judgement of the Crusader notes (B18).
       (user, 2026-09-25: the guild had run no tests before that one); Hammer of the Righteous's
       weapon DPS defaults to the tooltip's reading, without attack power
 
-## M5.669: Only sourced values 🚧 next update
+## M5.669: Only sourced values ✅
 
 The user's rules of 2026-09-26 ([D37](decisions.md#d37-only-sourced-values-2026-09-26)): no
 invented multipliers, ratios, scalings or fitted terms; an undescribed client dummy models as zero;
 other sims are never authoritative; the user's offhand numbers are never evidence. Each slice
 replaces the values that broke them with defaults that follow
 [doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable), and
-re-measures the headlines it moves. The paladin's own provenance is M5.668's P3. This update ships
-A to F and J; B3 and G ship in it only if they land in time, and otherwise move to
+re-measures the headlines it moves. The paladin's own provenance is M5.668's P3. The update shipped
+A to F and J ([review](reviews/2026-09-26-sourced-values.md)); B3 and G moved to
 [M5.671](#m5671-audit-fixes-). The audit's other fixes are M5.671's.
-- [ ] **A Doctrine and provenance:** D37 in the doctrine, CLAUDE.md and the agents; the rogue's
+- [x] **A Doctrine and provenance:** D37 in the doctrine, CLAUDE.md and the agents; the rogue's
       "guild test" relabelled as a player's Discord tests; planned tests called in-game tests
-- [ ] **B1 Warrior threat:** Shield Slam 254, Sunder Armor 206 flat, the parry check
-- [ ] **B2 Attack-power terms and procs from the client and logs:** Revenge, Thunder Clap, Rend,
+- [x] **B1 Warrior threat:** Shield Slam 254, Sunder Armor 206 flat, the parry check
+- [x] **B2 Attack-power terms and procs from the client and logs:** Revenge, Thunder Clap, Rend,
       Arcane Shot, Serpent Sting, Unbridled Wrath, off-hand rage
 - [ ] **B3 Deep Wounds under D37:** Blizzard's SoD patch notes for spell 412609 or Classic Era's
       restart; the user's D36 decision stands until then
       ([B79](open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer))
-- [ ] **C Bear threat:** Lacerate 206 flat, Primal Bite at 1 threat per damage (D38), the rage
+- [x] **C Bear threat:** Lacerate 206 flat, Primal Bite at 1 threat per damage (D38), the rage
       fit, Maul's ×1.75 provenance
-- [ ] **D Paladin:** [M5.668](#m5668-sharper-paladin-numbers--next-update)'s P1–P3, with the log
+- [x] **D Paladin:** [M5.668](#m5668-sharper-paladin-numbers--next-update)'s P1–P3, with the log
       check's paladin findings: Seal of Righteousness without a flat term, Holy Strike's flat
       damage and spell power inside its weapon share, Judgement of the Crusader's misses,
       Retribution Aura's spell-power share
-- [ ] **E Casters:** the epic weapons, Improved Imp, Maelstrom Weapon, Earth Shock, Thorns
-- [ ] **F Class quest sets:** Dungeon Set 2 for each class, the bear's head re-picked
+- [x] **E Casters:** the epic weapons, Improved Imp, Maelstrom Weapon, Earth Shock, Thorns
+- [x] **F Class quest sets:** each Dungeon Set 2 piece only for its own class, another class's removed
+      from saves with a notice; the bear's head re-picked (its head and feet again in J)
 - [ ] **G Damage truncated per hit**
-- [ ] **J Boss melee from logs:** the boss's melee on the tanks measured from Golemagg's Classic
-      Era public logs (D38 #11), disclosed as an estimate until then
+- [x] **J Boss melee from logs:** the boss's melee on the tanks measured from a Golemagg Classic
+      Era log (D38 #11): 2,200–3,200 every 2.0 s, disclosed as an estimate; saved setups on the old
+      default move to it; the bear's head and feet re-picked (FL-1)
+
+## M5.672: Survival Hunter in melee ⏳
+
+Survival Hunter is played in melee in WoW Forever (a guild member's report, 2026-09-26; the user's
+call), and the sim models it as a ranged spec. Next update, with M5.671; the slices follow the
+research of Forever 1.60.1.70009's Survival tree and its melee abilities.
+- [ ] **Melee Survival:** melee auto attacks, Raptor Strike, Mongoose Bite (Expose Prey), Strider
+      Kick, Lacerating Strikes, Immolation and Explosive Traps in combat; the melee side of the
+      character sheet; a melee gear preset and default talents; slices to be sized from the research
 
 ## M5.67: Item tooltips ✅
 
@@ -251,13 +262,14 @@ M5.669's J.
 - [ ] **H Audit fixes:**
   - combat: no level-based spell resistance in `forever`; crit suppression 4.8 vs +3; Ironfoe 6%
   - procs and talents: Felstriker and Alcor's Sunrazor at 1 a minute; Seal Fate from either
-    Mutilate hand; "crit with melee attacks" melee only; Unbridled Wrath's measured rate shown
-  - tanks: Protection paladin enchants for threat; Hammer of the Righteous without attack power
-    by default, "with attack power" a setting
+    Mutilate hand; "crit with melee attacks" melee only (Unbridled Wrath's measured rate shipped in
+    M5.669's B2)
+  - tanks: Protection paladin enchants for threat (Hammer of the Righteous without attack power
+    shipped in M5.668's P3)
   - presets: consumables rebuilt; no PvP rank rewards (Enhancement's trinket and relic); no
     Darkmoon Faire rewards
   - pets: 10% of attack power and crit only; the demon's mana under the five-second rule
-  - labels: Earth Shock ×2, Maelstrom Weapon's 50%, Arcane Power and Power Infusion, Ignite and
+  - labels (Earth Shock ×2 and Maelstrom Weapon's 50% shipped in M5.669's E): Arcane Power and Power Infusion, Ignite and
     Curse of the Elements, gear mp5, the creature type, DPS damage taken, the demon's stats, base
     spell crit
 - [ ] **I Arcane Blast's stacks and Missile Barrage** (D38 #4)

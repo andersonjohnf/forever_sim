@@ -29,16 +29,16 @@ describe('the roadmap (docs/ux.md "Coming soon")', () => {
     for (const e of ROADMAP) expect(order, e.id).toContain(e.when)
   })
 
-  // docs/milestones.md: the next update (M5.668, M5.669), then the audit fixes (M5.671), then
+  // docs/milestones.md: the next update (M5.672 Survival in melee, M5.671's audit fixes), then
   // multi-target (M6), then the optimizer's remaining steps (user decisions 2026-09-26: D30's
-  // amendment, D38).
-  it('lists the next update, then the audit fixes, then multi-target, then the Optimizer', () => {
+  // amendment, D38; Survival in melee, 2026-09-26).
+  it('lists the next update, then multi-target, then the Optimizer', () => {
     const ids = ROADMAP.map((e) => e.id)
-    const order = ['sharper-numbers', 'audit-fixes', 'multi-target', 'optimizer']
+    const order = ['survival-melee', 'audit-fixes', 'multi-target', 'optimizer']
     for (const id of order) expect(ids).toContain(id)
     expect(order.map((id) => ids.indexOf(id))).toEqual([0, 1, 2, 3])
     expect(ROADMAP[0].when).toBe('Next update')
-    expect(ROADMAP.filter((e) => e.when === 'Next update').map((e) => e.id)).toEqual(['sharper-numbers'])
+    expect(ROADMAP.filter((e) => e.when === 'Next update').map((e) => e.id)).toEqual(['survival-melee', 'audit-fixes'])
   })
 
   // CLAUDE.md "Release updates": plain text a player reads, as the release notes are.

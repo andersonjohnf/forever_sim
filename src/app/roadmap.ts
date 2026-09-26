@@ -21,30 +21,23 @@ export interface RoadmapEntry {
 /** Every agreed milestone, in the order they're coming: the next update first, "Later" last. */
 export const ROADMAP: readonly RoadmapEntry[] = [
   {
-    id: 'sharper-numbers',
-    title: 'Sharper numbers across the board',
+    id: 'survival-melee',
+    title: 'Survival Hunters in melee',
     when: 'Next update',
     items: [
-      'Guesses the sim made to fill gaps are replaced with values from the game’s data, Classic Era, in-game tests or, failing those, other sims, and anything still unconfirmed is listed in your results’ assumptions.',
-      'Paladins’ Seal of Fury deals its flat damage per hit, as its tooltip says, with no extra from weapon speed.',
-      'Paladins’ Judgement of the Crusader adds each Holy hit’s share of its bonus, as beta logs and an in-game test show, and the “All of it” setting goes; Protection Paladin’s defaults are re-tuned to match.',
-      'Protection Warriors’ Sunder Armor makes the threat Forever’s data gives it, and Shield Slam the threat it makes in Classic Era.',
-      'Bears’ Lacerate makes the same threat as Sunder Armor, Primal Bite makes threat equal to its damage, and the rest of bear threat is checked against the game’s data.',
-      'Warriors’ Revenge, Thunder Clap, Rend, Unbridled Wrath and off-hand rage, and Hunters’ Arcane Shot and Serpent Sting, follow the game’s data and combat logs.',
-      'Casters’ epic weapons, the Warlock’s Improved Imp, the Shaman’s Maelstrom Weapon and Earth Shock, and a Druid’s Thorns on the tank are checked against the game’s data.',
-      'Every class’s Dungeon Set 2 joins the gear, and the bear’s helm is picked again for threat.',
-      'Tanks take boss hits sized from a Classic Era log of Golemagg.',
+      'Survival Hunters fight in melee, as they do in Forever: auto attacks, Raptor Strike, Mongoose Bite, Strider Kick, Lacerating Strikes, and Immolation and Explosive Traps in combat.',
+      'Melee attack power, crit, hit and weapon speed on the character sheet, and a melee gear preset.',
     ],
   },
   {
     id: 'audit-fixes',
     title: 'More numbers checked against the game',
-    when: 'Planned',
+    when: 'Next update',
     items: [
       'Casters’ spells are no longer partly resisted for the boss’s level, as beta logs show, and melee crit against a boss drops as it does in Classic Era.',
       'Ironfoe procs as often as the game’s data says, Felstriker and Alcor’s Sunrazor about once a minute, and Assassination Rogues’ Seal Fate from either Mutilate hand.',
       'Arcane Mages cast Arcane Blast, with its stacks and Missile Barrage.',
-      'Paladins’ Hammer of the Righteous hits for three times your main hand’s damage per second, as its tooltip reads, and Protection Paladins’ enchants are picked again for threat.',
+      'Protection Paladins’ enchants are picked again for threat.',
       'Items that give crit with melee attacks no longer raise Hunters’ ranged crit, as Forever’s tooltips say, so Hunters lose some crit and their gear presets are picked again.',
       'Consumable presets are rebuilt around what each spec’s players use, and some gear presets are picked again, leaving out PvP and Darkmoon Faire rewards.',
       'Pets take 10% of your attack power and your crit, no longer your hit or spell damage.',

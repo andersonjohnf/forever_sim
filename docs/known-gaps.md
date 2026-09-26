@@ -8,6 +8,11 @@ of fixing it only when it's low and breaks no promise in [ux.md](ux.md), the doc
 or class doc. **When an entry is fixed, delete it here** and name the fixing commit in that
 review's log under [reviews/](reviews/). The milestones are in [milestones.md](milestones.md).
 
+- **A Load, link or code spells out only two changes (review MV-4, pre-existing, low).** The load
+  notice names the first two of what changed and folds the rest into "N other parts changed too";
+  `normalizeConfig` lists the talent refunds and Judgement of the Crusader lines first, so an old
+  paladin setup can fold a removed piece ("Darkmantle Spaulders removed, choose another") into the
+  count. The removal is still in the Gear slot as an empty slot. List actionable repairs first.
 - **The Golemagg log that sizes the default boss melee has no link yet (review JL-9, introduced,
   low).** [encounter.md's sources](mechanics/encounter.md#sources) name it ([wcl-golemagg]: a Classic
   Era rank-100 Golemagg kill, tank Mangox) with "TODO: add the report link"; the user deferred adding

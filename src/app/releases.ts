@@ -23,6 +23,39 @@ export interface Release {
 /** Every release, newest first. */
 export const RELEASES: readonly Release[] = [
   {
+    id: '2026-09-26.2',
+    time: '2026-09-26T20:00:00Z',
+    groups: [
+      {
+        label: 'Tanks',
+        items: [
+          'Bosses hit tanks for 2,200 to 3,200 every 2 seconds, sized from a Classic Era log of Golemagg: about half the damage taken. Saved setups on the old boss move to it.',
+          'Protection Warrior about 985 to 866 TPS: Sunder Armor makes Forever’s flat threat, Shield Slam Classic Era’s, and smaller hits bring less rage. Defensive and Max TPS hold Heroic Strike for more rage.',
+          'Feral Bear about 1,100 to 990 TPS: Lacerate makes a flat 206 threat and Primal Bite threat equal to its damage. New helm and boots: Eye of Rend with Defiler’s (Highlander’s) Leather Boots. Max TPS now plays as Balanced.',
+          'Protection Paladin about 747 to 701 TPS: Seal of Fury deals its flat damage per hit, Judgement of the Crusader adds each Holy hit’s share, and Hammer of the Righteous leaves out attack power, as its tooltip reads.',
+          'Maul’s threat is confirmed by an in-game test.',
+        ],
+      },
+      {
+        label: 'DPS',
+        items: [
+          'Epic caster weapons carry Classic Era’s spell damage: most casters −5% to −6%.',
+          'Demonology Warlock defaults to the Succubus build: 663 to 590 DPS, still the top caster. Horde casters default to Whiteout Staff.',
+          'Enhancement Shaman’s Earth Shock makes double threat: +10% TPS.',
+          'Retribution Paladin −2%: Seal of Righteousness and Holy Strike follow the beta logs.',
+        ],
+      },
+      {
+        label: 'Your setup',
+        items: [
+          'Dungeon Set 2 pieces are only for their own class; another class’s piece in a saved setup is removed, with a notice.',
+          'The Judgement of the Crusader “All of it” setting is gone.',
+          'Changing race says which gear moved, off hand included.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-09-26.1',
     time: '2026-09-26T04:14:00Z',
     groups: [

@@ -82,9 +82,11 @@ export { race, type RaceOptions, type RaceProgress, type RaceResult, type RaceSt
 export { screenTalents, type TalentScreen, type TalentVerdict } from './screen'
 export { type TalentBuild, type TalentConstraints, type TalentRole, MAX_BUILDS, talentSpace, talentSpaceSize, type TalentSpace } from './talents'
 export { describeBuildChange, describeGearChange } from './describe'
+export { type ContentOf, type GearContent, itemContent, LATER_RAID_ITEMS, LATER_RAID_SETS, ONYXIA_ITEMS, PRE_RAID_MAX_ITEM_LEVEL } from './content'
 export {
   appliedBonus,
   bestEnchant,
+  contentOf,
   describeSource,
   enchantFits,
   enchantsFor,

@@ -6,8 +6,11 @@ import { ENCHANTS } from '../effects/enchants'
 import { itemFaction, isTwoHand } from '../equip'
 import { buildPlan } from '../plan/build'
 import type { GearSlot, SimConfig, SpecId } from '../types'
+import { LATER_RAID_ITEMS, LATER_RAID_SETS, ONYXIA_ITEMS, PRE_RAID_MAX_ITEM_LEVEL } from './content'
 import { describeGearChange } from './describe'
 import {
+  contentOf,
+  describeSource,
   enchantFits,
   estimatedGain,
   type Gear,
@@ -16,6 +19,7 @@ import {
   gearProblems,
   greedyGear,
   groupGears,
+  ITEM_SETS,
   itemFieldValues,
   itemSource,
   POOL,
@@ -108,6 +112,68 @@ describe('the pool a slot takes', () => {
       expect(isTwoHand(item(g.mainHand!.itemId))).toBe(false)
       expect(item(g.offHand!.itemId).slot).toBe('shield')
     }
+  })
+})
+
+describe('the default pool: pre-raid gear and the launch raids (D30, 2026-09-25)', () => {
+  const fury = setup('warrior-fury')
+  const inDefault = (id: number, slot: GearSlot, config = fury) => slotPool(gearContext(config), slot).some((i) => i.id === id)
+  const withLater = (id: number, slot: GearSlot, config = fury) => slotPool(gearContext(config, { laterRaids: true }), slot).some((i) => i.id === id)
+
+  it('leaves the later raids out unless the player opts in', () => {
+    // The O2 review's picks (O2L-1): Ahn'Qiraj's and Zul'Gurub's Rares, above item level 63 and on no list.
+    for (const [id, slot] of [
+      [21809, 'neck'], // Fury of the Forgotten Swarm, 71
+      [21490, 'feet'], // Slime Kickers, 73
+      [20216, 'waist'], // Belt of Preserved Heads, 70
+      [22714, 'hands'], // Sacrificial Gauntlets, 68
+    ] as const) {
+      expect(contentOf(item(id)).content).toBe('later')
+      expect(inDefault(id, slot)).toBe(false)
+      expect(withLater(id, slot)).toBe(true)
+    }
+    expect(inDefault(21495, 'legs', setup('warrior-protection'))).toBe(false) // Legplates of the Qiraji Command
+    // A Zul'Gurub neck at item level 60, which the item-level line can't see.
+    expect(contentOf(item(19615))).toEqual({ content: 'later', raid: "Zul'Gurub" })
+    expect(inDefault(19615, 'neck')).toBe(false)
+    // A piece of a Zul'Gurub set.
+    expect(contentOf(item(19898)).raid).toBe("Zul'Gurub") // Seal of Jin
+  })
+
+  it('keeps every pre-raid list item, Forever-new items and non-raid items up to item level 63', () => {
+    // Earthstrike is item level 66, and on a list.
+    expect(item(21180).itemLevel).toBeGreaterThan(PRE_RAID_MAX_ITEM_LEVEL)
+    expect(contentOf(item(21180)).content).toBe('pre-raid')
+    expect(inDefault(21180, 'trinket1')).toBe(true)
+    // Adaptive Combat Assistant (65) and Stalwart Watcher's Signet (68) are new in Forever: the launch game's.
+    expect(contentOf(item(272437)).content).toBe('forever-new')
+    expect(inDefault(272437, 'trinket1', setup('warrior-protection'))).toBe(true)
+    expect(inDefault(275975, 'finger1', setup('warrior-protection'))).toBe(true)
+    // Non-raid items at 63 or below: a dungeon drop, a PvP rank piece.
+    expect(contentOf(item(12640)).content).toBe('pre-raid') // Lionheart Helm, listed
+    expect(inDefault(23287, 'feet')).toBe(true) // Knight-Lieutenant's Plate Greaves
+    // Every item in the default pool is pre-raid, Forever-new or a launch raid's.
+    for (const slot of SEARCHED_SLOTS) for (const i of slotPool(gearContext(fury), slot)) expect(contentOf(i).content).not.toBe('later')
+  })
+
+  it('knows its curated items by the names the pool gives them', () => {
+    for (const [id, { name }] of LATER_RAID_ITEMS) expect(item(id)?.name).toBe(name)
+    const setNames = new Set(Object.values(ITEM_SETS).map((s) => s.name))
+    for (const name of LATER_RAID_SETS.keys()) expect(setNames.has(name)).toBe(true)
+    // Onyxia drops Epics, which the pool (D10's Rares and the lists) doesn't take: none is in it today.
+    for (const id of ONYXIA_ITEMS.keys()) expect(POOL.has(id)).toBe(false)
+    // One would be a launch raid's.
+    expect(contentOf({ ...item(12640), id: 17068 })).toEqual({ content: 'launch-raid', raid: 'Onyxia' })
+  })
+
+  it('labels each piece’s source', () => {
+    expect(describeSource({ ...item(12640), id: 17068 })).toBe('launch raid: Onyxia')
+    expect(describeSource(item(21809))).toBe('later content (item level 71, on no pre-raid list), from the gear the search started from')
+    expect(describeSource(item(21809), { laterRaids: true })).toBe('later content (item level 71, on no pre-raid list), opted in')
+    expect(describeSource(item(19615), { laterRaids: true })).toBe("later raid: Zul'Gurub, opted in")
+    expect(describeSource(item(275975))).toBe('Forever-new; reputation (The Watchers, Honored)')
+    expect(describeSource(item(23287))).toBe('PvP rank 7')
+    expect(describeSource(item(12640))).toBeNull()
   })
 })
 
@@ -239,7 +305,7 @@ describe('sets raced together', () => {
   it('names what changed, with PvP and reputation pieces’ sources', () => {
     const next: Gear = { ...config.gear, legs: { itemId: 23301 }, finger2: { itemId: 271908 } }
     const changes = describeGearChange(config.gear, next)
-    expect(changes.find((c) => c.startsWith('Finger 2:'))).toMatch(/Theramore Signet \[reputation \(Theramore Expeditionary Force, Honored\)\]/)
+    expect(changes.find((c) => c.startsWith('Finger 2:'))).toMatch(/Theramore Signet \[Forever-new; reputation \(Theramore Expeditionary Force, Honored\)\]/)
     expect(changes.join('\n')).toMatch(/PvP rank/)
   })
 })

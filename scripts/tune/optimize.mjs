@@ -60,6 +60,10 @@
 // Gear (with --search gear or all; docs/optimizer.md#gear):
 //   --ilvl <min>-<max>    item levels to search ("58-66", "60-", "-63"); default the whole pool
 //   --sources <list>      pvp, reputation, profession, other (drops, quests, crafts): comma-separated; default all
+//   --include-later-raids search the later raids' loot and later patches' items too: Zul'Gurub, Ahn'Qiraj, Molten
+//                         Core, Blackwing Lair, Naxxramas, and any item above item level 63 on no pre-raid list. By
+//                         default the pool is pre-raid gear and the launch raids (Onyxia, Barrow Deeps, Hyjal) only
+//                         (D30, user decision 2026-09-25; docs/optimizer.md#the-default-pool)
 //   --lock <slots>        slots left as they are: head, neck, shoulder, back, chest, wrist, hands, waist, legs, feet,
 //                         finger1, finger2, trinket1, trinket2, mainHand, offHand, ranged; repeatable or comma-separated
 //   --faction alliance|horde   the character's faction (the gear it can wear): the class's default race of that
@@ -251,6 +255,7 @@ async function main() {
       'screen-fights': { type: 'string', default: '400' },
       ilvl: { type: 'string' },
       sources: { type: 'string' },
+      'include-later-raids': { type: 'boolean', default: false },
       lock: { type: 'string', multiple: true, default: [] },
       faction: { type: 'string' },
       enchants: { type: 'string' },
@@ -299,7 +304,9 @@ async function main() {
   const searchGear = args.search === 'gear' || args.search === 'all'
   if (args.turns && searchGear) throw new Error('--turns is for talents and rotation; --search all takes turns with gear too')
   // The gear flags need a gear search: say so, rather than drop them.
-  const gearFlags = ['ilvl', 'sources', 'enchants', 'per-slot', 'gear-passes', 'weight-fights', 'measure-fights'].filter((f) => args[f] !== undefined).concat(args.lock.length ? ['lock'] : [], args['no-restarts'] ? ['no-restarts'] : [])
+  const gearFlags = ['ilvl', 'sources', 'enchants', 'per-slot', 'gear-passes', 'weight-fights', 'measure-fights']
+    .filter((f) => args[f] !== undefined)
+    .concat(args.lock.length ? ['lock'] : [], args['no-restarts'] ? ['no-restarts'] : [], args['include-later-raids'] ? ['include-later-raids'] : [])
   if (!searchGear && gearFlags.length) throw new Error(`${gearFlags.map((f) => `--${f}`).join(', ')} need a gear search: --search gear or --search all`)
   if (args.cycles !== undefined && args.search !== 'all') throw new Error('--cycles is for --search all')
   const options = engine.rotationOptions(specId)
@@ -462,9 +469,11 @@ async function main() {
       if (args.enchants !== 'all') throw new Error(`--enchants takes "all", got "${args.enchants}"`)
       filters.excludedEnchants = []
     }
+    if (args['include-later-raids']) filters.laterRaids = true
     const f = filters
     console.log(
-      `gear: ${f.itemLevel ? `item level ${f.itemLevel.min ?? ''}-${f.itemLevel.max ?? ''}` : 'every item level'}; ${f.sources ? `sources ${f.sources.join(', ')}` : 'every source'}; ${d.race} (${racesJson.races.find((r) => r.id === d.race)?.faction ?? '?'} gear)` +
+      `gear: ${f.laterRaids ? 'every raid, the later ones opted in' : `pre-raid gear and the launch raids (no item above item level ${engine.PRE_RAID_MAX_ITEM_LEVEL} on no pre-raid list, no Zul'Gurub; --include-later-raids searches them)`}; ` +
+        `${f.itemLevel ? `item level ${f.itemLevel.min ?? ''}-${f.itemLevel.max ?? ''}` : 'every item level'}; ${f.sources ? `sources ${f.sources.join(', ')}` : 'every source'}; ${d.race} (${racesJson.races.find((r) => r.id === d.race)?.faction ?? '?'} gear)` +
         `${f.locked ? `; locked ${f.locked.join(', ')}` : ''}; ${f.excludedEnchants ? 'every enchant' : `every enchant but ${engine.UNCONFIRMED_ENCHANTS.join(', ')}`}`,
     )
   }
@@ -528,7 +537,7 @@ async function main() {
     console.log('')
     for (const s of g.starts) {
       console.log(`start ${s.name}: ${count(s.passes)} ${s.passes === 1 ? 'pass' : 'passes'}, ${s.stable ? 'stable' : 'not stable (passes or budget ran out)'}, ${plural(s.fights, 'fight')}`)
-      const changes = engine.describeGearChange(config.gear, s.end)
+      const changes = engine.describeGearChange(config.gear, s.end, filters)
       for (const c of changes.length ? changes : ["(the setup's gear)"]) console.log(`    ${c}`)
     }
     for (const note of g.notes) console.log(`  note: ${note}`)
@@ -634,7 +643,7 @@ async function main() {
       if (engine.isSetup(config, cand)) return 'the setup itself'
       const changes = engine.describeBuildChange(data, config.talents, cand.talents)
       const rot = Object.entries(cand.rotation).map(([id, v]) => `${id.startsWith(spec.prefix) ? id.slice(spec.prefix.length) : id}=${v}`)
-      const gear = engine.describeGearChange(config.gear, cand.gear ?? config.gear)
+      const gear = engine.describeGearChange(config.gear, cand.gear ?? config.gear, filters)
       return [...changes, ...rot, ...gear].join('; ')
     }
     console.log('')
@@ -736,7 +745,7 @@ async function main() {
         ...s,
         talents: r.candidates[s.candidate].talents,
         rotation: r.candidates[s.candidate].rotation,
-        ...(r.candidates[s.candidate].gear ? { gear: r.candidates[s.candidate].gear, gearChanges: engine.describeGearChange(config.gear, r.candidates[s.candidate].gear) } : {}),
+        ...(r.candidates[s.candidate].gear ? { gear: r.candidates[s.candidate].gear, gearChanges: engine.describeGearChange(config.gear, r.candidates[s.candidate].gear, filters) } : {}),
         changes: engine.describeBuildChange(data, config.talents, r.candidates[s.candidate].talents),
       })),
     },
@@ -747,9 +756,9 @@ async function main() {
       {
         setup: { spec: specId, seed, goal, scoredGoal: scored, budget, maxFights, args, config, ...(filters ? { filters } : {}) },
         passes: reports.map(annotate),
-        ...(gearReports.length ? { gear: gearReports.map((g) => ({ starts: g.starts.map((s) => ({ ...s, endChanges: engine.describeGearChange(config.gear, s.end) })), notes: g.notes, budget: g.budget, fights: g.fights })) } : {}),
+        ...(gearReports.length ? { gear: gearReports.map((g) => ({ starts: g.starts.map((s) => ({ ...s, endChanges: engine.describeGearChange(config.gear, s.end, filters) })), notes: g.notes, budget: g.budget, fights: g.fights })) } : {}),
         winner,
-        ...(winner?.gear ? { winnerGearChanges: engine.describeGearChange(config.gear, winner.gear) } : {}),
+        ...(winner?.gear ? { winnerGearChanges: engine.describeGearChange(config.gear, winner.gear, filters) } : {}),
         confirmation,
         seconds: (performance.now() - started) / 1000,
       },

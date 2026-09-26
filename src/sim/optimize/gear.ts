@@ -12,6 +12,7 @@ import { ENCHANTS, type EnchantSpec } from '../effects/enchants'
 import { ITEM_EFFECTS } from '../effects/items'
 import { catalogueEffects, type FlatStat } from '../effects/types'
 import { canUse, fitsFaction, fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
+import { type ContentOf, itemContent } from './content'
 import { PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_META } from '../specs'
 import type { ClassId, EquippedItem, GearSlot, SimConfig, SpecId } from '../types'
@@ -50,16 +51,34 @@ export function itemSource(item: Item): GearSource {
   return 'other'
 }
 
-/** An item's source in words, for a result's changes: "PvP rank 10", "reputation (Timbermaw Hold)". */
-export function describeSource(item: Item): string | null {
+/** Which content an item is (./content.ts): pre-raid, new in Forever, a launch raid's, or a later raid's or patch's. */
+export const contentOf = (item: Item): ContentOf => itemContent(item, (setId) => ITEM_SETS[setId]?.name)
+
+/**
+ * An item's source in words, for a result's changes (D30: each result says where its pieces come
+ * from): the content when it isn't plain pre-raid gear ("launch raid: Onyxia", "Forever-new", "later
+ * raid: Zul'Gurub, opted in"), then the source when it's PvP, reputation or a profession's ("PvP rank
+ * 10", "reputation (Timbermaw Hold, Honored)"). Null for a plain pre-raid drop, quest or craft.
+ * `laterRaids` says whether the search opted in to the later raids: a later item in a default search's
+ * answer can only have come from the gear it started from.
+ */
+export function describeSource(item: Item, options: { laterRaids?: boolean } = {}): string | null {
+  const parts: string[] = []
+  const content = contentOf(item)
+  if (content.content === 'launch-raid') parts.push(`launch raid: ${content.raid}`)
+  else if (content.content === 'forever-new') parts.push('Forever-new')
+  else if (content.content === 'later') {
+    const what = content.raid ? `later raid: ${content.raid}` : `later content (${content.why})`
+    parts.push(`${what}, ${options.laterRaids ? 'opted in' : "from the gear the search started from"}`)
+  }
   const rank = item.requirements.find((r) => r.kind === 'pvpRank')
-  if (rank) return `PvP rank ${rank.level}`
   const source = itemSource(item)
   const rep = item.requirements.find((r) => r.kind === 'reputation')
-  if (source === 'pvp') return rep?.faction ? `battleground reputation (${rep.faction})` : 'battleground reward'
-  if (source === 'reputation') return `reputation (${rep?.faction ?? '?'}${rep?.standing ? `, ${rep.standing}` : ''})`
-  if (source === 'profession') return `profession (${item.requirements.find((r) => r.kind === 'skill')?.skill ?? '?'})`
-  return null
+  if (rank) parts.push(`PvP rank ${rank.level}`)
+  else if (source === 'pvp') parts.push(rep?.faction ? `battleground reputation (${rep.faction})` : 'battleground reward')
+  else if (source === 'reputation') parts.push(`reputation (${rep?.faction ?? '?'}${rep?.standing ? `, ${rep.standing}` : ''})`)
+  else if (source === 'profession') parts.push(`profession (${item.requirements.find((r) => r.kind === 'skill')?.skill ?? '?'})`)
+  return parts.length ? parts.join('; ') : null
 }
 
 // --- Filters and slots --------------------------------------------------------------------------
@@ -70,6 +89,12 @@ export interface GearFilters {
   itemLevel?: { min?: number; max?: number }
   /** Sources to search (default: every one). */
   sources?: readonly GearSource[]
+  /**
+   * Search the later raids' loot and later patches' items too (`contentOf`: Zul'Gurub, Ahn'Qiraj,
+   * Molten Core, Blackwing Lair, Naxxramas, and any item above item level 63 on no pre-raid list).
+   * Default: no, pre-raid gear and the launch raids only (user decision, D30 2026-09-25).
+   */
+  laterRaids?: boolean
   /** Slots the search leaves as they are. */
   locked?: readonly GearSlot[]
   /**
@@ -180,8 +205,9 @@ export function gearContext(config: SimConfig, filters: GearFilters = {}): GearC
   }
 }
 
-/** Whether the filters let an item in (the item level range and sources; the class and faction are `slotPool`'s). */
+/** Whether the filters let an item in (the content, the item level range and sources; the class and faction are `slotPool`'s). */
 export function passesFilters(item: Item, filters: GearFilters): boolean {
+  if (!filters.laterRaids && contentOf(item).content === 'later') return false
   const { min = -Infinity, max = Infinity } = filters.itemLevel ?? {}
   if (item.itemLevel < min || item.itemLevel > max) return false
   return !filters.sources || filters.sources.includes(itemSource(item))
@@ -190,7 +216,8 @@ export function passesFilters(item: Item, filters: GearFilters): boolean {
 /**
  * The pool's items a slot can take for this character under the filters (docs/optimizer.md#gear):
  * the class can wear or wield it in that slot (`fitsSlot`: armor, weapon types, dual wield, relics),
- * its faction can, and the filters let it in. A shield spec's main hand takes one-handers only, and
+ * its faction can, and the filters let it in (by default, no later raid's item: `contentOf`,
+ * `GearFilters.laterRaids`). A shield spec's main hand takes one-handers only, and
  * its off hand shields only. Not the currently equipped item unless it passes too: a step adds it
  * back (`groupGears`).
  */

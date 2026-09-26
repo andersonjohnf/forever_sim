@@ -26,11 +26,12 @@ export function describeBuildChange(data: TalentData, from: string, to: string):
 
 /**
  * The slots whose item or enchant differ between two gear sets, in paper-doll order, with each new
- * piece's source when it's PvP, reputation or a profession's (D30's build plan: "each result says
- * which pieces are PvP rank or rare drops"): "Hands: Gauntlets of Might → Devilsaur Gauntlets
- * (+Greater Strength)". An item the pool lacks shows by its id.
+ * piece's source when it isn't a plain pre-raid drop, quest or craft (D30: "each result says which
+ * pieces are PvP rank or rare drops"; `describeSource`: a launch raid's, Forever-new, a later raid's,
+ * PvP, reputation, a profession's): "Hands: Gauntlets of Might → Devilsaur Gauntlets (+Greater
+ * Strength)". An item the pool lacks shows by its id. `laterRaids`: the search opted in to the later raids.
  */
-export function describeGearChange(from: Gear, to: Gear): string[] {
+export function describeGearChange(from: Gear, to: Gear, options: { laterRaids?: boolean } = {}): string[] {
   const name = (entry: EquippedItem | undefined) => {
     if (!entry) return 'nothing'
     const item = POOL.get(entry.itemId)
@@ -43,7 +44,7 @@ export function describeGearChange(from: Gear, to: Gear): string[] {
     const b = to[slot]
     if (a?.itemId === b?.itemId && (a?.enchantId ?? null) === (b?.enchantId ?? null)) continue
     const item = b ? POOL.get(b.itemId) : undefined
-    const source = item && a?.itemId !== b?.itemId ? describeSource(item) : null
+    const source = item && a?.itemId !== b?.itemId ? describeSource(item, options) : null
     out.push(`${SLOT_NAME[slot]}: ${name(a)} → ${name(b)}${source ? ` [${source}]` : ''}`)
   }
   return out

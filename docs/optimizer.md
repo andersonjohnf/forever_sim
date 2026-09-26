@@ -563,7 +563,8 @@ other candidates are the step's gear sets (`gears`); the baseline stays the setu
 ### Candidates and filters
 
 A slot's candidates are the pool's items (`src/data/items/pre-bis.json`; D11 decides what's in it)
-that the character can wear there (`slotPool`):
+in [the default pool](#the-default-pool) (pre-raid gear and the launch raids) that the character can
+wear there (`slotPool`):
 
 - **The class:** `fitsSlot` (src/sim/equip.ts): armor types, weapon types by hands, dual wield for an
   off-hand weapon, a relic in the ranged slot for the classes that have one.
@@ -574,13 +575,67 @@ that the character can wear there (`slotPool`):
   ([items.md](data/items.md)): `pvp` (a PvP rank requirement, a battleground's reputation, or an Alterac
   Valley or Warsong Gulch reward's name), `reputation` (another faction's standing), `profession` (a
   profession skill: Engineering's goggles) and `other` (drops, quests and crafts together). A result
-  names each new piece's source when it's one of the first three ("[PvP rank 10]").
+  names each new piece's content and source when it isn't a plain pre-raid drop, quest or craft
+  (`describeSource`: "[launch raid: Onyxia]", "[Forever-new; reputation (The Watchers, Honored)]",
+  "[PvP rank 10]", "[later raid: Zul'Gurub, opted in]").
 - **Locked slots** (`--lock head,trinket1`) stay as they are, in every start.
 - **A shield tank keeps a one-hander and a shield** (`SHIELD_SPECS`, D30's build plan: "shields for
   tanks"): the Protection warrior's Shield Slam and Shield Block and the Protection paladin's Holy
   Shield need one. A bear has none to keep.
 - A hunter's ammo and quiver aren't searched: they follow the ranged weapon (`matchSupplies`, the
   Gear tab's rule).
+
+#### The default pool
+
+**The default is pre-raid gear and the launch raids** (user decision, 2026-09-25, D30; O2L-1). O2 first
+searched the whole pool, D10's every Rare of item level 58 and up, which also holds Zul'Gurub's and
+Ahn'Qiraj's Rares and later patches' items; they made most of Fury's +6% (the O2 review). The launch
+raids are Onyxia's Lair, the Barrow Deeps and Hyjal Summit ([encounter.md §7](mechanics/encounter.md#7-forever-raids-at-launch)),
+and Ahn'Qiraj comes long after launch (D36). So by default a slot takes (`contentOf`,
+`src/sim/optimize/content.ts`):
+
+- **every item on a pre-raid list** (D11's lists), whatever its item level: Earthstrike (66) is on one;
+- **every item new in Forever** (no Classic Era row): a new dungeon's, reputation's or profession's item,
+  or a launch raid's; the client can't tell them apart, and both are in the launch game (Adaptive
+  Combat Assistant, the Watcher's Signets);
+- **the launch raids' loot, where it can be identified:** Onyxia's, by its Classic Era ids `[C]` (her
+  drops, the Tier 2 helms, the Head of Onyxia quest's rewards; `ONYXIA_ITEMS`);
+- **dungeon, PvP, reputation, crafted and other non-raid items up to item level 63**
+  (`PRE_RAID_MAX_ITEM_LEVEL`).
+
+**The later raids are off unless the player opts in** (`GearFilters.laterRaids`, the CLI's
+`--include-later-raids`, O3's checkbox): Zul'Gurub, Ahn'Qiraj, Molten Core, Blackwing Lair, Naxxramas
+and later patches' Rares. The client has no drop sources, so they're found by what the data says:
+
+- **any item above item level 63 on no pre-raid list** that isn't new in Forever (Fury of the Forgotten
+  Swarm, 71; Slime Kickers, 73; Sacrificial Gauntlets, 68);
+- **known raid items below that line**, by id `[C]` (`LATER_RAID_ITEMS`): Zul'Gurub's Zandalar class
+  necks at item level 60 (Zandalarian Shadow Talisman, Strength of Mugamba and the rest);
+- **known raid sets' pieces** (`LATER_RAID_SETS`): Zul'Gurub's ring sets (Zanzil's Concentration,
+  Overlord's Resolution, Prayer of the Primal, Major Mojo Infusion).
+
+On 1.60.1.70009 the pool's 1,711 searchable items (its ammo and quivers aside) split **1,116 pre-raid,
+328 Forever-new, 0 launch raid and 267 later** (248 above the line, 19 Zul'Gurub's by id or set); a
+Fury warrior's slots take 966 of them by default and 1,152 opted in.
+
+**Its `[?]` edges:**
+
+- **None of the launch raids' loot is in the pool yet.** Onyxia drops Epics, and D10's pool takes Rares
+  and the lists' items, which leave raid drops out; the Barrow Deeps' and Hyjal's items can't be told
+  from other Forever-new items, and any Epic among them is outside the pool too. So today the default is
+  pre-raid gear in practice. Searching Onyxia's Epics would widen the pool (D10 and D11, the Gear tab's
+  picker too), a decision of its own.
+- **The item-level line sweeps in non-raid items above 63** that no list names: 59 PvP rank 7–10
+  pieces, the Dungeon Set 2 pieces, and Ahn'Qiraj-era reputation and crafted gear (Band of Cenarius,
+  the Sylvan and Ironvine sets), labelled "later content (item level N, on no pre-raid list)", not a
+  raid's. The user's rule puts them there.
+- **A Forever-new item from a later phase** would count as the launch game's: the client doesn't say.
+- **A raid item at item level 63 or below** that isn't curated stays in the default. The two Hakkari
+  cloaks (item level 59) are curated as Zul'Gurub's by their name and ids `[?]`.
+- **A worn item stays a candidate** whatever its content (a step always races the current item), so a
+  setup or a preset that wears later content keeps it in reach: Darksoul Shoulders and Soulforge Belt
+  (65, on no list) in the tank presets. Its label then says so ("from the gear the search started
+  from").
 
 Enchants are the catalogue's (buffs doc §5) that fit the item (the Gear tab's `enchantFits`: a
 weapon's, a two-hander's, a shield's). **The Zandalar and Scourge shoulder enchants are left out by

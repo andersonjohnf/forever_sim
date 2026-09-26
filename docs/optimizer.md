@@ -1085,8 +1085,42 @@ compares the leader, the answer, with the default.
   shield rule, and its head is still searched: the rule is checked only when a hand changes.
 - **Talents, gear and rotation together** (`gear-search.test.ts`). Fury with every default talent kept
   but Deep Wounds and Impale, and the bad set's open slots: the talent pass comes first, the gear pass
-  searches with its answer's build, a later pass keeps what the one before found, and the cycles stop
-  within the cap.
+  searches with its answer's build, each pass starts where the last ended, and the turns stop on the
+  first whole cycle with nothing moved (here after 4 of 6 passes: talents kept, gear moved, then both
+  kept), within the cap.
+- **The default pool** (`gear.test.ts`, O2L-1). Fury of the Forgotten Swarm, Slime Kickers, Belt of
+  Preserved Heads, Sacrificial Gauntlets and Legplates of the Qiraji Command are later content, out by
+  default and in when opted in; Zandalarian Shadow Talisman (60) is Zul'Gurub's by id and Seal of Jin by
+  its set; Earthstrike (66, listed), Adaptive Combat Assistant and Stalwart Watcher's Signet
+  (Forever-new) stay in; no default pool item is later content; the curated ids and set names match the
+  data; and each piece is labelled ("launch raid: Onyxia", "Forever-new; reputation (The Watchers,
+  Honored)", "PvP rank 7", "later raid: Zul'Gurub, opted in").
+- **Pairs** (O2L-2, O2L-7). For Fury, the Protection warrior and a Combat rogue, the rings and trinkets
+  steps race each unordered pair once, never the current pair swapped, and keep a worn item in its
+  slot; a pair is the same `gearKey` in either order. With either slot of a Protection warrior's pair
+  locked, the pair is ranked through the other (over 10 items), and its step races at least 5 sets,
+  none wearing the locked Unique item's copy.
+- **A step's choice** (`chooseStep`, O2L-4, O2L-6). Adaptive Combat Assistant leads a trinket step:
+  Earthstrike 0.3% behind, or 0.8% behind but inside the interval, is taken instead; 0.8% ± 0.2 behind,
+  the leader stays; with the ratings ignored, the rule doesn't apply; Balanced's margin is half a point.
+  A leader 2 ± 3 ahead of the current gear isn't taken, and the step counts as unchanged.
+- **The hard ceiling** (O2L-3). Fury with its head, neck and trinkets open: a cap one fight below the
+  first ranking's fewest (every plan at 50) is refused before any fight; a 1,000-fight budget under a
+  cap 4,000 above that minimum grows to it, ranks at 50 a plan, and stays under the cap; an 80,000
+  budget ranks with at most 40% of the ascents' share and still steps.
+- **Balanced's normaliser** (O2L-9). A Protection warrior ranked at other gear scores against the
+  setup's own means; twice the normaliser gives exactly half the Strength weight; a DPS ranking
+  measures none. **The final race's seed** (O2L-11) is `finalSeed(seed)`, not the search's.
+- **A worker pool** (O2L-12). The bad Fury set on four lanes whose jobs finish in a shuffled order
+  gives the same answer, steps, fights and weights as on one.
+- **A tank's gear search** (O2L-12). The Protection warrior with its head, legs and weapons open,
+  Balanced, with the default floor: every start's end and the answer keep a one-hander and a shield,
+  the floor is 90% of the survival preset's effective health, and the answer meets it; with a floor no
+  set meets, there's no answer and no step moves.
+- **Stat weights on a known case** (O2L-12). Fury: spell damage weighs exactly 0 after the pilot and
+  runs no more; a point of Strength is worth attack power's weight × 2 × the Strength multiplier
+  (Kings), within the intervals; a flat-stat neck ranks at its stats times the weights exactly, and
+  Hand of Justice, a modelled effect, is measured and worth DPS.
 
 These are unit tests (`src/sim/optimize/*.test.ts`).
 

@@ -2,12 +2,20 @@
 import { describe, expect, it } from 'vitest'
 import { defaultConfig } from '../defaults'
 import type { GearSlot, SimConfig } from '../types'
-import { localFightRunner, SearchTooLargeError } from './fights'
+import { EngineCache, type FightRunner, localFightRunner, runFights, SearchTooLargeError } from './fights'
+import { defaultConstraints, meetsSheet, sheetValues } from './constraints'
+import { buildPlan } from '../plan/build'
+import { Sim } from '../engine/sim'
+import { isTwoHand } from '../equip'
+import { Rng } from '../core/rng'
+import { ITEM_EFFECTS } from '../effects/items'
+import { itemFieldValues, weighedItem, weighValues } from './gear'
 import { gearContext, type Gear, groupGears, POOL, SEARCHED_SLOTS, slotPool } from './gear'
 import { decodeTalentCode, talentsInCodeOrder } from '@/data/talents/types'
 import { TALENT_DATA } from '../defaults'
-import { finalSeed, type GearSearchOptions, gearPools, measureStatWeights, MIN_RANK_FIGHTS, optimizeGear, optimizeTogether, rankGear, rankingPlans, runPlans } from './gear-search'
-import { candidatePlan, gearKey, setupCandidate } from './optimize'
+import { finalSeed, type GearSearchOptions, gearPools, measureStatWeights, MIN_RANK_FIGHTS, optimizeGear, optimizeTogether, rankGear, rankingPlans, runPlans, survivalReference } from './gear-search'
+import { applyCandidate, candidateKey, candidatePlan, gearKey, type OptimizeReport, setupCandidate } from './optimize'
+import type { GearReport } from './gear-search'
 
 const OPEN: GearSlot[] = ['head', 'neck', 'finger1', 'finger2']
 
@@ -59,7 +67,7 @@ describe('talents, gear and rotation together', () => {
       budget: { fights: 6_000 },
       maxFights: 200_000,
       runner: localFightRunner(),
-      cycles: 2,
+      cycles: 3,
     })
     expect(passes[0].kind).toBe('talents')
     expect(passes[1].kind).toBe('gear')
@@ -68,8 +76,25 @@ describe('talents, gear and rotation together', () => {
     // A pass after the first starts where the last ended, so its answer keeps what that one found.
     const gear = passes[1].answer!.gear!
     if (passes[2]) expect(passes[2].answer!.gear).toEqual(gear)
-    // It stops on a whole cycle with nothing moved, or when the cycles run out.
-    expect(passes.length).toBeLessThanOrEqual(4)
+    // Each pass starts where the last one ended (O2L-12: the alternation, not only its length).
+    for (let i = 1; i < passes.length; i++) {
+      const prev = passes[i - 1].answer!
+      const r = passes[i].report
+      if (passes[i].kind === 'gear') expect(gearKey((r as GearReport).starts[0].gear)).toBe(gearKey(prev.gear ?? config.gear))
+      else expect(candidateKey(config, (r as OptimizeReport).candidates[(r as OptimizeReport).startIndex!])).toBe(candidateKey(config, prev))
+      // A pass moved exactly when its answer differs from where it started.
+      expect(passes[i].moved).toBe(candidateKey(config, passes[i].answer!) !== candidateKey(config, prev))
+    }
+    // It stops on the first whole cycle (talents and gear) with nothing moved, and never runs past one.
+    const still = passes.map((p) => !p.moved)
+    for (let i = 2; i < passes.length; i++) expect(still[i - 2] && still[i - 1]).toBe(false)
+    // Here the gear pass moves and the next cycle doesn't: it stops after 4 of its 6 passes.
+    expect(passes.map((p) => [p.kind, p.moved])).toEqual([
+      ['talents', false],
+      ['gear', true],
+      ['talents', false],
+      ['gear', false],
+    ])
     expect(passes.reduce((n, p) => n + p.report.fights, 0)).toBeLessThanOrEqual(200_000)
   })
 })
@@ -165,5 +190,112 @@ describe('Balanced’s normaliser (O2L-9)', () => {
     const fury: SimConfig = { ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 0, seed: 5 } }
     const furyCtx = gearContext(fury, { locked: SEARCHED_SLOTS.filter((s) => s !== 'head') })
     expect((await rankGear({ config: fury, candidate: setupCandidate(fury), ctx: furyCtx, pools: gearPools(furyCtx), goal: 'dps', runner, weightFights: 20, measureFights: 10 })).baseline).toBeUndefined()
+  })
+})
+
+/** A runner with several lanes whose jobs finish out of order, as a worker pool's do: real engines, a shuffled delay a job. */
+function pooledRunner(lanes: number, seed: number): FightRunner {
+  const engines = new EngineCache<Sim>(64)
+  const order = new Rng()
+  order.seed(seed, 0, 0)
+  return {
+    lanes,
+    run(source, from, count) {
+      let sim = engines.get(source.key)
+      if (!sim) {
+        sim = new Sim(source.plan())
+        engines.set(source.key, sim)
+      }
+      const out = runFights(sim, from, count)
+      return new Promise((resolve) => setTimeout(() => resolve(out), Math.floor(order.next() * 4)))
+    },
+  }
+}
+
+describe('the gear search on a worker pool (O2L-12)', () => {
+  it('gives the same answer, steps and fights on any number of lanes, in any finishing order', { timeout: 180_000 }, async () => {
+    const config = badFury()
+    const one = await search(config)
+    const pooled = await search(config, { runner: pooledRunner(4, 11) })
+    expect(gearKey(pooled.answer!.gear!)).toBe(gearKey(one.answer!.gear!))
+    expect(pooled.fights).toBe(one.fights)
+    expect(pooled.starts.map((s) => s.steps.map((x) => [x.group, x.changed, x.fights, x.status]))).toEqual(one.starts.map((s) => s.steps.map((x) => [x.group, x.changed, x.fights, x.status])))
+    expect(pooled.ranking.weights.weights).toEqual(one.ranking.weights.weights)
+  })
+})
+
+describe('a tank’s gear search (O2L-12)', () => {
+  it('keeps the effective-health floor against the survival preset, and a one-hander and a shield', { timeout: 180_000 }, async () => {
+    const config: SimConfig = { ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 0, seed: 9 } }
+    const open: GearSlot[] = ['head', 'legs', 'mainHand', 'offHand']
+    const constraints = defaultConstraints('tank')
+    const r = await optimizeGear({
+      config,
+      constraints,
+      filters: { locked: SEARCHED_SLOTS.filter((s) => !open.includes(s)) },
+      budget: { fights: 40_000 },
+      runner: localFightRunner(),
+      restarts: false,
+      passes: 1,
+      perSlot: 3,
+      enchantsPerItem: 1,
+      weightFights: 40,
+      measureFights: 20,
+    })
+    expect(r.goal).toBe('balanced')
+    expect(r.answer).not.toBeNull()
+    const answer = r.answer!.gear!
+    // The shield stays: a one-hander in the main hand, a shield in the off hand, at every start's end too.
+    for (const gear of [answer, ...r.starts.map((s) => s.end)]) {
+      expect(isTwoHand(POOL.get(gear.mainHand!.itemId)!)).toBe(false)
+      expect(POOL.get(gear.offHand!.itemId)!.slot).toBe('shield')
+    }
+    // The floor is 90% of the survival preset's effective health, not the setup's (D30), and the answer meets it.
+    const reference = sheetValues(buildPlan({ ...config, gear: survivalReference(config).gear, run: { mode: 'fixed', iterations: 0, seed: 9 } }))
+    expect(r.final!.reference.ehp).toBeCloseTo(reference.ehp, 6)
+    const sheet = sheetValues(buildPlan(applyCandidate(config, r.answer!)))
+    expect(meetsSheet(sheet, reference, constraints)).toBe(true)
+    expect(sheet.ehp).toBeGreaterThanOrEqual(0.9 * reference.ehp)
+    // Every step raced, and none raced a set below the floor: a floor above every candidate leaves the step nothing.
+    expect(r.starts[0].steps.length).toBeGreaterThan(0)
+    const strict = await optimizeGear({
+      config,
+      constraints: [{ stat: 'ehp', min: 10, relative: true }],
+      filters: { locked: SEARCHED_SLOTS.filter((s) => s !== 'head') },
+      budget: { fights: 20_000 },
+      runner: localFightRunner(),
+      restarts: false,
+      passes: 1,
+      perSlot: 3,
+      weightFights: 20,
+      measureFights: 10,
+    })
+    expect(strict.answer).toBeNull()
+    expect(strict.starts[0].steps.every((s) => !s.changed)).toBe(true)
+  })
+})
+
+describe('stat weights and rankings on a known case (O2L-12)', () => {
+  it('prices Strength at twice attack power through Kings, sets aside what the engine never reads, and ranks by them', { timeout: 120_000 }, async () => {
+    const config: SimConfig = { ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 0, seed: 2 } }
+    const runner = localFightRunner()
+    const w = await measureStatWeights({ config, candidate: setupCandidate(config), deltas: { ap: 30, str: 15, spellDamage: 20 }, goal: 'dps', runner, fights: 400 })
+    // Spell damage: the pilot's two plans agree on every fight, so it weighs exactly 0 and runs no more.
+    expect(w.live).toEqual(['ap', 'str'])
+    expect(w.weights.spellDamage).toBe(0)
+    expect(w.fights).toBe(6 * 50 + 4 * 350)
+    // A point of Strength is 2 attack power, times the Strength multiplier (Kings), times attack power's own.
+    const stats = candidatePlan(config, setupCandidate(config)).stats
+    const expected = w.weights.ap! * stats.apPerStr * stats.strMult
+    expect(w.intervals.str!.halfWidth).toBeLessThan(0.05 * w.weights.str!)
+    expect(Math.abs(w.weights.str! - expected)).toBeLessThan(w.intervals.str!.halfWidth + w.intervals.ap!.halfWidth * stats.apPerStr * stats.strMult + 0.03 * expected)
+    // The rankings: a flat-stat item is its stats at the weights exactly; Hand of Justice, a modelled effect, is measured and worth DPS.
+    const ctx = gearContext(config, { locked: SEARCHED_SLOTS.filter((s) => !['neck', 'trinket1', 'trinket2'].includes(s)) })
+    const pools = gearPools(ctx)
+    const { rankings } = await rankGear({ config, candidate: setupCandidate(config), ctx, pools, goal: 'dps', runner, weightFights: 200, measureFights: 200 })
+    const neck = pools.get('neck')!.find((i) => weighedItem(ctx, i))!
+    expect(rankings.items.get('neck')!.get(neck.id)).toBeCloseTo(weighValues(itemFieldValues(ctx, neck), rankings.weights), 9)
+    expect(ITEM_EFFECTS[11815]).toBeDefined()
+    expect(rankings.items.get('trinket')!.get(11815)).toBeGreaterThan(0)
   })
 })

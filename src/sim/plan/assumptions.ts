@@ -718,7 +718,7 @@ const REGISTRY = {
     docRef: `${ROGUE}#21-energy`,
   },
   rogueFinisherTalents: {
-    text: 'A guild test measured the attack-power part of Eviscerate (4% of your attack power per combo point) and of Rupture (1% per combo point a tick, up to 3%) without saying which talents the tester had. The sim raises those parts by your Improved Eviscerate, Aggression and Serrated Blades, as it raises the rest of the damage: if the test’s numbers already included these talents, they’re counted twice. Untested.',
+    text: 'A player’s in-game tests, shared on Discord, measured the attack-power part of Eviscerate (4% of your attack power per combo point) and of Rupture (1% per combo point a tick, up to 3%) without saying which talents the tester had; no one has repeated them yet. The sim raises those parts by your Improved Eviscerate, Aggression and Serrated Blades, as it raises the rest of the damage: if the test’s numbers already included these talents, they’re counted twice. Untested.',
     docRef: `${ROGUE}#10-open-questions`,
   },
   rogueTwoRolls: {
@@ -738,7 +738,7 @@ const REGISTRY = {
     docRef: `${ROGUE}#4-poisons`,
   },
   poisonAp: {
-    text: 'Instant Poison adds 0.5% of your attack power a hit, as a guild test measured, and Deadly Poison 0.1125% a stack each tick, measured on Deadly Poison V; rank IV is taken to be the same. Deadly Poison reads your attack power at each tick, not when the stack lands, and Vile Poisons and Venom raise the attack-power part as they raise the rest of a poison’s damage. Untested.',
+    text: 'Instant Poison adds 0.5% of your attack power a hit and Deadly Poison 0.1125% a stack each tick, as a player’s in-game tests shared on Discord measured, on Deadly Poison V; rank IV is taken to be the same. Deadly Poison reads your attack power at each tick, not when the stack lands, and Vile Poisons and Venom raise the attack-power part as they raise the rest of a poison’s damage. Untested.',
     docRef: `${ROGUE}#4-poisons`,
   },
   deadlyPoisonTicks: {

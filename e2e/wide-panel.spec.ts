@@ -207,7 +207,8 @@ test.describe('the wide panel at 1440×900', () => {
     const panel = results(page)
     await setupOf(panel).getByRole('button', { name: 'Simulate' }).click()
     await expect(panel.getByRole('alert')).toBeVisible()
-    await expect(setupOf(panel).getByText('This run didn’t finish. See why below.')).toBeVisible()
+    // A refused setup never ran, so the row doesn't say the run didn't finish (DU-9).
+    await expect(setupOf(panel).getByText('This setup can’t be simulated. See why below.')).toBeVisible()
     expect(await inPanel(panel, panel.getByRole('alert'))).toBe(true)
   })
 

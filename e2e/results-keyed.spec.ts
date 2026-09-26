@@ -122,6 +122,40 @@ test.describe('a failed run, on a phone (RU4)', () => {
     await expect(bar).toContainText('DPS')
     await expect(bar).toBeDisabled()
   })
+
+  test('"Open Gear" on the refusal closes the sheet and lands on the Ranged slot, in view (DU-9)', async ({ page }) => {
+    await seed(page, NO_RANGED, 'fight')
+    await page.goto('./')
+    await page.getByRole('button', { name: 'Simulate', exact: true }).click()
+    const bar = page.getByRole('button', { name: 'Show results' })
+    await expect(bar).toContainText('Failed')
+    await bar.click()
+    const sheet = page.getByRole('dialog', { name: 'Results' })
+    await sheet.getByRole('alert').getByRole('button', { name: 'Open Gear' }).click()
+    await expect(sheet).toBeHidden()
+    const ranged = page.getByRole('button', { name: 'Ranged: empty' })
+    await expect(ranged).toBeFocused()
+    await expect(ranged).toBeInViewport()
+  })
+})
+
+test.describe('"Open Gear" on a refused setup, on desktop (DU-9)', () => {
+  test.use({ viewport: { width: 1280, height: 900 } })
+
+  test('takes you to the Ranged slot, and goes once Gear is open beside it', async ({ page }) => {
+    await seed(page, NO_RANGED, 'fight')
+    await page.goto('./')
+    const panel = page.getByRole('complementary', { name: 'Results' })
+    await panel.getByRole('button', { name: 'Simulate' }).click()
+    const alert = panel.getByRole('alert')
+    await expect(alert).toContainText('Add a ranged weapon')
+    await alert.getByRole('button', { name: 'Open Gear' }).click()
+    await expect(page.getByRole('tab', { name: 'Gear', exact: true })).toHaveAttribute('aria-selected', 'true')
+    const ranged = page.getByRole('button', { name: 'Ranged: empty' })
+    await expect(ranged).toBeFocused()
+    await expect(ranged).toBeInViewport()
+    await expect(alert.getByRole('button', { name: 'Open Gear' })).toHaveCount(0)
+  })
 })
 
 test.describe('the phone bar’s Details button', () => {

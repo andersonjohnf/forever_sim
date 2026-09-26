@@ -5,7 +5,7 @@ import { BUFFS } from '@/sim/effects/buffs'
 import { ENCHANTS } from '@/sim/effects/enchants'
 import { ITEM_EFFECTS } from '@/sim/effects/items'
 import { buildPlan } from '@/sim/plan/build'
-import { breakdownRows, carriesItsOwnAdvice, headlineText, isSetupError, NEEDS_DAMAGE_TAKEN, neverHit, runConfigFromKey, runError, runOutcomeMessage } from './run-logic'
+import { breakdownRows, carriesItsOwnAdvice, headlineText, isSetupError, NEEDS_DAMAGE_TAKEN, needsRangedWeapon, neverHit, runConfigFromKey, runError, runOutcomeMessage } from './run-logic'
 
 const config = (spec: SpecId, change: (c: SimConfig) => SimConfig = (c) => c) => normalizeConfig(change(defaultConfig(spec))).config
 
@@ -28,6 +28,16 @@ describe('isSetupError', () => {
     expect(isSetupError('The simulation stopped unexpectedly.')).toBe(false)
     expect(isSetupError('The worker has no plan for this chunk.')).toBe(false)
     expect(isSetupError("Cannot read properties of undefined (reading 'x')")).toBe(false)
+  })
+})
+
+describe('needsRangedWeapon', () => {
+  it('recognises the engine’s refusal of a ranged spec with no ranged weapon, and nothing else (DU-9)', () => {
+    const noRanged = buildPlan(config('hunter-marksmanship', (c) => ({ ...c, gear: {} }))).blockers
+    expect(noRanged).toHaveLength(1)
+    expect(needsRangedWeapon(noRanged[0])).toBe(true)
+    for (const message of buildPlan({ ...defaultConfig('paladin-retribution'), race: 'alliance-night-elf' }).blockers) expect(needsRangedWeapon(message), message).toBe(false)
+    expect(needsRangedWeapon(WORKER_START_MESSAGE)).toBe(false)
   })
 })
 

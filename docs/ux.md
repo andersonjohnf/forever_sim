@@ -1072,7 +1072,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     - once the setup changes, the same headline dimmed and marked **Setup changed** (the amber
       badge), with Simulate in place of Run again;
     - when a run fails, "This run didn't finish. See why below.", the failure's message first under
-      the card.
+      the card; for a setup the engine refuses, which never ran, "This setup can't be simulated. See
+      why below."
 
     The button keeps its shortcut (`aria-keyshortcuts`, the hover tooltip) and is the skip link's
     target (`[data-simulate]`). A screen reader hears a run's outcome from the run's live region
@@ -1490,7 +1491,9 @@ Every view handles these states:
 - **Error:** the worker failed or a shared link is invalid. Show a plain message and a way
   forward (retry, or reset to defaults).
   - A setup the engine refuses (a hunter with no ranged weapon) is titled "This setup can't be simulated",
-    and its message says what to change, so no retry advice follows it. Any other failure is
+    and its message says what to change, so no retry advice follows it. The hunter's has an **Open
+    Gear** button (44 px) that lands on the Ranged slot, as a result with no main-hand weapon's does
+    on the main hand: in the phone's sheet always, beside the desktop panel until Gear is open. Any other failure is
     titled "The simulation failed" and suggests trying again, then resetting the spec, except a
     run that stopped answering for a minute: "The simulation stopped responding for a minute, so
     it was stopped. Run it again." says all there is to say, since no setup causes a hang. Nor does
@@ -1784,9 +1787,9 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
   picker gives it back to the slot's button after Escape, its close button or a pick. Radix does
   this only for its own Trigger, so one opened from state uses `useSheetFocus`
   (`src/app/sheet-focus.ts`).
-- A control that opens a setup tab ("Open Gear" or "Open Rotation" in a result with no damage)
-  takes focus into that tab, never leaving it on `<body>`: Gear's main hand, the weapon to add,
-  or the tab's panel. From the phone's results sheet, this replaces handing focus back to
+- A control that opens a setup tab ("Open Gear" or "Open Rotation" in a result with no damage, or
+  "Open Gear" on a refused hunter) takes focus into that tab, never leaving it on `<body>`: Gear's
+  main hand or Ranged slot, the weapon to add, or the tab's panel. From the phone's results sheet, this replaces handing focus back to
   "Show results and details".
 - Toasts are read out as they come (a polite live region), and Alt+T reaches them from the
   keyboard; see Notices under [Persistence and sharing](#persistence-and-sharing).

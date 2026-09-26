@@ -82,8 +82,9 @@ function matches(def: SpellDef, id: number, coefficientEffect = 0, measured = fa
   expect(s.categories?.defenseType ?? 0, def.id).toBe(DEFENSE_TYPE[def.defense])
   expect(attrs(id), def.id).toEqual({ noActiveDefense: def.noActiveDefense, alwaysHit: def.alwaysHit })
   const e = effect(id, coefficientEffect)
-  // A measured coefficient (Seal of Righteousness's 0.2) keeps the client's as its JotC share.
-  const coefficient = measured ? def.takenScale : def.weaponPercent > 0 && def.id !== 'holyStrike' ? def.spCoefficient / def.weaponPercent : def.spCoefficient
+  // A measured coefficient (Seal of Righteousness's 0.2) keeps the client's as its JotC share; a
+  // weapon share's coefficient is inside it (Seal of Command's 0.29, Holy Strike's 0.429).
+  const coefficient = measured ? def.takenScale : def.weaponPercent > 0 ? def.spCoefficient / def.weaponPercent : def.spCoefficient
   expect(e.effectBonusCoefficient ?? 0, def.id).toBeCloseTo(coefficient, 12)
 }
 

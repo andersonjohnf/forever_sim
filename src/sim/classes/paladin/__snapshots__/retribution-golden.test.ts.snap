@@ -55,7 +55,7 @@ exports[`golden run (fixed config and seed) > keeps the default Retribution pala
     ],
     [
       "holyStrike",
-      14327503.774378555,
+      11897842.102984091,
       17690,
       11162,
       5361,
@@ -95,9 +95,9 @@ exports[`golden run (fixed config and seed) > keeps the default Retribution pala
     ],
   ],
   "dps": {
-    "ci95": 2.2132075784998553,
-    "mean": 610.7805215709024,
-    "stdev": 35.708701476205206,
+    "ci95": 2.190402026276653,
+    "mean": 597.2567247692515,
+    "stdev": 35.34074834598399,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -119,9 +119,9 @@ exports[`golden run (fixed config and seed) > keeps the default Retribution pala
     "spentPerFight": 10311.301,
   },
   "tps": {
-    "ci95": 1.2374260515147817,
-    "mean": 357.23460006568433,
-    "stdev": 19.965085020344628,
+    "ci95": 1.2246466317224296,
+    "mean": 349.6612738567603,
+    "stdev": 19.758897182006606,
   },
 }
 `;

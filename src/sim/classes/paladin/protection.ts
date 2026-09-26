@@ -324,9 +324,9 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
  * they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 718.37, dps: 444.0, damageTaken: 900.4 },
-  maxTps: { tpsPct: 7.08, dpsPct: 7.02, damageTakenPct: 5.83 },
-  hammerOfTheRighteous: { tpsPct: -2.1, dpsPct: -0.16, damageTakenPct: 5.01 },
+  defensive: { tps: 697.48, dps: 433.76, damageTaken: 900.4 },
+  maxTps: { tpsPct: 7.29, dpsPct: 7.18, damageTakenPct: 5.83 },
+  hammerOfTheRighteous: { tpsPct: 0.8, dpsPct: 2.17, damageTakenPct: 5.01 },
 } as const
 
 const M = PROTECTION_PRESET_MEASURES
@@ -463,7 +463,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.holyStrike,
     group: 'Core abilities',
     label: 'Holy Strike',
-    help: 'Use Holy Strike whenever it’s ready, every 10 s: 50% of a normalized swing plus 81 to 105 and spell damage, all Holy, with 25% more threat from Iron Creed 5/5. 20 mana.',
+    help: 'Use Holy Strike whenever it’s ready, every 10 s: 50% of a normalized swing, 81 to 105 and 0.429 × your spell damage together, all Holy, with 25% more threat from Iron Creed 5/5. 20 mana.',
     default: true,
   },
   {

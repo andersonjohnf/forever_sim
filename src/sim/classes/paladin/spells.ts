@@ -215,12 +215,13 @@ export const JUDGEMENT_OF_FURY: SpellDef = {
 /**
  * Holy Strike r8 (10333, paladin.md#other-abilities): `NORMALIZED_WEAPON_DMG` + 93 (variance 0.25,
  * so 81.375–104.625) and `WEAPON_PERCENT_DAMAGE` 50% (40% before 1.60.1.70009) [F] [client]
- * (SpellEffect, 1.60.1.70009), read as its tooltip prints it: "50% weapon damage plus an additional
- * 81 to 105", so 0.50 × normalized main-hand damage + 81…105 [?] (OQ 6, guild test T2; the rank 1
- * tooltip's "plus 11 to 14" is its raw base points too), + 0.429 × SP. The other reading,
- * 0.50 × (weapon + 81…105), is OQ 6's. All Holy, so armor doesn't reduce it. A
- * melee special with the full table, crit ×2. Its third effect (77, a script) is Sacred Arbiter's
- * refresh of your judgements, with no damage or threat of its own (paladin.md#other-abilities).
+ * (SpellEffect, 1.60.1.70009). The flat part and the 0.429 × SP are inside the 50%, as the beta logs
+ * show (356 hits from 44 characters, paladin.md#the-beta-logs-holy-strike): 0.50 × (normalized
+ * main-hand damage + 81…105 + 0.429 × SP), so 0.2145 × SP. The tooltip prints the flat part's raw
+ * base points ("plus an additional 81 to 105"). Its share of Judgement of the Crusader's bonus is the
+ * full 0.429, outside the 50%, as measured. All Holy, so armor doesn't reduce it. A melee special with
+ * the full table, crit ×2. Its third effect (77, a script) is Sacred Arbiter's refresh of your
+ * judgements, with no damage or threat of its own (paladin.md#other-abilities).
  */
 export const HOLY_STRIKE: SpellDef = {
   ...HOLY_MELEE,
@@ -229,10 +230,9 @@ export const HOLY_STRIKE: SpellDef = {
   icon: 'classicon_paladin',
   weaponPercent: 0.5,
   normalized: true,
-  flatApart: true,
   min: spread(93, 0.25)[0],
   max: spread(93, 0.25)[1],
-  spCoefficient: 0.429,
+  spCoefficient: 0.5 * 0.429,
   takenScale: 0.429,
 }
 

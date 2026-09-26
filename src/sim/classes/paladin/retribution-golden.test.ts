@@ -49,6 +49,9 @@ describe('golden run (fixed config and seed)', () => {
   //   seed's 1,000 fights: DPS 613.51 → 624.30, TPS 361.01 → 364.67.
   // - D36, pre-Ahn'Qiraj ranks (W2): the raid's buffs at the trainers' ranks (Battle Shout r6 +115, Blessing of Might r6 +112, Strength of Earth r4 +42, Grace of Air r2 +77, Blessing of Wisdom r5 36 mp5); your own Might is rank 6's +112.
   //   624.30 → 610.58 DPS.
+  // - The beta-log check (paladin.md#the-beta-log-check-2026-09-26), step 3: Holy Strike's flat part and
+  //   spell damage inside its 50%, as the beta logs show (T2 had put the flat part after it): DPS
+  //   610.58 → 597.26.
   it('keeps the default Retribution paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

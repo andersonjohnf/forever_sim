@@ -130,6 +130,8 @@ describe('golden run (fixed config and seed)', () => {
   // - The beta-log check (paladin.md#the-beta-log-check-2026-09-26), step 1: Seal of Fury's proc is a
   //   flat 35 + 0.1 × SP (its weapon-speed dummy zero), and its absorb comes off the next hit taken.
   //   Both goldens 744.81 → 716.32 TPS, 460.34 → 442.88 DPS, damage taken 918.7 → 900.2 a second.
+  //   Step 3: Holy Strike's flat part and spell damage inside its 50%, as the beta logs show: TPS
+  //   716.32 → 695.29, DPS 442.88 → 432.57.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

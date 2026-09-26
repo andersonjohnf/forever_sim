@@ -199,12 +199,6 @@ export interface SpellDef {
    */
   cannotCrit?: boolean
   /**
-   * A weapon-damage spell whose flat `min`–`max` is added after its weapon share, not inside it: Holy
-   * Strike's tooltip, "40% weapon damage plus an additional 81 to 105" (paladin.md#other-abilities,
-   * OQ 6). Absent: the flat part is inside the share, as a warrior's specials have it.
-   */
-  flatApart?: boolean
-  /**
    * Damage from the main hand's weapon DPS, not a swing: `weaponDps` × (its average damage, its flat
    * weapon damage and, with `weaponDpsAp`, attack power ÷ 14 × its speed) ÷ its base speed, no roll
    * (Hammer of the Righteous's "3 times the damage per second of your main hand weapon",

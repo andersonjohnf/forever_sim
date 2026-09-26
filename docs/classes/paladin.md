@@ -159,6 +159,7 @@ headline, the default setups at 10,000 fights:
 | Before | | 746.8 | 461.4, 918.9 | 608.6 |
 | 1 | [Seal of Fury](#the-beta-logs-seal-of-fury): a flat 35 + 0.1 × SP, its weapon-speed dummy zero; its absorb comes off the next hit | 718.3 | 443.9, 900.5 | 608.6 |
 | 2 | [Seal of Righteousness](#the-beta-logs-seal-of-righteousness): the seal value alone (no base points) + 0.2 × SP; no default uses it | 718.3 | 443.9, 900.5 | 608.6 |
+| 3 | [Holy Strike](#the-beta-logs-holy-strike): its flat part and spell damage inside the 50% | 697.3 | 433.6, 900.5 | 595.1 |
 
 ### Forever system rules that matter here (owned elsewhere)
 
@@ -322,6 +323,22 @@ always uses the halved value.
 | Modifiers | Improved Seals ×1.15, Vengeance, JotC | [F] |
 | Triggers | **Nothing**: the proc triggers no Windfury, Crusader, Hand of Justice, Vengeance or Vindication, even when it crits. The white hit that carries it still does [?] | 25713's Attr3 is `0x40000` (Always Hit) only, without NOT_A_PROC `0x200` [F] [client] (SpellMisc, 1.60.1.70009); the server's use of it [?] ([conventions](#conventions-used-below), [open question 22](#open-questions)) |
 
+##### The beta logs: Holy Strike
+
+The same logs ([method](#the-beta-logs-seal-of-fury)): 356 non-crit Holy Strikes (ranks 1–3: 679, 678,
+1866 at 25, 29 and 32% weapon damage, base points 12, 17 and 19) from 44 characters. For each character
+and log, the weapon's damage is the mean of its non-glancing, non-crit white hits (a swing's, not
+normalized: close for the weapons the logs show), and each Holy Strike is compared with two readings:
+
+| Reading | Mean residual per hit (Holy Strike − the reading) | Characters nearer it |
+| --- | --- | --- |
+| Inside: `pct × (white + flat + 0.429 × SP)` | **−1.87 ± 0.32** | **44 of 44** |
+| After: `pct × white + flat + 0.429 × SP` (the tooltip's order) | −15.13 ± 0.64 | 0 |
+
+The small residual inside is the white hits' own swing speed against Holy Strike's normalized one. The
+spell damage is inside too: the characters with 25 to 83 spell damage sit at −1 to −4 inside and −24 to
+−41 after. The sim applies the same order at rank 8 [?].
+
 ##### The beta logs: Seal of Righteousness
 
 The same logs as Seal of Fury's ([method](#the-beta-logs-seal-of-fury)): 1,130 Seal of Righteousness
@@ -474,7 +491,7 @@ These judgements are debuffs: taking one replaces your JotC.
 
 | Ability (max rank) | Numbers at 60 | Cost / CD / GCD | Class, hit table | Tag, source |
 | --- | --- | --- | --- | --- |
-| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) and `WEAPON_PERCENT_DAMAGE` **50%** (40% before 1.60.1.70009), read as the tooltip prints them, "50% weapon damage plus an additional 81 to 105" ⇒ **0.50 × normalized MH damage + 81..105**, plus **0.429 × SP**. **All Holy**, so no armor. Its third effect, 77 (a script), is Sacred Arbiter's "refresh all Judgement effects": the same effect is on Judgement 20271, and Sacred Arbiter's own aura (1311087) holds only its +20% damage. No threat wording, so no threat of its own (D29) | 20 mana; **10 s** (category 2404, shared with HotR; 12 s before 1.60.1.70009, which removed Improved Holy Strike and made its −2 s baseline); GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.70009; [10333][f10333]). The flat part outside the 50% is the tooltip's reading [?] (rank 8 prints "81 to 105", rank 1 "25% … plus 11 to 14", both the raw base points; the BlizzCon build printed "36 to 46", i.e. 40% of them, the other reading); how the 0.429 applies is [?] too ([open question 6](#open-questions), guild test T2) |
+| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) and `WEAPON_PERCENT_DAMAGE` **50%** (40% before 1.60.1.70009), with the flat part and the spell damage **inside** the 50%, as the beta logs show ([below](#the-beta-logs-holy-strike)): **0.50 × (normalized MH damage + 81..105 + 0.429 × SP)**, so 0.2145 × SP. The tooltip prints the flat part's raw base points ("50% weapon damage plus an additional 81 to 105"). Its share of Judgement of the Crusader's bonus is the full 0.429, as measured ([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)). **All Holy**, so no armor. Its third effect, 77 (a script), is Sacred Arbiter's "refresh all Judgement effects": the same effect is on Judgement 20271, and Sacred Arbiter's own aura (1311087) holds only its +20% damage. No threat wording, so no threat of its own (D29) | 20 mana; **10 s** (category 2404, shared with HotR; 12 s before 1.60.1.70009, which removed Improved Holy Strike and made its −2 s baseline); GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.70009; [10333][f10333]). The flat part and the 0.429 inside the 50%: measured, the beta logs [?] ([open question 6](#open-questions)); the BlizzCon build's tooltip printed "36 to 46", 40% of the base points, the same reading |
 | **Consecration** r5 (20924), baseline from 20 | Per 1 s tick for 8 s (spell 1280349): **12 Holy to every enemy** (no coefficient) **+ 27 Holy + 0.095 × SP to the first 4 enemies**. Single target: **312 + 0.76 × SP** per cast | 565 mana; 8 s; GCD 1.5 s | Magic class; each tick is a separate direct-damage spell (spell hit roll per tick [?]; crit [?]). The ticks lack NOT_A_PROC, so they trigger no procs [?] ([conventions](#conventions-used-below)) | [F] [F 20924][f20924]; tick split and 0.095: [client] (SpellEffect, 1.60.1.70009; [1280349][f1280349]). Classic: 48/tick, 0.042 ([C 20924][c20924]) |
 | Consecration ranks 1–4 | per tick all + first-4: r1 2 + 4, r2 3 + 7, r3 6 + 11, r4 8 + 20; **every rank has the full 0.095** | 135 / 235 / 320 / 435 mana | as above | [F] tick spells 1280345–1280348, [F 26573][f26573]. Downranking is mana-efficient: r1 is `48 + 0.76 × SP` for 135 mana |
 | **Exorcism** r6 (10314) | **475–529 + 0.429 × SP** Holy; **Undead or Demon only** | 345 mana; 15 s; GCD 1.5 s | Magic: spell hit, crit ×1.5 | [F] [F 10314][f10314] |
@@ -1128,10 +1145,10 @@ one makes it "Custom" (D31). A setup that kept the old default gets Balanced.
       and Defensive; Max TPS against it +6.81% TPS, +6.76% DPS and +5.72% damage taken; Hammer of the
       Righteous turned on −2.00% TPS (−15.13 to −14.77), −0.13% DPS (−0.73 to −0.50) and +4.92% damage
       taken.
-    - **Re-measured for the beta-log check** ([2026-09-26](#the-beta-log-check-2026-09-26); seed 31101,
-      100,000 fights): **718.37 TPS, 444.00 DPS and 900.4 damage taken a second** for Balanced and
-      Defensive; Max TPS against it +7.08% TPS, +7.02% DPS and +5.83% damage taken; Hammer of the
-      Righteous turned on −2.1% TPS, −0.16% DPS and +5.01% damage taken. The presets' help quotes
+    - **Re-measured for the beta-log check** ([2026-09-26](#the-beta-log-check-2026-09-26), after step 3; seed 31101,
+      100,000 fights): **697.48 TPS, 433.76 DPS and 900.4 damage taken a second** for Balanced and
+      Defensive; Max TPS against it +7.29% TPS, +7.18% DPS and +5.83% damage taken; Hammer of the
+      Righteous turned on +0.8% TPS, +2.17% DPS and +5.01% damage taken. The presets' help quotes
       these (`PROTECTION_PRESET_MEASURES`, which `protection-presets.test.ts` measures again), each
       change with its direction.
 
@@ -1568,11 +1585,11 @@ default setup.
    JoR's in example 4. (`classicEra`: magic class, spell hit and ×1.5 crit.)
 4. **Judgement of Righteousness r8 at 60**: (162..178) + 8 → average 178 + 0.5 × 100 =
    **228**; ×1.15 = **262.2**.
-5. **Holy Strike r8** (1.60.1.70009's 50%), its tooltip's reading: normalized MH = 250 + 1200 ×
-   3.3 / 14 = 532.857; × 0.50 = 266.429; + 93 (average of 81.375..104.625) = 359.429; + 0.429 × 100
-   = **402.33**; Sacred Arbiter ×1.20 = **482.79**. Range with Sacred Arbiter and a 200–300 weapon:
-   **438.84–526.74**. Holy school: boss armor doesn't reduce it. (The other reading, 0.50 ×
-   (532.857 + 93) + 42.9, is 355.83: [open question 6](#open-questions).)
+5. **Holy Strike r8** (1.60.1.70009's 50%), as the beta logs show: normalized MH = 250 + 1200 ×
+   3.3 / 14 = 532.857; + 93 (average of 81.375..104.625) + 0.429 × 100 = 668.757; × 0.50 =
+   **334.38**; Sacred Arbiter ×1.20 = **401.25**. Range with Sacred Arbiter and a 200–300 weapon:
+   **364.28–438.23**. Holy school: boss armor doesn't reduce it. (The tooltip's reading, 0.50 ×
+   532.857 + 93 + 42.9, would be 402.33.)
 6. **SoR proc, 2H, r8 at 60**: 1.2 × 18.80 × 3.5 = 78.96 + 0.2 × 100 = **98.96**; ×1.15 =
    **113.80**. Same weapon 1H-style (0.85): 55.93 + 20 = 75.93.
 7. **Consecration r5, SP 300, one target**: per tick 12 + 27 + 0.095 × 300 = **67.5**; 8 ticks
@@ -1668,13 +1685,12 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    does it come after your own damage multipliers (the sim's default) or before them?
    *Test:* JoC and SoC-proc damage with and without your JotC on a mob, then again with
    Vengeance stacked. This is the biggest single uncertainty for Ret DPS.
-6. **Holy Strike formula**: is the flat 81–105 multiplied by 50% (40% before 1.60.1.70009), and is
-   the 0.429 SP added in full? The sim follows the tooltip: 0.5 × normalized weapon + 81–105 +
-   0.429 × SP [?]; the scaled reading, 0.4 × (weapon + 81–105) at 40%, was 10.6 TPS less in the
-   review's setup. *Test (guild
-   test T2):* 50+ non-crit Holy Strikes with no spell damage and a known attack power; compare with
-   0.5 × (normalized weapon + 93) and 0.5 × normalized weapon + 93; then again at +100 spell damage
-   (is the 0.429 full, or × 0.5?).
+6. **Holy Strike formula**: the beta logs put the flat part and the 0.429 × SP inside the weapon
+   percentage, 0.5 × (normalized weapon + 81–105 + 0.429 × SP) at rank 8
+   ([the logs](#the-beta-logs-holy-strike)), not the tooltip's order (the flat part after the 50%);
+   the sim follows the logs [?]. They're low ranks (1–3) at levels up to 20. *Test:* 50+ non-crit
+   Holy Strikes at level 60 with no spell damage and a known attack power, then at +100 spell damage:
+   0.5 × (normalized weapon + 93 + 0.429 × SP).
 7. **Judgement of Command SP**: is the coefficient halved with the base when the target
    isn't stunned? *Test:* JoC on a mob with and without +SP.
 8. **Redoubt proc chance** per rank (10% flat per the tooltips vs 2%/rank per the trait

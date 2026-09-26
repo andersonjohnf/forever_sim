@@ -1,12 +1,14 @@
-// The item tooltip, WoW-style (docs/ux.md "Item tooltips"). Its lines come from item-tooltip-lines.ts
-// and when it opens from item-tooltip-open.ts. Built on shadcn's Popover, which a tap can open where
-// the Tooltip can't: on a phone nothing hovers, so a long press or the info control opens it.
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, cloneElement, Children, useId } from 'react'
+// The item tooltip, WoW-style (docs/ux.md "Item tooltips"). Its lines come from item-tooltip-lines.ts,
+// and when it opens and where it goes from item-tooltip-open.ts. Built on Radix's Popover, which a tap
+// can open where the Tooltip can't: on a phone nothing hovers, so a long press or the info control
+// opens it.
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, Children, useId } from 'react'
 import type { Dispatch, FocusEvent, HTMLAttributes, MouseEvent, PointerEvent, ReactElement, ReactNode, RefObject } from 'react'
+import { flushSync } from 'react-dom'
 import { Info } from 'lucide-react'
-import { Slot } from 'radix-ui'
+import { Popover as PopoverPrimitive, Slot } from 'radix-ui'
 import { cn } from '@/lib/utils'
-import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { Popover, PopoverAnchor } from '@/components/ui/popover'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import type { Item } from '@/data/items/types'
 import type { RuleProfileId } from '@/sim'
@@ -14,19 +16,25 @@ import { itemTooltipLines, TOOLTIP_PALETTE, type TooltipLine } from './item-tool
 import {
   anchorBox,
   CLOSED,
+  EDGE_PX,
+  escapeGoesThrough,
+  GAP_PX,
   HOVER_DELAY_MS,
   LONG_PRESS_MS,
   LONG_PRESS_SLOP_PX,
+  overlapLine,
   tooltipOpenReducer,
   tooltipSide,
+  type Box,
   type OpenedBy,
+  type Placement,
   type TooltipEvent,
 } from './item-tooltip-open'
 
 interface TooltipContextValue {
   openedBy: OpenedBy | null
   dispatch: Dispatch<TooltipEvent>
-  /** The lines' id, which the item and the info control name as their description while it's open. */
+  /** The lines' id, which the info control names as its description while it's open. */
   linesId: string
   itemName: string
   /** The info control, if there is one: pressing it toggles the tooltip rather than dismissing it. */
@@ -41,6 +49,33 @@ function useTooltipContext(part: string): TooltipContextValue {
   const context = useContext(TooltipContext)
   if (!context) throw new Error(`${part} must be inside an ItemTooltip`)
   return context
+}
+
+/** Marks every item's info control, so a tap on another item's opens that tooltip rather than only closing this one. */
+const INFO_ATTRIBUTE = 'data-item-tooltip-info'
+
+type Padding = Record<'top' | 'right' | 'bottom' | 'left', number>
+
+interface Layout {
+  placement: Placement
+  padding: Padding
+  /** Closing on an Escape that goes on to the picker: at once, without fading out, so the picker hears it. */
+  instantClose: boolean
+}
+
+/**
+ * What the tooltip keeps clear of: the window's edges by 8 px and, pinned open on the page, the sticky
+ * header and section tabs above and the phone's sim bar below (`--sticky-top` and `--sim-bar-height`,
+ * which App keeps), so it never covers them while the page scrolls under it. In a dialog or the
+ * phone's sheet those are behind the overlay. A hover or focus tooltip, there only while the pointer
+ * rests or focus stays, has the whole window's height: on a 720 px laptop a set's tooltip needs it.
+ */
+function chromePadding(onPage: boolean): Padding {
+  const edges = { top: EDGE_PX, right: EDGE_PX, bottom: EDGE_PX, left: EDGE_PX }
+  if (!onPage) return edges
+  const style = getComputedStyle(document.documentElement)
+  const px = (name: string) => Number.parseFloat(style.getPropertyValue(name)) || 0
+  return { ...edges, top: EDGE_PX + px('--sticky-top'), bottom: EDGE_PX + px('--sim-bar-height') }
 }
 
 /** The tooltip's lines on the game's dark panel. Exported for a place that shows them without a popover. */
@@ -102,52 +137,119 @@ export interface ItemTooltipProps {
  *       <ItemTooltipInfoButton />
  *     </ItemTooltip>
  *
- * Escape and a tap or click outside close it. It never takes focus, so the item keeps it.
+ * Escape, a tap or click outside, and its item scrolling out of view close it; so does a tap on a
+ * pinned one. It never takes focus, so the item keeps it.
  */
 export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'start', anchorParts, besideClosest, children }: ItemTooltipProps) {
   const [{ openedBy }, dispatch] = useReducer(tooltipOpenReducer, CLOSED)
   const linesId = useId()
   const wide = useMediaQuery('(min-width: 640px)')
   const open = openedBy !== null
-  // Only an open tooltip builds its lines: a list of slots and picker rows holds many closed ones.
-  const lines = useMemo(() => (open ? itemTooltipLines(item, { enchantId, profile, worn }) : []), [open, item, enchantId, profile, worn])
+  const pinned = openedBy === 'press'
+  // The panel while it's drawn: from opening until it has faded out.
+  const [panel, setPanel] = useState<HTMLDivElement | null>(null)
+  // Only a drawn tooltip builds its lines: a list of slots and picker rows holds many closed ones. A
+  // closing one keeps them while it fades: lines removed from a dialog as focus moves between its rows
+  // would make the dialog's focus trap take focus back to itself.
+  const drawn = open || panel !== null
+  const lines = useMemo(() => (drawn ? itemTooltipLines(item, { enchantId, profile, worn }) : []), [drawn, item, enchantId, profile, worn])
   const infoRef = useRef<HTMLButtonElement | null>(null)
   const anchorRef = useRef<HTMLElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const context = useMemo(() => ({ openedBy, dispatch, linesId, itemName: item.name, infoRef, anchorRef }), [openedBy, linesId, item.name])
-  // What the tooltip sits beside, measured whenever it's placed: the item, its parts, or its container's
-  // sides (`anchorBox`). A virtual anchor, so the trigger stays the item's own element; its scroll
-  // containers are the trigger's.
-  const reference = useMemo(
+
+  // In a dialog (the item picker, and its sheet on a phone) the panel is drawn inside it, so the
+  // dialog's scroll lock lets a pinned one scroll, and the phone's sheet doesn't drag with it.
+  const [container, setContainer] = useState<HTMLElement | null>(null)
+  useLayoutEffect(() => setContainer(anchorRef.current?.closest<HTMLElement>('[role="dialog"]') ?? null), [])
+
+  // What the tooltip sits beside: the item, its parts, or its container's sides (`anchorBox`); or, placed
+  // over the item where it fits nowhere else, a line inside that box (`overlapLine`).
+  const measure = useCallback((): Box | undefined => {
+    const trigger = anchorRef.current
+    if (!trigger) return undefined
+    const parts = anchorParts ? [...(trigger.parentElement?.querySelectorAll(anchorParts) ?? [])].map((el) => el.getBoundingClientRect()) : []
+    const beside = besideClosest ? trigger.closest(besideClosest)?.getBoundingClientRect() : undefined
+    return anchorBox(trigger.getBoundingClientRect(), parts, beside)
+  }, [anchorParts, besideClosest])
+  const preferred = side ?? (wide ? 'right' : 'bottom')
+  // Where it goes and what it keeps clear of (below), which the anchor reads as it's measured.
+  const layoutRef = useRef<Layout>({ placement: { side: preferred, overlap: false }, padding: chromePadding(false), instantClose: false })
+  // A virtual anchor, so the trigger stays the item's own element; its scroll containers are the trigger's.
+  const virtualRef = useMemo(
     () => ({
-      get contextElement() {
-        return anchorRef.current ?? undefined
-      },
-      getBoundingClientRect() {
-        const trigger = anchorRef.current
-        if (!trigger) return new DOMRect()
-        const parts = anchorParts ? [...(trigger.parentElement?.querySelectorAll(anchorParts) ?? [])].map((el) => el.getBoundingClientRect()) : []
-        const container = besideClosest ? trigger.closest(besideClosest)?.getBoundingClientRect() : undefined
-        const box = anchorBox(trigger.getBoundingClientRect(), parts, container)
-        return new DOMRect(box.left, box.top, box.right - box.left, box.bottom - box.top)
+      current: {
+        get contextElement() {
+          return anchorRef.current ?? undefined
+        },
+        getBoundingClientRect() {
+          const box = measure()
+          if (!box) return new DOMRect()
+          const { side: placed, overlap } = layoutRef.current.placement
+          const at = overlap && (placed === 'left' || placed === 'right') ? overlapLine(box, placed, document.documentElement.clientWidth) : box
+          return new DOMRect(at.left, at.top, at.right - at.left, at.bottom - at.top)
+        },
       },
     }),
-    [anchorParts, besideClosest],
+    [measure],
   )
-  const virtualRef = useMemo(() => ({ current: reference }), [reference])
-  // Beside the item where there's room, else the other side, else below it (a wide item): measured as it
-  // opens, before it's drawn, and kept while it closes.
-  const preferred = side ?? (wide ? 'right' : 'bottom')
-  const [placed, setPlaced] = useState(preferred)
+
+  // Beside the item where there's room, else the other side, else below it (a wide item), else over it
+  // where the panel fits neither below nor above: measured as it opens, before it's drawn, then again
+  // once the panel's height is known; kept while it closes.
+  const [{ placement, padding, instantClose }, setLayout] = useState<Layout>(() => ({
+    placement: { side: preferred, overlap: false },
+    padding: chromePadding(false),
+    instantClose: false,
+  }))
   useLayoutEffect(() => {
-    if (open) setPlaced(tooltipSide(preferred, anchorRef.current ? reference.getBoundingClientRect() : undefined, document.documentElement.clientWidth))
-  }, [open, preferred, reference])
+    if (!open) return
+    const pad = chromePadding(pinned && container === null)
+    const root = document.documentElement
+    const room = { width: root.clientWidth, height: root.clientHeight, top: pad.top, bottom: pad.bottom }
+    // The panel's whole height, its border included, however much of it the room shows.
+    layoutRef.current = { placement: tooltipSide(preferred, measure(), room, panel ? panel.scrollHeight + 2 : undefined), padding: pad, instantClose: false }
+    setLayout(layoutRef.current)
+  }, [open, pinned, preferred, container, measure, panel])
+
+  // Its item scrolled out of view (out of the picker's list, or under the sticky header and tabs or the
+  // phone's bar), it closes, rather than coming loose and riding over them.
+  useEffect(() => {
+    const trigger = anchorRef.current
+    if (!open || !trigger) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry && !entry.isIntersecting) dispatch({ type: 'dismiss' })
+      },
+      { rootMargin: `-${padding.top - EDGE_PX}px 0px -${padding.bottom - EDGE_PX}px 0px` },
+    )
+    observer.observe(trigger)
+    return () => observer.disconnect()
+  }, [open, padding])
+
+  // Escape with a tooltip only the resting pointer opened closes it and goes on, so one press closes the
+  // picker as before (`escapeGoesThrough`). The panel goes at once, without fading out, so the picker's
+  // dialog is the top layer again when the key reaches it.
+  useEffect(() => {
+    if (openedBy !== 'hover') return
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || !escapeGoesThrough(openedBy, !!anchorRef.current?.matches(':focus-visible'))) return
+      flushSync(() => {
+        setLayout((layout) => ({ ...layout, instantClose: true }))
+        dispatch({ type: 'dismiss' })
+      })
+    }
+    window.addEventListener('keydown', key, true)
+    return () => window.removeEventListener('keydown', key, true)
+  }, [openedBy])
+
   // Radix wraps the panel in a positioning box, which would catch the pointer where the panel lets it
   // through: resting on the item, a tooltip drawn under the pointer (beside the wide grid's name, over
   // its own row) would take it off the item and close, then open again. Pinned, it takes the pointer.
   const placeContent = useCallback(
     (el: HTMLDivElement | null) => {
       contentRef.current = el
+      setPanel(el)
       const wrapper = el?.parentElement
       if (wrapper) wrapper.style.pointerEvents = openedBy === 'press' ? '' : 'none'
     },
@@ -155,8 +257,9 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
   )
   const within = (ref: RefObject<HTMLElement | null>, target: EventTarget | null) => target instanceof Node && !!ref.current?.contains(target)
   // Pinned open (a long press or the info control), a tap or click outside only closes it: the item or
-  // row it lands on doesn't also act, as in the game and most phone popovers. A press that turns into
-  // a scroll leaves it open. Escape, and focus moving on by keyboard, close it as before.
+  // row it lands on doesn't also act, as in the game and most phone popovers. Another item's info
+  // control is the exception: it picks nothing, so its tap goes on to open that item's tooltip. A press
+  // that turns into a scroll leaves it open. Escape, and focus moving on by keyboard, close it as before.
   const pressedOutside = useRef(false)
   useEffect(() => {
     if (openedBy !== 'press') return
@@ -167,9 +270,10 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
     const click = (e: globalThis.MouseEvent) => {
       if (!pressedOutside.current) return
       pressedOutside.current = false
+      dispatch({ type: 'dismiss' })
+      if (e.target instanceof Element && e.target.closest(`[${INFO_ATTRIBUTE}]`)) return
       e.preventDefault()
       e.stopPropagation()
-      dispatch({ type: 'dismiss' })
     }
     window.addEventListener('pointerdown', down, true)
     window.addEventListener('click', click, true)
@@ -179,44 +283,62 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
       window.removeEventListener('click', click, true)
     }
   }, [openedBy])
-  const { panel, border, tone } = TOOLTIP_PALETTE
+  const { panel: panelColour, border, tone } = TOOLTIP_PALETTE
   return (
     <TooltipContext value={context}>
       <Popover open={open} onOpenChange={(next) => !next && dispatch({ type: 'dismiss' })}>
         <PopoverAnchor virtualRef={virtualRef} />
         {children}
-        <PopoverContent
-          ref={placeContent}
-          role="tooltip"
-          side={placed}
-          align={align}
-          sideOffset={6}
-          collisionPadding={8}
-          // The item keeps focus: the tooltip describes it, and closing it hands nothing back.
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          onCloseAutoFocus={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => {
-            // The info control toggles it itself: a press on it isn't a press outside. Pinned open, the
-            // press's click closes it (above), so the press alone doesn't.
-            if (openedBy === 'press' || within(infoRef, e.target)) e.preventDefault()
-          }}
-          onFocusOutside={(e) => {
-            // Hover and focus have their own closing rules, so focus moving on doesn't dismiss those; nor
-            // does focus reaching the item or the info control (a long press's release focuses the item),
-            // nor a press's focus, whose click closes it (above).
-            if (openedBy !== 'press' || pressedOutside.current || within(anchorRef, e.target) || within(infoRef, e.target)) e.preventDefault()
-          }}
-          className={cn(
-            // 20 rem at most, narrowing to the room beside the item (down to 16 rem: `tooltipSide`).
-            'w-max max-w-[min(20rem,var(--radix-popover-content-available-width),calc(100vw-1rem))] gap-0 rounded-md border p-2.5 shadow-lg ring-0 [color-scheme:dark]',
-            'max-h-(--radix-popover-content-available-height) overflow-y-auto',
-            // Resting on the item, the pointer never lands on the panel; a pinned one scrolls.
-            openedBy !== 'press' && 'pointer-events-none',
-          )}
-          style={{ backgroundColor: panel, borderColor: border, color: tone.white }}
-        >
-          <ItemTooltipCard id={linesId} lines={lines} />
-        </PopoverContent>
+        <PopoverPrimitive.Portal container={container ?? undefined}>
+          <PopoverPrimitive.Content
+            ref={placeContent}
+            data-slot="popover-content"
+            role="tooltip"
+            side={placement.side}
+            align={align}
+            sideOffset={GAP_PX}
+            collisionPadding={padding}
+            hideWhenDetached
+            // A drag on it scrolls it, rather than the phone's sheet.
+            data-vaul-no-drag=""
+            // The item keeps focus: the tooltip describes it, and closing it hands nothing back.
+            onOpenAutoFocus={(e) => e.preventDefault()}
+            onCloseAutoFocus={(e) => e.preventDefault()}
+            onPointerDownOutside={(e) => {
+              // The info control toggles it itself: a press on it isn't a press outside. Pinned open, the
+              // press's click closes it (above), so the press alone doesn't.
+              if (openedBy === 'press' || within(infoRef, e.target)) e.preventDefault()
+            }}
+            onFocusOutside={(e) => {
+              // Hover and focus have their own closing rules, so focus moving on doesn't dismiss those; nor
+              // does focus reaching the item or the info control (a long press's release focuses the item),
+              // nor a press's focus, whose click closes it (above).
+              if (openedBy !== 'press' || pressedOutside.current || within(anchorRef, e.target) || within(infoRef, e.target)) e.preventDefault()
+            }}
+            onClick={(e) => {
+              // Pinned, a tap on it closes it, as a tap outside does: where it covers its own info control
+              // (a touch screen's wide grid), that tap is the one the player makes.
+              if (openedBy !== 'press') return
+              e.stopPropagation()
+              dispatch({ type: 'dismiss' })
+            }}
+            className={cn(
+              'z-50 flex origin-(--radix-popover-content-transform-origin) flex-col rounded-md border p-2.5 text-sm shadow-lg outline-hidden [color-scheme:dark]',
+              // 20 rem at most, narrowing to the room beside the item (down to 16 rem: `tooltipSide`). Before
+              // it's placed, 20 rem, so the height measured as it opens is the height it will have.
+              'w-max max-w-[min(20rem,var(--radix-popover-content-available-width,20rem),calc(100vw-1rem))]',
+              'max-h-(--radix-popover-content-available-height) overflow-y-auto overscroll-contain',
+              'duration-100 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95',
+              'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+              instantClose ? 'data-closed:animate-none' : 'data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95',
+              // Resting on the item, the pointer never lands on the panel; a pinned one scrolls.
+              openedBy !== 'press' && 'pointer-events-none',
+            )}
+            style={{ backgroundColor: panelColour, borderColor: border, color: tone.white }}
+          >
+            <ItemTooltipCard id={linesId} lines={lines} />
+          </PopoverPrimitive.Content>
+        </PopoverPrimitive.Portal>
       </Popover>
     </TooltipContext>
   )
@@ -225,15 +347,16 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
 type TriggerChildProps = HTMLAttributes<HTMLElement>
 
 /**
- * Wraps the item (one element, a button or a row), which the tooltip describes and sits beside (or its
- * parts or container: `anchorParts`, `besideClosest`). A mouse or pen
- * resting on it opens the tooltip after a short delay and leaving closes it; keyboard focus opens it
- * and blur closes it; a long press on a touch screen opens it without the tap that follows (the
- * slot's own action, such as opening the picker, doesn't run) and without the system's callout.
- * The item's own handlers run first; one that prevents the default keeps the tooltip out of it.
+ * Wraps the item (one element, a button or a row), which the tooltip sits beside (or its parts or
+ * container: `anchorParts`, `besideClosest`). A mouse or pen resting on it opens the tooltip after a
+ * short delay and leaving closes it; keyboard focus opens it and blur closes it; a long press on a
+ * touch screen opens it without the tap that follows (the slot's own action, such as opening the
+ * picker, doesn't run) and without the system's callout. The item's own handlers run first; one that
+ * prevents the default keeps the tooltip out of it. The item keeps its own short accessible name and
+ * description: the tooltip's twenty-odd lines aren't read at every focus stop (docs/ux.md "Item tooltips").
  */
 export function ItemTooltipTrigger({ children }: { children: ReactElement<TriggerChildProps> }) {
-  const { openedBy, dispatch, linesId, anchorRef } = useTooltipContext('ItemTooltipTrigger')
+  const { dispatch, anchorRef } = useTooltipContext('ItemTooltipTrigger')
   const child = Children.only(children)
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const press = useRef<{ timer: ReturnType<typeof setTimeout>; x: number; y: number } | null>(null)
@@ -252,10 +375,6 @@ export function ItemTooltipTrigger({ children }: { children: ReactElement<Trigge
     },
     [cancelHover, cancelPress],
   )
-
-  // Slot lets the child's own props win, so its description is joined here rather than replaced.
-  const theirDescription = child.props['aria-describedby']
-  const describedBy = [theirDescription, openedBy ? linesId : null].filter(Boolean).join(' ') || undefined
 
   return (
     <Slot.Root
@@ -306,15 +425,17 @@ export function ItemTooltipTrigger({ children }: { children: ReactElement<Trigge
         e.stopPropagation()
       }}
     >
-      {cloneElement(child, { 'aria-describedby': describedBy })}
+      {child}
     </Slot.Root>
   )
 }
 
 /**
  * The info control, for phones where nothing hovers: a 44 px button that opens the tooltip and, pressed
- * again, closes it. Beside a hover or focus tooltip it pins it open. Pass `className` to place it
- * (or hide it where a pointer can hover); its accessible name is "<item> details".
+ * again, closes it. Beside a hover or focus tooltip it pins it open. While one item's tooltip is pinned,
+ * a tap on another's info control opens that one instead. Pass `className` to place it (or hide it
+ * where a pointer can hover); its accessible name is "<item> details", and while the tooltip is open
+ * the tooltip is its description.
  */
 export function ItemTooltipInfoButton({ className, onClick, ...props }: Omit<HTMLAttributes<HTMLButtonElement>, 'children'>) {
   const { openedBy, dispatch, linesId, itemName, infoRef } = useTooltipContext('ItemTooltipInfoButton')
@@ -326,8 +447,8 @@ export function ItemTooltipInfoButton({ className, onClick, ...props }: Omit<HTM
       type="button"
       aria-label={`${itemName} details`}
       aria-expanded={openedBy !== null}
-      // It describes the item and never takes focus: a tooltip, named as the item's description.
       aria-describedby={openedBy ? linesId : undefined}
+      data-item-tooltip-info=""
       {...props}
       onClick={(e) => {
         onClick?.(e)

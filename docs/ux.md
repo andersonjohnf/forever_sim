@@ -1420,26 +1420,56 @@ its open and close rules by `ItemTooltip` in `src/features/gear/item-tooltip.tsx
     it. Keyboard focus on the item (`:focus-visible`, so a click's focus doesn't) opens it, and
     blur closes it. Escape or a click outside closes it either way. It never takes focus and
     returns none, and the pointer passes through it.
+  - **Escape** (review finding TU-7): a tooltip the resting pointer opened closes and lets the key
+    go on, so one press closes the item picker, as before tooltips (the player never asked for it);
+    it goes at once, without its fade, so the picker hears the key. A tooltip the player asked for,
+    by keyboard focus on the item or pinned (below), takes Escape for itself, and the next press
+    closes the picker (`escapeGoesThrough` in `item-tooltip-open.ts`).
   - *Phone*, where nothing hovers: a tap on the item's **info control** (a 44 px "i" button,
     named "<item> details") opens it, and another tap closes it; so does a **long press** (500 ms,
     moving under 10 px) on the item, whose release then doesn't also run the item's own tap (open
-    the picker) or bring up the system's callout. A tap outside or Escape closes it. Opened this
-    way it stays until then, and scrolls if it's taller than the room.
-  - **A tap outside only closes it** when it was opened this way (the info control or a long
-    press): the slot or picker row the tap lands on doesn't also act, as in the game and most phone
-    popovers, so a player reading one item's tooltip doesn't pick another by closing it. The next
-    tap acts. A press outside that turns into a scroll leaves it open. (A hover or focus tooltip lets
-    the pointer through, so a click beside it acts at once.)
-  - Beside a hover or focus tooltip, the info control pins it open. While it's open the item (and
-    the info control) name it as their description, for screen readers.
+    the picker) or bring up the system's callout. A tap outside, a tap on the tooltip itself, or
+    Escape closes it. Opened this way (**pinned**) it stays until then, and scrolls if it's taller
+    than the room: in the picker too, whose dialog or sheet draws it inside itself so the dialog's
+    scroll lock lets it scroll and a drag on it doesn't drag the sheet (review finding TU-1).
+  - **A tap outside only closes a pinned tooltip:** the slot or picker row the tap lands on doesn't
+    also act, as in the game and most phone popovers, so a player reading one item's tooltip doesn't
+    pick another by closing it. The next tap acts. A press outside that turns into a scroll leaves it
+    open. **Another item's info control** is the exception (TU-6): it picks nothing, so its tap
+    closes this tooltip and opens that one, and a long press on another item does the same, which
+    makes comparing a picker's candidates one tap each. (A hover or focus tooltip lets the pointer
+    through, so a click beside it acts at once.)
+  - **A tap on a pinned tooltip closes it** (TU-4), as the game's tooltips take no input: on a touch
+    screen's wide grid, where it can cover its own info control, that tap is the one the player makes.
+  - **It closes when its item scrolls out of view** (TU-3): out of the picker's list, or on the page
+    under the sticky header and tabs or behind the phone's sim bar. It never comes loose from its
+    item to ride over them (an `IntersectionObserver` on the item, and Radix's `hideWhenDetached`).
+  - Beside a hover or focus tooltip, the info control pins it open.
+  - **For screen readers** (TU-8, decided): the item keeps its own short accessible name and
+    description (a slot's summary, a picker row's full name and details), so the tooltip's twenty-odd
+    lines aren't read at every focus stop as the player tabs through a list. The tooltip is
+    `role="tooltip"`; the info control, where it shows, says whether it's open (`aria-expanded`) and
+    names the tooltip as its description while it is, so the full text is one control away.
 - **Placement:** beside the item from 640 px (right, or left where the item asks: the wide grid's
   mirrored right side), on the other side where that one lacks the room, and **below it where
   neither side has 16 rem** (`tooltipSide` in `item-tooltip-open.ts`, measured as it opens), flipping
   above where there's more room there: a gear card as wide as a tablet's window, or a picker row
-  whose dialog leaves less than that beside it. On a phone it's below the item, flipping above. It's
-  at most 20 rem wide, narrowing to the room beside the item down to 16 rem (the window less 1 rem on
-  a phone), keeps 8 px clear of the window's edges and is as tall as the room, so it never makes the
-  page scroll sideways at 390, 1280 or 1920 px.
+  whose dialog leaves less than that beside it. **Where it fits neither below nor above** (its
+  height is measured as it opens, at its 20 rem width), it goes **over the item** instead, beside a
+  line inside the item's box on the side with more room outside it, as far toward the window's edge
+  as a 20 rem panel allows (`overlapLine`), where the window's whole height is its (review finding
+  TU-2: a hover tooltip can't scroll, so a set's bonuses were cut off). That's the picker at about
+  1,024 to 1,210 px, where the dialog leaves little beside it (Lightforge Legplates at 1024×768 sits
+  over the dialog's right edge, whole), and a Gear card at 640 to 900 px near the top or bottom of the
+  window (over the card's right half, clear of its icon). A hover tooltip there covers rows, but lets
+  the pointer through. On a phone it's below the item, flipping above. It's at most 20 rem wide,
+  narrowing to the room beside the item down to 16 rem (the window less 1 rem on a phone), keeps 8 px
+  clear of the window's edges and is as tall as the room, so it never makes the page scroll sideways
+  at 390, 1280 or 1920 px. **Pinned on the page, it also keeps clear of the sticky header and section
+  tabs and the phone's sim bar** (`--sticky-top`, `--sim-bar-height`), down to 320 px, so it never
+  covers them as the page scrolls under it; in the picker those are behind the overlay. A hover or
+  focus tooltip, there only while the pointer rests or focus stays, has the window's whole height,
+  which a set's tooltip needs on a 720 px laptop.
 - **What it sits beside** (`anchorBox`): the item's own element, except where that's wider than
   what the player points at. In the wide Gear grid, whose slot buttons cover the whole row, it's the
   slot's **icon, name and rank** (`WIDE_TOOLTIP_ANCHOR`), so the tooltip opens right beside them: the
@@ -1447,7 +1477,8 @@ its open and close rules by `ItemTooltip` in `src/features/gear/item-tooltip.tsx
   right side's slots only where a long name leaves too little of the row; the mirrored right side's
   to their left. In the item picker it's the **dialog's side**, level with the row, so from about
   1,210 px, where the centred 42 rem dialog leaves 16 rem beside it, it covers none of the list; under
-  that it opens below the row (or above it) as the rule above says. Hover and focus are still on the
+  that it opens below the row (or above it, or over it) as the rule above says. A part with no size
+  (a hidden BiS badge) isn't one it sits beside. Hover and focus are still on the
   whole slot or row; only where the tooltip sits changes. A virtual anchor (Radix's `virtualRef`), so
   the item's own element stays the trigger.
 - **Where it shows** (M5.67 T2): every item the page shows.
@@ -1458,10 +1489,12 @@ its open and close rules by `ItemTooltip` in `src/features/gear/item-tooltip.tsx
   - **The item picker's rows,** in the dialog and the phone's sheet: the row's button is the item,
     and its click or tap, Enter or Space still picks it; Tab still walks the rows. The row's
     enchant line shows only on the item the slot holds, the one wearing it. Beside the dialog from
-    about 1,210 px, it covers nothing; below or above the row where there's less room, it covers
-    rows but a hover or focus tooltip lets the pointer through, so nothing it covers stops a pick.
-    Escape closes it before the picker. On a phone, a tap on another row while one is open only
-    closes it (above).
+    about 1,210 px, it covers nothing; below, above or over the row where there's less room, it
+    covers rows but a hover or focus tooltip lets the pointer through, so nothing it covers stops a
+    pick. Escape closes a focus or pinned one before the picker, and a hover one with it (above). On
+    a phone, a tap on another row while one is pinned only closes it, and a tap on another row's info
+    control opens that one (above). An off-hand a two-hander locks doesn't count toward a set here
+    either, as the engine skips it.
   - **Not the character sheet,** which shows stats, not items.
 - **The info control shows only where nothing hovers** (the pointer isn't `(hover: hover) and
   (pointer: fine)`): a phone, or a touch screen at any width. Where a mouse or pen hovers, desktop
@@ -1469,9 +1502,10 @@ its open and close rules by `ItemTooltip` in `src/features/gear/item-tooltip.tsx
   add a second way to the same panel, a tab stop on every slot and picker row, and width the
   fixed-height slots don't have. Principle 4's "show it when there's room" is about what a menu or
   disclosure hides, and nothing is hidden: the tooltip is one hover or focus away. Where it shows:
-  - on a gear card, at the row's end before the chevron, its 44 px target reaching from the text
-    to the chevron so it takes only 20 px of the row's width (the stats line keeps its one line at
-    390 px);
+  - on a gear card, at the end of the item's name line, top right before the chevron, as on a picker
+    row (review finding TU-5): its 44 px target reaches over the gap to the chevron and past the
+    name's line above and below, so the stats line keeps the row's whole width and its one line at
+    390 and 360 px (a long name is cut short 32 px sooner);
   - in the wide grid, at the row's inner end, toward the pane's middle on either side;
   - on a picker row, at its top right, level with the name.
 

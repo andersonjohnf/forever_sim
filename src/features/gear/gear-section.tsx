@@ -454,12 +454,20 @@ export function GearSection() {
                             ),
                           )}
                           {item ? (
-                            <ItemSummary item={item} bis={bis} meta={SLOT_LABEL[slot]} dimmed={Boolean(unused)} note={unusedNote(unused)} idPrefix={`gear-${slot}`} />
+                            <ItemSummary
+                              item={item}
+                              bis={bis}
+                              meta={SLOT_LABEL[slot]}
+                              dimmed={Boolean(unused)}
+                              note={unusedNote(unused)}
+                              idPrefix={`gear-${slot}`}
+                              // On the name's line, as on a picker row, so the stats line keeps the row's width: its
+                              // 44 px target reaches over the gap to the chevron and past the name's line above and below.
+                              nameEnd={info && <div className="-my-3 -mr-3 flex shrink-0">{info}</div>}
+                            />
                           ) : (
                             <EmptySlot slot={slot} locked={lockedByTwoHand} />
                           )}
-                          {/* Its 44 px target reaches from the text to the chevron, taking 20 px of the row's width. */}
-                          {info && <div className="-mx-3 flex shrink-0">{info}</div>}
                           {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
                         </div>
                       ))}

@@ -94,22 +94,14 @@ export function BuffsSection() {
   // Buffs that do nothing for the spec (a weapon stone's damage in Cat Form): off and locked, saying why.
   // An Enhancement shaman's Windfury Weapon disables Windfury Totem's benefit for it, so the plan
   // leaves the totem out while that's the imbue (docs/classes/shaman.md#totems, plan/build.ts).
+  // A caster whose pet swings gets the boss's physical debuffs for its pet (SpecMeta.petMelee): with the
+  // Imp or no demon out, nothing of yours meets them (docs/classes/warlock.md §11.2). That rule is
+  // `unusedBuffs`' own, from the Rotation settings, so the plan leaves them out alike.
   const inert = useMemo(() => {
-    const out = unusedBuffs(meta.id)
+    const out = unusedBuffs(meta.id, values)
     if (values['shaman.enhancement.imbue'] === 'windfury') out.windfuryTotem = 'Not used: your Windfury Weapon (see Rotation) turns it off for you'
-    // A caster whose pet swings gets the boss's physical debuffs for its pet (SpecMeta.petMelee): the
-    // armor debuffs and Gift of Arthas. With the Imp or no demon out, nothing of yours meets them
-    // (docs/classes/warlock.md §11.2).
-    const demon = values['warlock.demonology.demon.summoned']
-    if (meta.petMelee && (demon === 'imp' || demon === 'none')) {
-      const why = demon === 'imp' ? 'your Imp (see Rotation) doesn’t swing' : 'you keep no demon out (see Rotation)'
-      for (const b of buffCatalogue) {
-        if (b.category !== 'targetDebuff' || b.forSpecs !== 'melee') continue
-        out[b.id] = `Not used: only your demon’s swings ${b.group === 'Armor' ? 'meet the boss’s armor' : 'would get its bonus'}, and ${why}`
-      }
-    }
     return out
-  }, [meta.id, meta.petMelee, values, buffCatalogue])
+  }, [meta.id, values])
   // Your own buffs whose Rotation setting the setup leaves unused (the bear's roar while a Demoralizing
   // Shout here takes its place, druid.md §6.3): your rotation doesn't cast them.
   const race = useSetup((s) => s.config.race)

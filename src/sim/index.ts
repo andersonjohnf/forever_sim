@@ -183,7 +183,7 @@ export function unusedRotationSettings(
     race: config.race,
     raceName: raceName(config.race),
     othersBleed: othersKeepBleeding(config.buffs.raid),
-    buffGroups: filledBuffGroups(config.buffs.enabled, config.buffs.raid, config.spec, [...maintainedBuffs(config.spec, values), ...talentBuffs(config)]),
+    buffGroups: filledBuffGroups(config.buffs.enabled, config.buffs.raid, config.spec, [...maintainedBuffs(config.spec, values), ...talentBuffs(config)], values),
     talents: talentRanksByName(TALENT_DATA[SPEC_META[config.spec].classId], config.talents),
     // A Protection paladin's Hammer of the Righteous needs the weapon for it (paladin.md row 5b).
     ...(config.gear ? { mainHand: mainHandWeapon(config.gear) } : {}),
@@ -292,6 +292,9 @@ export const buffPresets: BuffPreset[] = [
 
 export { buffProvided, forSpecClass, unusedBuffs } from './effects/presets'
 
+/** The words of a physical-damage-taken debuff's summary that `buffSummaryFor` follows with whose hits. */
+const PHYSICAL_HIT = 'from each physical hit'
+
 /**
  * A Buffs entry's summary for this spec: the catalogue's, and for a consumable whose cast stops your
  * swings (EZ-Thro Dark Bomb), what its throw holds for you: your melee swings, your next cast or your
@@ -299,9 +302,15 @@ export { buffProvided, forSpecClass, unusedBuffs } from './effects/presets'
  */
 export function buffSummaryFor(def: Pick<BuffDefinition, 'id' | 'summary'>, spec: SpecId): string {
   const buff = BUFFS.find((b) => b.id === def.id)
-  const use = buff ? catalogueEffects(buff, PROFILES.forever).find((e) => e.kind === 'onUse') : undefined
+  const effects = buff ? catalogueEffects(buff, PROFILES.forever) : []
+  const use = effects.find((e) => e.kind === 'onUse')
   const cast = use?.kind === 'onUse' && use.use?.castStopsSwings ? (use.use.castMs ?? 0) : 0
-  return cast > 0 ? `${def.summary}; its ${cast / 1000} s throw ${throwHolds(spec)}` : def.summary
+  if (cast > 0) return `${def.summary}; its ${cast / 1000} s throw ${throwHolds(spec)}`
+  // The boss's physical-damage-taken debuff (Gift of Arthas, buffs doc §4.2) names whose hits take it
+  // for a spec with a pet: a hunter's and its pet's, or only a Demonology warlock's demon's.
+  const hitters = SPEC_META[spec].ranged ? 'yours and your pet’s' : SPEC_META[spec].petMelee ? 'your demon’s' : undefined
+  if (hitters && effects.some((e) => e.kind === 'physicalTaken')) return def.summary.replace(PHYSICAL_HIT, `${PHYSICAL_HIT}, ${hitters}`)
+  return def.summary
 }
 
 /** The buff ids a preset enables for a spec, given the raid composition (buffs doc §6). */

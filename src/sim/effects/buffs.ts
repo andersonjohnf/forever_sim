@@ -896,8 +896,10 @@ export const BUFFS: BuffSpec[] = [
     name: 'Gift of Arthas',
     icon: 'inv_potion_28',
     category: 'targetDebuff',
-    group: 'Physical damage',
-    summary: '+8 damage on each of your physical hits (a tank’s potion, on the boss)',
+    // "taken", so it doesn't read as the boss's own attacks beside Boss damage. The Buffs tab says whose
+    // hits for a spec with a pet (sim/index.ts `buffSummaryFor`).
+    group: 'Physical damage taken',
+    summary: '+8 damage taken from each physical hit (the boss’s debuff from a tank who drank Gift of Arthas)',
     forSpecs: 'melee',
     docRef: `${DOC}#42-other-debuffs`,
     effects: [{ kind: 'physicalTaken', value: 8 }],

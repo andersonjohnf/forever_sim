@@ -1,6 +1,7 @@
 // Gift of Arthas on the boss: a flat +8 physical damage taken on each direct physical hit
-// (docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs), added after your damage multipliers,
-// before the outcome's (a crit doubles it) and the boss's armor, and never to a bleed's tick [?]
+// (docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs), added after the damage multipliers,
+// before the outcome's (the hit's crit multiplier applies to it) and the boss's armor, and never to a
+// bleed's tick [?]
 // (docs/mechanics/damage-and-timing.md#24-damage-modifier-stacking; open-questions B70). The worked
 // example is buffs doc worked example 13.
 import { describe, expect, it } from 'vitest'
@@ -140,6 +141,24 @@ describe('Gift of Arthas in a setup', () => {
       up: ['multiShot', 'autoShot', 'cat.melee', 'cat.bite', 'cat.claw'],
       same: ['arcaneShot', 'serpentSting'],
     })
+  })
+
+  it('drops out of the plan with its assumption where the Buffs tab says it isn’t used: a Demonology warlock with the Imp or no demon out (G5L-1)', () => {
+    const demo = (demon?: string) => {
+      const c = config('warlock-demonology', true)
+      return buildPlan(demon === undefined ? c : { ...c, rotation: { ...c.rotation, 'warlock.demonology.demon.summoned': demon } })
+    }
+    // The default demon is the Imp.
+    for (const demon of [undefined, 'imp', 'none']) {
+      const bundle = demo(demon)
+      expect(bundle.plan.physicalTaken, String(demon)).toBeUndefined()
+      expect(bundle.assumptions.map((a) => a.id), String(demon)).not.toContain('giftOfArthas')
+    }
+    for (const demon of ['succubus', 'felhunter']) {
+      const bundle = demo(demon)
+      expect(bundle.plan.physicalTaken, demon).toBe(8)
+      expect(bundle.assumptions.map((a) => a.id), demon).toContain('giftOfArthas')
+    }
   })
 
   it('leaves a caster’s spells alone: a Fire mage’s plan with the +8 forced on deals the same damage', () => {

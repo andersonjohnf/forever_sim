@@ -535,13 +535,18 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     druid, a Dense Sharpening Stone or Weightstone ("Not used in Cat Form: your attacks there don't
     use your weapon's damage."). One that a Rotation setting leaves doing nothing says so the same
     way, naming the setting: Windfury Totem beside an Enhancement shaman's Windfury Weapon, and the
-    boss's armor debuffs for a Demonology warlock with the Imp or no demon out ("Not used: only your
-    demon's swings meet the boss's armor, and your Imp (see Rotation) doesn't swing.").
+    boss's armor debuffs and its physical-damage debuff (Gift of Arthas) for a Demonology warlock
+    with the Imp or no demon out ("Not used: only your demon's swings meet the boss's armor, and your
+    Imp (see Rotation) doesn't swing."; "Not used: only your demon's swings take the +8, and your Imp
+    (see Rotation) doesn't swing."). The plan leaves those out too, by the same rule, so the results
+    never assume what the tab says isn't used.
   - Only what does something for your class and spec is listed at all: mana and spell damage
     entries (Blessing of Wisdom, mana potions, spell damage elixirs) show for the classes that
     spend mana (the paladin, the shaman, the mage), and what changes only attacks (attack power,
-    Strength and Agility, weapon stones, Windfury Totem, the boss's armor) never shows for a caster,
-    nor the casters' own (Moonkin Aura, Curse of the Elements, Power Infusion) for anyone else
+    Strength and Agility, weapon stones, Windfury Totem, the boss's armor and its physical damage
+    taken) never shows for a caster, except the boss's armor and physical damage taken for a
+    Demonology warlock, whose demon's swings meet them; nor do the casters' own (Moonkin Aura, Curse
+    of the Elements, Power Infusion) for anyone else
     ([buffs doc](mechanics/buffs-debuffs-consumables.md#class-only-entries)). An entry your class
     can use but your spec can't in a form (the weapon stones in Cat Form) is listed, locked off,
     as above. The Boss damage debuffs below are listed for every DPS spec, casters too.

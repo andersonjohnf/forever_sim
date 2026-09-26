@@ -22,7 +22,8 @@ import { mageAssumptions, mageFreeCast, mageManaPlan } from '../classes/mage/set
 import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
 import { priestAssumptions, priestManaPlan, priestPlan } from '../classes/priest/setup'
 import { hunterAssumptions, hunterManaPlan } from '../classes/hunter/setup'
-import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
+import { resolveRotationValues } from '../classes/options'
+import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance, rotationOptions, rotationSetup } from '../classes/rotation'
 import { explosiveThrowDetail, swingsInMelee, withSharedConsumables } from '../classes/shared-consumables'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
@@ -597,13 +598,16 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
    */
   /** The Buffs tab's effects that reach a pet (docs/mechanics/ranged-and-pets.md §8). */
   const petBuffs: Effect[] = []
-  const filledGroups = buffGroupFillers(config.buffs.enabled, config.buffs.raid, config.spec, [...maintained, ...(setup.replacesBuffs ?? [])])
+  // The Rotation settings as the Buffs tab reads them (sim/index.ts `rotationValues`), for the buffs a
+  // setting leaves unused: the boss's physical debuffs with a Demonology warlock's Imp (`buffUnusedReason`).
+  const settings = resolveRotationValues(rotationOptions(config.spec), config.rotation, setup.talents, rotationSetup(config.spec, setup.talents, config.race))
+  const filledGroups = buffGroupFillers(config.buffs.enabled, config.buffs.raid, config.spec, [...maintained, ...(setup.replacesBuffs ?? [])], settings)
   // A buff the talents bring takes its exclusive group too: a Balance druid's own Moonkin Aura leaves a
   // Leader of the Pack out, as the game's "exclusive with" does (docs/classes/druid.md §11.1).
   const talentGroups = new Set((setup.replacesBuffs ?? []).flatMap((id) => BUFFS_BY_ID.get(id)?.exclusiveGroup ?? []))
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
-    if (!buff || !forSpecClass(buff, config.spec) || !buffProvided(buff, config.buffs.raid, config.spec) || buffUnusedReason(buff, config.spec)) continue
+    if (!buff || !forSpecClass(buff, config.spec) || !buffProvided(buff, config.buffs.raid, config.spec) || buffUnusedReason(buff, config.spec, settings)) continue
     if (maintained.includes(id) || setup.replacesBuffs?.includes(id)) continue
     if (buff.exclusiveGroup !== undefined && talentGroups.has(buff.exclusiveGroup)) continue
     const effects = catalogueEffects(buff, profile)

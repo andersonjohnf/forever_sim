@@ -431,7 +431,7 @@ const REGISTRY = {
   },
   // buffs doc §4.2 (W5): Gift of Arthas on the boss; where its flat +8 adds (damage-and-timing §2.4, B70).
   giftOfArthas: {
-    text: 'Gift of Arthas is on the boss all fight, and each direct physical hit, yours and your pet’s, deals +8: added after your damage bonuses, so a crit doubles it, and before the boss’s armor. Bleed ticks get none. Untested.',
+    text: 'Gift of Arthas is on the boss all fight, and each direct physical hit on it deals +8: added after the damage bonuses and before the boss’s armor, so the hit’s crit multiplier applies to it too (×2 on a white crit). Bleed ticks get none. Untested.',
     docRef: `${DT}#24-damage-modifier-stacking`,
   },
   // docs/classes/druid.md §4.7 (BR6, Q19): Thick Hide's base armor, a reading of "further increased by multipliers from those forms".

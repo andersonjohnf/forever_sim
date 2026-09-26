@@ -4,7 +4,7 @@
 // exclusive group wins.
 import type { ClassSlug } from '@/data/races/types'
 import { SPEC_META } from '../specs'
-import type { BuffDefinition, BuffPreset, SpecId } from '../types'
+import type { BuffDefinition, BuffPreset, RotationValue, SpecId } from '../types'
 import { FOREVER } from '../rules/profiles'
 import { type Audience, BUFFS, BUFFS_BY_ID, type BuffSpec } from './buffs'
 import { catalogueEffects } from './types'
@@ -45,14 +45,37 @@ export function buffProvided(buff: Pick<BuffDefinition, 'providedBy' | 'selfCast
 /** The form a spec fights in, for the notes that name it (druid.md §2). */
 const FORM_NAME: Partial<Record<SpecId, string>> = { 'druid-feral-cat': 'Cat Form', 'druid-feral-bear': 'Dire Bear Form' }
 
+/** The Demonology warlock's demon setting (classes/warlock/shared.ts `warlockIds`, docs/classes/warlock.md §11.5). */
+const DEMON_SETTING = 'warlock.demonology.demon.summoned'
+
+/**
+ * Why one of the boss's physical debuffs does nothing for a caster whose pet swings (SpecMeta.petMelee),
+ * or undefined: they reach only its demon's swings (`forSpecClass`), and the Imp doesn't swing, nor
+ * does a demon that isn't out (docs/classes/warlock.md §11.2). The armor debuffs, and Gift of Arthas'
+ * +8 (buffs doc §4.2). It reads the resolved Rotation settings (`rotationValues`), so without them
+ * it says nothing.
+ */
+function petMeleeUnusedReason(buff: BuffSpec, spec: SpecId, values: Readonly<Record<string, RotationValue>>): string | undefined {
+  if (SPEC_META[spec].petMelee !== true || buff.category !== 'targetDebuff' || buff.forSpecs !== 'melee') return undefined
+  const demon = values[DEMON_SETTING]
+  if (demon !== 'imp' && demon !== 'none') return undefined
+  const why = demon === 'imp' ? 'your Imp (see Rotation) doesn’t swing' : 'you keep no demon out (see Rotation)'
+  const taken = catalogueEffects(buff, FOREVER).find((e) => e.kind === 'physicalTaken')
+  return `Not used: only your demon’s swings ${taken?.kind === 'physicalTaken' ? `take the +${taken.value}` : 'meet the boss’s armor'}, and ${why}`
+}
+
 /**
  * Why a buff does nothing for this spec, as the Buffs tab says it, or undefined (docs/ux.md
  * "Buffs"): a temporary enchant that only adds weapon damage (a Dense Sharpening Stone or
  * Weightstone) for a spec that fights in a form, whose attacks don't use the weapon's damage
  * (druid.md §2.1, §7.5, Q25). The Buffs tab locks it off with this note, and the plan leaves it
- * out. An Elemental Sharpening Stone's crit still applies.
+ * out. An Elemental Sharpening Stone's crit still applies. With the setup's resolved Rotation
+ * settings (`values`), also the boss's physical debuffs for a Demonology warlock whose demon doesn't
+ * swing (`petMeleeUnusedReason`), which the tab and the plan read alike.
  */
-export function buffUnusedReason(buff: BuffSpec, spec: SpecId): string | undefined {
+export function buffUnusedReason(buff: BuffSpec, spec: SpecId, values: Readonly<Record<string, RotationValue>> = {}): string | undefined {
+  const pet = petMeleeUnusedReason(buff, spec, values)
+  if (pet) return pet
   // docs/classes/shaman.md#weapon-imbues: a shaman's weapon imbue is its main hand's temporary
   // enchant, so a stone or oil has no weapon to go on. An Elemental shaman uses no imbue.
   if (SPEC_META[spec].classId === 'shaman' && !SPEC_META[spec].caster && catalogueEffects(buff, FOREVER).some((e) => e.kind === 'tempEnchant'))
@@ -75,11 +98,11 @@ export function buffUnusedReason(buff: BuffSpec, spec: SpecId): string | undefin
   return weaponDamageOnly ? `Not used in ${form}: your attacks there don’t use your weapon’s damage` : undefined
 }
 
-/** Every buff that does nothing for this spec, with why (`buffUnusedReason`). */
-export function unusedBuffs(spec: SpecId): Record<string, string> {
+/** Every buff that does nothing for this spec, with why (`buffUnusedReason`), given its resolved Rotation settings. */
+export function unusedBuffs(spec: SpecId, values: Readonly<Record<string, RotationValue>> = {}): Record<string, string> {
   const out: Record<string, string> = {}
   for (const buff of BUFFS) {
-    const reason = buffUnusedReason(buff, spec)
+    const reason = buffUnusedReason(buff, spec, values)
     if (reason) out[buff.id] = reason
   }
   return out
@@ -120,17 +143,28 @@ export function presetBuffIds(preset: BuffPreset['id'], spec: SpecId, raid: read
  * Expose Armor there takes `armor-major` from a warrior's Sunder Armor (warrior.md §7), a Demoralizing
  * Shout `ap-reduction` from a bear's roar (docs/classes/druid.md §6.3).
  */
-export function buffGroupFillers(enabled: readonly string[], raid: readonly ClassSlug[], spec: SpecId, skip: readonly string[]): Map<string, string> {
+export function buffGroupFillers(
+  enabled: readonly string[],
+  raid: readonly ClassSlug[],
+  spec: SpecId,
+  skip: readonly string[],
+  values: Readonly<Record<string, RotationValue>> = {},
+): Map<string, string> {
   const fillers = new Map<string, string>()
   for (const id of enabled) {
     const buff = BUFFS_BY_ID.get(id)
     if (!buff?.exclusiveGroup || skip.includes(id)) continue
-    if (!forSpecClass(buff, spec) || !buffProvided(buff, raid, spec) || buffUnusedReason(buff, spec)) continue
+    if (!forSpecClass(buff, spec) || !buffProvided(buff, raid, spec) || buffUnusedReason(buff, spec, values)) continue
     fillers.set(buff.exclusiveGroup, buff.name)
   }
   return fillers
 }
 
 /** The exclusive groups the Buffs tab fills in the plan (`buffGroupFillers`). */
-export const filledBuffGroups = (enabled: readonly string[], raid: readonly ClassSlug[], spec: SpecId, skip: readonly string[]): Set<string> =>
-  new Set(buffGroupFillers(enabled, raid, spec, skip).keys())
+export const filledBuffGroups = (
+  enabled: readonly string[],
+  raid: readonly ClassSlug[],
+  spec: SpecId,
+  skip: readonly string[],
+  values: Readonly<Record<string, RotationValue>> = {},
+): Set<string> => new Set(buffGroupFillers(enabled, raid, spec, skip, values).keys())

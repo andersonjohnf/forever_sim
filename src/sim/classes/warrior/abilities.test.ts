@@ -341,11 +341,11 @@ describe('Arms talents on the abilities (warrior.md §4.1)', () => {
     expect(ticks[3] * REND.dotTicks).toBeCloseTo(198.45, 12)
   })
 
-  it('W13 in `forever`: each tick adds 0.02 × AP [?], and Improved Rend 3/3 multiplies the whole tick: 76.95 at 1800 AP, 538.65 over 7', () => {
+  it('W13 in `forever`: each tick adds 0.02 × AP [?] (WarriorSim’s value, Q37), and Improved Rend 3/3 multiplies the whole tick: 76.95 at 1800 AP, 538.65 over 7', () => {
     expect(REND_AP_PER_TICK).toEqual({ forever: 0.02, classicEra: 0 })
     expect(rend(CLASSIC_ERA)).toBe(REND)
     expect(rend(FOREVER)).toEqual({ ...REND, dotTickApCoefficient: 0.02 })
-    // The client's 11574 has one effect, the flat periodic damage: the attack-power term is server-side (warrior.md §3.1).
+    // The client's 11574 has one effect, the flat periodic damage: no allowed source gives the term, so it's another sim's (warrior.md §3.1 "Rend's attack power", Q37).
     expect(spells['11574'].effects.map((e) => [e.effectAura, e.effectBasePointsF])).toEqual([[PERIODIC_DAMAGE, 21]])
     const r3 = withTalents(rend(FOREVER), t([['Improved Rend', 3]]))
     expect(r3.dotTickDamage).toBeCloseTo(28.35, 12)

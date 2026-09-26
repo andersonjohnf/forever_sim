@@ -204,6 +204,13 @@ slice is worked:
   still wins by 5.5–9.6% there. Pooling rage for the phase (no Heroic Strike in the 20 s before it)
   measured +0.11% in the default setup; it needs a setting of its own and short-fight checks, so
   it's left for later.
+- **Thunder Clap crits at the special-attack crit chance** (B2 logic review B2L-7, pre-existing,
+  low). Low-level beta logs show it critting 0.3% of the time (4 of 1,348) against 10.4% for the
+  same warriors' white swings, and the 4 read 1.06–1.44 times the base, neither ×1.5 nor ×2
+  ([warrior Q33](classes/warrior.md#9-open-questions)). Rolling a spell-table ability's crit at
+  spell crit is an engine change. No default casts Thunder Clap (Balanced and Max TPS drop it;
+  Fury and Arms never cast it), so only the Defensive priority's TPS runs a little high, and its
+  assumption says so.
 - **The Rotation tab's section headings wrap at 390** beside "Advanced · N changed" when several
   thresholds are changed; readable, nothing clipped (FU12 in
   [Fury's review](reviews/2026-09-23-fury-rotation.md)).

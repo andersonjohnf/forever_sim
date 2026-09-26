@@ -113,9 +113,11 @@ export const MULTI_SHOT: AbilityDef = {
 
 /**
  * Arcane Shot r8 (14287) [F] [client] (SpellEffect, SpellCooldowns, SpellPower, 1.60.1.69913): 217
- * Arcane (Classic Era 183 and a 0.429 spell damage coefficient; Forever's has none), instant, 190 mana,
+ * Arcane (Classic Era 183 and a 0.429 spell damage coefficient; Forever's has none; the beta logs show low
+ * ranks hitting for more, an unmeasured term, hunter.md OQ-H9), instant, 190 mana,
  * its own 6 s category (1173, shared with Summon Hawk). A school shot: the ranged table, the
- * Arcane multipliers and the boss's average resist, no armor; its crit ×2 as a shot's [?].
+ * Arcane multipliers and the boss's average resist, no armor; its crit ×2 as a shot's, as the beta
+ * logs show (28 crits, hunter.md §3.3) [?].
  */
 export const ARCANE_SHOT_SPELL: SpellDef = {
   ...SHOT_SPELL,
@@ -136,8 +138,9 @@ export const ARCANE_SHOT: AbilityDef = { ...SHOT, id: 'arcaneShot', name: 'Arcan
  * Serpent Sting r8 (13555), the trainer's top rank (r9, 25295, is an Ahn'Qiraj book, D36) [F] [client]
  * (SpellEffect, SpellDuration, SpellMisc, SpellPower, 1.60.1.70009): a pure DoT on the ranged table
  * (DefenseType 3), aura 3, 83 Nature every 3 s for 15 s (5 ticks, 415; Classic Era 98 a tick), no
- * coefficient, and the periodic-crit flag (Attributes[8] 0x200): its ticks crit at your spell crit,
- * ×1.5 [?]. 230 mana, instant. Pure damage: partially resisted.
+ * coefficient, and the periodic-crit flag (Attributes[8] 0x200): its ticks crit at your spell crit [?],
+ * ×2 as a shot's crit, as the beta logs measure (27 tick crits from 19 hunters, none near ×1.5,
+ * hunter.md §3.4) [?]. 230 mana, instant. Pure damage: partially resisted.
  */
 export const SERPENT_STING_SPELL: SpellDef = {
   ...SHOT_SPELL,
@@ -147,7 +150,7 @@ export const SERPENT_STING_SPELL: SpellDef = {
   school: 'nature',
   weaponPercent: 0,
   normalized: false,
-  critMultiplier: CRIT_MULTIPLIER.spell,
+  critMultiplier: CRIT_MULTIPLIER.melee,
   dotTicks: 5,
   dotTickMs: 3000,
   dotTickDamage: 83,

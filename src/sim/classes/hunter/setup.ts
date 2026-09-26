@@ -3,7 +3,7 @@
 // rotation and pet are rotation.ts and pet.ts.
 import { FIVE_SECOND_RULE_MS, mp5TickTenths, spiritRegenTickTenths } from '../../core/formulas'
 import type { Effect } from '../../effects/types'
-import type { AssumptionId } from '../../plan/assumptions'
+import { type AssumptionId, serpentStingCritsText, shotScalingText } from '../../plan/assumptions'
 import { type ManaPlan, type Plan, POWER_TICK_MS } from '../../plan/types'
 import type { DerivedStats } from '../../stats/stat-block'
 import { ASPECT_OF_THE_HAWK_RAP } from './abilities'
@@ -36,16 +36,30 @@ export function hunterManaPlan(derived: Pick<DerivedStats, 'mana' | 'spirit'>, m
   }
 }
 
-/** The [?] assumptions a hunter plan relies on (hunter.md#11-open-questions), by what it has. */
-export function hunterAssumptions(plan: Plan, talents: TalentRanks): AssumptionId[] {
+/**
+ * The [?] assumptions a hunter plan relies on (hunter.md#11-open-questions), by what it has, each with
+ * the text built from the build where it has one. The sting's tick crits need a profile whose periodic
+ * effects crit, and the shots' scaling rests on Forever's beta logs, so both are Forever's only (B2V-4).
+ */
+export function hunterAssumptions(plan: Plan, talents: TalentRanks): { id: AssumptionId; text?: string }[] {
   if (plan.classId !== 'hunter') return []
   const ids: AssumptionId[] = ['hunterNoMelee', 'manaRegenHunter']
+  const texts: Partial<Record<AssumptionId, string>> = {}
   const abilities = new Set(plan.abilities.map((a) => a.id))
+  const arcane = abilities.has('arcaneShot')
+  const sting = abilities.has('serpentSting')
   if (plan.ranged) ids.push('autoShotWindup', 'ammoDamage', 'rangedTableRolls')
   if (abilities.has('aimedShot') || abilities.has('multiShot') || abilities.has('sniperShot')) ids.push('shotCastHaste')
-  if (abilities.has('serpentSting')) ids.push('serpentStingCrits')
+  if (sting && plan.profile.combat.periodicCrits) {
+    ids.push('serpentStingCrits')
+    texts.serpentStingCrits = serpentStingCritsText(rank(talents, 'Mortal Shots'))
+  }
   // Its text covers both: Arcane Shot's Arcane and Serpent Sting's Nature resists (doctrine §4).
-  if (abilities.has('arcaneShot') || abilities.has('serpentSting')) ids.push('arcaneShotResists')
+  if (arcane || sting) ids.push('arcaneShotResists')
+  if ((arcane || sting) && plan.profile.id === 'forever') {
+    ids.push('shotScaling')
+    texts.shotScaling = shotScalingText({ arcane, sting, stingsRank: rank(talents, 'Improved Stings') })
+  }
   if (abilities.has('huntersMark')) ids.push('huntersMarkLands')
   if (plan.pet) ids.push('petBaseStats', 'focusRegen', 'petTable', 'petBuffs')
   if (rank(talents, 'Careful Aim') > 0) ids.push('carefulAim')
@@ -53,5 +67,5 @@ export function hunterAssumptions(plan: Plan, talents: TalentRanks): AssumptionI
   if (rank(talents, 'Focused Fire') > 0 && plan.pet) ids.push('focusedFire')
   if (rank(talents, 'Lone Wolf') > 0) ids.push('loneWolf')
   ids.push('summonHawkNotSimulated')
-  return ids
+  return ids.map((id) => ({ id, ...(texts[id] ? { text: texts[id] } : {}) }))
 }

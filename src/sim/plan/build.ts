@@ -39,7 +39,7 @@ import { SPEC_META } from '../specs'
 import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
-import { Assumptions, BEAR_TEXT, powerInfusionText, preAqRanksText, rogueFinisherApText, rogueFinisherTalentsText, thornsText } from './assumptions'
+import { Assumptions, BEAR_TEXT, powerInfusionText, preAqRanksText, revengeDamageText, rogueFinisherApText, rogueFinisherTalentsText, thornsText, unbridledWrathText } from './assumptions'
 import { PET_BUFFS, petInheritanceDetail, petPlan } from './pet'
 import { firesAmmo, isRangedWeapon, noRangedMods, rangedPlan, type RangedMods } from './ranged'
 import {
@@ -1527,7 +1527,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // too (Consecration, the mana potion), so its assumptions stand either way (knownFightEnd).
   if (mh || usesMana) for (const { id, detail } of classRot.assumes ?? []) notes.add(id, detail)
   if (queues && weapons[HAND.off]) notes.add('onNextSwingOffHand')
-  if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
+  if (setup.talents.has('Unbridled Wrath') && mh) notes.addText('unbridledWrathSwings', unbridledWrathText(config.spec, profile.id))
   // The rogue's off-hand strike (Mutilate) has its own note (rogueAssumptions, `mutilate`).
   if (classId !== 'rogue' && abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
   // A caster's spells need no weapon (docs/classes/mage.md, warlock.md, priest.md; the Balance druid's, druid.md §11.1), and it swings none: no note.
@@ -1722,6 +1722,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const windows = new Set(abilities.filter((a) => a.window >= 0).map((a) => auras[a.window].id))
   if (windows.has('overpowerWindow')) notes.add('overpowerWindow')
   if (windows.has('revengeWindow')) notes.add('revengeWindow')
+  // warrior.md §3.1 and Q38: Revenge's flat damage, with no attack-power term (open question B86); what
+  // the row weighs it against is Forever's beta logs, so it's Forever's only (B2V-4).
+  if (windows.has('revengeWindow') && profile.id === 'forever') notes.addText('revengeDamage', revengeDamageText(setup.talents.get('Improved Revenge') ?? 0))
   if (procIds.has('bloodthrill')) notes.add('bloodthrill')
   // warrior.md §7 and Q3, Q13, Q32: Slam's cast, Spearing Strike's weapon share, Rend's tick crits and on-hit procs.
   // A paladin's cast (Hammer of Wrath) has its own note (paladinAssumptions), as the shaman's Lightning
@@ -1809,7 +1812,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // docs/classes/druid.md §11.8: what the Balance druid's spells, procs and mana rely on.
   for (const id of balanceAssumptions(plan)) notes.add(id)
   // docs/classes/hunter.md#11-open-questions: what the hunter's shots, pet, talents and mana rely on.
-  for (const id of hunterAssumptions(plan, setup.talents)) notes.add(id)
+  for (const { id, text } of hunterAssumptions(plan, setup.talents)) {
+    if (text) notes.addText(id, text)
+    else notes.add(id)
+  }
   // docs/mechanics/ranged-and-pets.md §6.1: what every pet inherits, worded for this one.
   if (plan.pet) notes.add('petInheritance', petInheritanceDetail(plan.pet, plan.ranged !== undefined))
 

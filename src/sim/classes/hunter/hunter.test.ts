@@ -8,14 +8,15 @@ import { buffUnusedReason, presetBuffIds } from '../../effects/presets'
 import { FIELD_COUNT, Sim } from '../../engine/sim'
 import { addShot, rangedPlan } from '../../engine/ranged-helpers'
 import { damages, expectMean, line } from '../../engine/test-helpers'
+import { serpentStingCritsText, shotScalingText } from '../../plan/assumptions'
 import { buildPlan } from '../../plan/build'
 import { PET_INHERITANCE } from '../../plan/pet'
 import type { Plan } from '../../plan/types'
 import { rotationValues } from '../../index'
 import type { SimConfig } from '../../types'
-import { HUNTER_BASE_MANA } from './abilities'
+import { HUNTER_BASE_MANA, SERPENT_STING } from './abilities'
 import { CAT_DAMAGE, HAPPY_DAMAGE } from './pet'
-import { hunterIds, hunterUnusedSettings } from './rotation'
+import { hunterIds, hunterOptions, hunterUnusedSettings } from './rotation'
 import { withCritBonus } from './talents'
 
 const MM = 'hunter-marksmanship'
@@ -43,13 +44,14 @@ describe('worked examples (docs/classes/hunter.md §10)', () => {
     expectMean(damages(p, row, 20), 584.06)
   })
 
-  it('WE-H2: Mortal Shots 5/5: a shot’s crit ×2.3 and Serpent Sting’s tick crit ×1.65, on the default Marksmanship plan too', () => {
+  it('WE-H2: Mortal Shots 5/5: a shot’s crit ×2.3, Serpent Sting’s tick crit included (×2 as a shot’s, §3.4), on the default Marksmanship plan too', () => {
     expect(withCritBonus(2, 30)).toBeCloseTo(2.3, 12)
     expect(withCritBonus(1.5, 30)).toBeCloseTo(1.65, 12)
     const p = plan(defaultConfig(MM, 'horde-orc'))
     expect(spellOf(p, 'aimedShot').critMultiplier).toBeCloseTo(2.3, 12)
     expect(p.ranged!.critMultiplier).toBeCloseTo(2.3, 12)
-    expect(spellOf(p, 'serpentSting').critMultiplier).toBeCloseTo(1.65, 12)
+    expect(spellOf(p, 'serpentSting').critMultiplier).toBeCloseTo(2.3, 12)
+    expect(SERPENT_STING.spellDef!.critMultiplier).toBe(2)
   })
 
   it('WE-H3: Efficiency 5/5: Aimed Shot 263, Multi-Shot 203, Arcane Shot 161, Serpent Sting 195; Hunter’s Mark and Sniper Shot stay', () => {
@@ -157,11 +159,60 @@ describe('the default hunters’ plans', () => {
     expect(buildPlan(config).assumptions.some((a) => a.id === 'ammoNotFired')).toBe(false)
   })
 
-  it('lists the resist assumption when Serpent Sting is used without Arcane Shot, and not with neither', () => {
+  it('lists the resist and scaling assumptions when Serpent Sting is used without Arcane Shot, and not with neither', () => {
     const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
     // Marksmanship's default: Serpent Sting on, Arcane Shot off.
-    expect(ids(defaultConfig(MM))).toContain('arcaneShotResists')
-    expect(ids({ ...defaultConfig(MM), rotation: { 'hunter.marksmanship.serpentSting.enabled': false } })).not.toContain('arcaneShotResists')
+    expect(ids(defaultConfig(MM))).toEqual(expect.arrayContaining(['arcaneShotResists', 'shotScaling']))
+    const neither = ids({ ...defaultConfig(MM), rotation: { 'hunter.marksmanship.serpentSting.enabled': false } })
+    expect(neither).not.toContain('arcaneShotResists')
+    expect(neither).not.toContain('shotScaling')
+    // The scaling has its own row, linked to hunter.md's open question, not the resist's (BU-10, OQ-H9).
+    const scaling = buildPlan(defaultConfig(MM)).assumptions.find((a) => a.id === 'shotScaling')!
+    expect(scaling.docRef).toBe('docs/classes/hunter.md#oq-h9-arcane-shot-and-serpent-sting-scaling')
+    expect(buildPlan(defaultConfig(MM)).assumptions.find((a) => a.id === 'arcaneShotResists')!.text).not.toMatch(/attack power/)
+  })
+
+  it('builds the shot rows from the build: only the shots it uses, Improved Stings’ tick and Mortal Shots’ crits (B2V-1, B2V-2)', () => {
+    const note = (config: SimConfig, id: string) => buildPlan(config).assumptions.find((a) => a.id === id)?.text
+    // Marksmanship's default: Serpent Sting alone, Improved Stings 3/3 and Mortal Shots 5/5, as its plan has them.
+    const mm = defaultConfig(MM)
+    const sting = spellOf(plan(mm), 'serpentSting')
+    expect(83 * sting.dotDamageMult!).toBeCloseTo(99.6, 9)
+    expect(sting.critMultiplier).toBeCloseTo(2.3, 9)
+    expect(note(mm, 'shotScaling')).toBe(
+      'Serpent Sting deals 83 a tick (99.6 with Improved Stings 3/3), with nothing from your attack power, as the Forever client gives it. Low-level beta logs show it hitting harder, probably from attack power, by an amount nobody has measured, so it may be worth more.',
+    )
+    expect(note(mm, 'serpentStingCrits')).toMatch(/for double damage like a shot’s crit \(×2\.3 with Mortal Shots 5\/5\), as low-level beta logs show\./)
+    // Beast Mastery's default: both shots, neither talent.
+    const bm = defaultConfig(BM)
+    expect(note(bm, 'shotScaling')).toMatch(/^Arcane Shot deals a flat 217 and Serpent Sting 83 a tick, with nothing from your attack power, as the Forever client gives them\. .* so they may be worth more\.$/)
+    expect(note(bm, 'serpentStingCrits')).toMatch(/for double damage like a shot’s crit, as low-level beta logs show\./)
+    // Arcane Shot alone names only it.
+    expect(note({ ...bm, rotation: { 'hunter.beastMastery.serpentSting.enabled': false } }, 'shotScaling')).toMatch(
+      /^Arcane Shot deals a flat 217, with nothing from your attack power, as the Forever client gives it\. Low-level beta logs show it hitting/,
+    )
+    // Lower ranks: 83 × 1.06 and × 1.13; Mortal Shots 1/5 ×2.06.
+    expect(shotScalingText({ arcane: false, sting: true, stingsRank: 1 })).toMatch(/^Serpent Sting deals 83 a tick \(88 with Improved Stings 1\/3\),/)
+    expect(shotScalingText({ arcane: true, sting: true, stingsRank: 2 })).toMatch(/and Serpent Sting 83 a tick \(93\.8 with Improved Stings 2\/3\), with nothing/)
+    expect(serpentStingCritsText(1)).toMatch(/like a shot’s crit \(×2\.06 with Mortal Shots 1\/5\),/)
+  })
+
+  it('quotes rank 8’s Serpent Sting in its help: 415 over 15 s, 498 with Improved Stings 3/3 (B2V-3, hunter.md §3.4)', () => {
+    const help = hunterOptions(MM).find((o) => o.id === hunterIds(MM).sting)!.help
+    expect(help).toBe('Keep it on the boss: 415 Nature damage over 15 s (498 with Improved Stings 3/3), whose ticks can crit in Forever.')
+  })
+
+  it('shows the sting’s tick crits and the shots’ scaling only under Forever’s rules (B2V-4)', () => {
+    const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
+    for (const spec of [MM, BM, SV] as const) {
+      const classic = { ...defaultConfig(spec), rules: { ...defaultConfig(spec).rules, profile: 'classicEra' as const } }
+      expect(ids(defaultConfig(spec)), spec).toEqual(expect.arrayContaining(['serpentStingCrits', 'shotScaling', 'arcaneShotResists']))
+      // Classic Era's ticks don't crit (the engine gates on periodicCrits), and the beta logs aren't its.
+      expect(plan(classic).profile.combat.periodicCrits, spec).toBe(false)
+      expect(ids(classic), spec).not.toContain('serpentStingCrits')
+      expect(ids(classic), spec).not.toContain('shotScaling')
+      expect(ids(classic), spec).toContain('arcaneShotResists')
+    }
   })
 
   it('Lone Wolf: Marksmanship fights without a pet for +20% damage; Beast Mastery and Survival have a cat', () => {

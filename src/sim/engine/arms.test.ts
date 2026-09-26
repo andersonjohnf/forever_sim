@@ -424,6 +424,22 @@ describe('Rend (warrior.md §3.1, damage-and-timing §4)', () => {
     for (const x of d.slice(1)) expect(x).toBeCloseTo(82.35, 9)
   })
 
+  it('W13 in `classicEra`: no attack-power term, so 28.35 a tick even once +200 AP is up mid-fight', () => {
+    const plan = armsPlan(30000)
+    const r = addAbility(plan, rend(CLASSIC_ERA), new Map([['Improved Rend', 3]]))
+    alwaysLandNoCrit(plan)
+    rageAtPull(plan, 100)
+    setAttackPower(plan, 1800)
+    line(plan, r, at(plan, 100))
+    // The same +200 AP as the `forever` case above: it's up from 3.8 s, and the ticks don't move.
+    const up = addAura(plan, { id: 'apUp', name: 'AP up', durationMs: 60000, mods: { ap: 200 } })
+    addProc(plan, { trigger: TRIGGER.whiteLanded, chance: [1, 1], hands: 1, action: ACTION.aura, amount: up, b: 0, icdMs: 60000, requiresAura: plan.abilities[r].aura })
+    expect(plan.abilities[r].dotTickApCoefficient).toBeUndefined()
+    const d = damages(plan, plan.abilities[r].source, 1)
+    expect(d.length).toBe(7)
+    for (const x of d) expect(x).toBeCloseTo(28.35, 9)
+  })
+
   it('"under 3 s" reapplies it with 3 s left: the tick due then lands first, the next is lost (WE-9)', () => {
     const { plan, rend } = rendPlan(30000)
     line(plan, rend, [refresh(rend, 3000)])

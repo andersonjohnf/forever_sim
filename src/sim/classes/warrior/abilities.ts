@@ -366,10 +366,12 @@ export const REND: AbilityDef = {
 }
 
 /**
- * Rend's attack power per tick, read as each tick lands (warrior.md §3.1 "Rend", W13;
- * [D36](docs/decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)):
- * - `forever`: 0.02 [?], WarriorSim's Forever mode from a low-level test; the coefficient at 60 is
- *   unconfirmed, and the client's 11574 has no attack-power term.
+ * Rend's attack power per tick, read as each tick lands (warrior.md §3.1 "Rend's attack power", W13, Q37):
+ * - `forever`: 0.02 [?], **another sim's value**: WarriorSim's Forever mode, which reports it from its
+ *   own live test around level 10 (D37's fallback, step 4). No allowed source gives a coefficient: the
+ *   client's 11574 has no attack-power term, and Classic Era's Rend none. The public beta logs show the
+ *   ticks growing with attack power, so Classic Era's none is contradicted in Forever; their slope
+ *   (0.0091 × the log's AP field, about 0.016 × sheet AP) agrees in size but isn't adopted.
  * - `classicEra`: none [C], as Classic Era's Rend.
  */
 export const REND_AP_PER_TICK = { forever: 0.02, classicEra: 0 } as const

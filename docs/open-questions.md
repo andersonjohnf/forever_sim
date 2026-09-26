@@ -22,10 +22,11 @@ client-data check the same day ([client.md](data/client.md)); B9, B14, C2 and C2
 ([rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-)), defaults unchanged; B79 added
 2026-09-24 from the ability-counts review (Deep Wounds' refresh,
 [its review](reviews/2026-09-24-ability-counts.md)); A9 and B81 added 2026-09-25 from the Power
-Infusion review (buffs OQ 23 and 21) · Forever beta 1.60.1.69913 · Classic Era
+Infusion review (buffs OQ 23 and 21); B86 and B87 added 2026-09-26 from the beta-log re-read
+(warrior Q37 and Q38, hunter OQ-H9) · Forever beta 1.60.1.69913 · Classic Era
 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids unlock 2026-12-09
 
-**150 entries, 127 open:** Route A 9 (High 1, Medium 2, Low 6) · Route B 81 (22 / 27 / 32) ·
+**152 entries, 129 open:** Route A 9 (High 1, Medium 2, Low 6) · Route B 83 (23 / 28 / 32) ·
 Route C 37 (9 / 14 / 14) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
 7 items settled by the sim or a guild decision. The client-data check added in-game checks to
 B41, C11 and C12 rather than new entries.
@@ -588,6 +589,32 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [threat OQ 1](mechanics/threat.md#open-questions);
   [warrior §5.4](classes/warrior.md#54-protection-tps)
 
+#### B86. Attack power in Rend, Revenge and Thunder Clap
+**High · M2, M3 · ≤20**
+- **Assumes** [?]: neither the Forever client nor Classic Era gives these an attack-power term. The
+  beta logs show all three scaling, so the sim follows
+  [doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable). Rend: **WarriorSim's
+  0.02 × AP a tick** in `forever`, another sim's value, for want of an allowed source or a
+  measurement (none in `classicEra`). Revenge and Thunder Clap: **none**, since no source, measurement,
+  similar value or other sim has one (WarriorSim has no Revenge, and its Thunder Clap is flat), so
+  Revenge hits 109–133 and Thunder Clap 103 before modifiers.
+- **Why it's open:** public beta logs show all three scaling: rank-1 Rend ticks 6–7 for a base of
+  5, rank-1 Revenge hits for 69–78 for a base of 22, Thunder Clap rank 1 for 16–19 for 10. The
+  extra grows with the log's attack-power field, but that field isn't the character sheet's (one
+  posted sheet reads 222 where its log reads 389), so no coefficient is measured. Rend's log slope,
+  converted through that sheet, is about 0.016 × sheet AP, near WarriorSim's 0.02
+  ([warrior Q37, Q38](classes/warrior.md#9-open-questions)).
+- **Test:** at a known sheet attack power, with no Improved Rend or Improved Revenge, log each
+  ability's hits (Rend's ticks); raise the sheet attack power by a known amount (Battle Shout, a
+  potion, gear) and log again. The change in damage over the change in attack power is the
+  coefficient; note the level, as a coefficient may scale with it.
+- **Samples:** ≥50 of each at each attack power (Revenge's ±1.7 base spread needs the most).
+- **Changes:** Rend's worth (without the 0.02, Fury −1.3% and Arms about −2% DPS); Revenge's
+  damage and threat (at 0.21 × AP, about 300 more damage a Revenge at 60, a large rise in
+  Protection's threat); Thunder Clap's.
+- **Docs:** [warrior §3.1](classes/warrior.md#31-damage-abilities),
+  [Q37, Q38](classes/warrior.md#9-open-questions)
+
 #### B14. Bear rage
 **High · M4 · ≤20 (Bear Form from level 3 in the public beta logs)**
 - **Assumes:** 4.5 × 2.5 = 11.25 rage per landed bear auto, the two-hander's rate, crits no bonus
@@ -754,11 +781,16 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **Medium · M2 · ≤20 (Fury tier 2)**
 - **Assumes:** procs on white swings and extra attacks only, not HS/Cleave swings, as the Forever
   data's proc mask (auto attacks) says [F data] ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25));
-  Classic sims also counted HS swings [C]. Unmeasured on the server.
-- **Test:** 5/5 Unbridled Wrath; spam Heroic Strike from a low-rage setup and log rage gains on
-  HS swings vs white swings.
-- **Samples:** ≥300 Heroic Strike swings.
-- **Changes:** the UW proc mask; Fury and Arms rage.
+  Classic sims also counted HS swings [C]. **Partly answered (2026-09-26):** public beta logs show
+  no procs from 397 HS and Cleave hits (none within 50 ms that a white swing didn't account for),
+  2 rage with a two-hander, and no weapon-speed scaling [?]. They also show about 7.2% a rank, not
+  12%: a bug the developers say a later build fixes, so the sim keeps 12%
+  ([warrior §2.3](classes/warrior.md#unbridled-wrath-on-the-beta-)).
+- **Test:** on the build with the fix, 5/5 Unbridled Wrath: its procs against landed white swings,
+  and HS swings vs white swings.
+- **Samples:** ≥1,000 white swings; ≥300 Heroic Strike swings.
+- **Changes:** the UW chance (at the beta's 7.2% a rank: Fury −0.7%, Arms −1.0% DPS); Fury and
+  Arms rage.
 - **Docs:** [warrior §2.3](classes/warrior.md#23-rage-warrior-specific),
   [Q5](classes/warrior.md#9-open-questions);
   [rage § yellow attacks](mechanics/rage.md#yellow-damage-and-on-next-swing-attacks)
@@ -1067,6 +1099,23 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Docs:** [threat § taunts](mechanics/threat.md#taunts-and-forced-attacks),
   [threat OQ 6](mechanics/threat.md#open-questions);
   [paladin § threat](classes/paladin.md#threat-paladin-specific)
+
+#### B87. Attack power in Arcane Shot and Serpent Sting
+**Medium · hunters · ≤20**
+- **Assumes** [?]: none. The Forever client dropped Classic Era's spell damage coefficients and gives
+  no attack-power term, so Arcane Shot deals 217 and Serpent Sting 83 a tick [F]. No measurement,
+  similar value or other sim gives one, so the sim adds nothing (the last step of
+  [doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable)).
+- **Why it's open:** public beta logs show more: Arcane Shot rank 1 (20) hits for 26–38, rank 3
+  (39) for 56–75, Serpent Sting rank 1 (2) ticks for 3–6. The logs carry only the melee
+  attack-power field, not the sheet's ranged attack power, so no coefficient is measured
+  ([hunter OQ-H9](classes/hunter.md#oq-h9-arcane-shot-and-serpent-sting-scaling)).
+- **Test:** as B86, with the sheet's ranged attack power (Aspect of the Hawk on and off, or Trueshot
+  Aura) and no talents that change the two.
+- **Samples:** ≥50 Arcane Shots and ≥100 ticks at each attack power.
+- **Changes:** both abilities' damage, most for Beast Mastery, which uses Arcane Shot.
+- **Docs:** [hunter §3.3, §3.4](classes/hunter.md#33-arcane-shot-r8-14287),
+  [OQ-H9](classes/hunter.md#oq-h9-arcane-shot-and-serpent-sting-scaling)
 
 #### B75. Trainer spells the client has no data for
 **Medium · M4 (paladin: M5) · ≤20 for the low ranks**

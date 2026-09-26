@@ -2,9 +2,11 @@
 //
 // The plan builder adds an assumption only when the setup actually relies on it, so the list
 // stays short and specific. Each links to the doc section that owns the value.
-import type { Assumption, RuleProfileId } from '../types'
+import type { Assumption, RuleProfileId, SpecId } from '../types'
 import { LACERATE_THREAT } from '../classes/druid/bear-abilities'
 import { DAMAGE_SHIELD_SP_COEFFICIENT, THORNS_BASE_DAMAGE, THORNS_CASTER_SPELL_DAMAGE, THORNS_DAMAGE } from '../effects/buffs'
+import { ARCANE_SHOT_SPELL, SERPENT_STING_SPELL } from '../classes/hunter/abilities'
+import { IMPROVED_STINGS, withCritBonus } from '../classes/hunter/talents'
 
 const CT = 'docs/mechanics/combat-tables.md'
 const DT = 'docs/mechanics/damage-and-timing.md'
@@ -87,7 +89,9 @@ const REGISTRY = {
     docRef: `${CT}#5-dual-wield-and-on-next-swing-queues`,
   },
   unbridledWrathSwings: {
-    text: 'Unbridled Wrath procs only from auto attacks (white swings of either hand and extra attacks), not from Heroic Strike or Cleave swings, as the Forever client’s data says; untested in combat.',
+    // warrior.md §2.3 "Unbridled Wrath on the beta", Q5: the mask as the logs show it; the chance the talent's, a beta bug to be fixed.
+    // Fury's and Arms' results add their own loss at the beta's rate (`unbridledWrathText`).
+    text: 'Unbridled Wrath procs only from auto attacks (white swings of either hand and extra attacks), not from Heroic Strike or Cleave swings, as the Forever client’s data says and low-level beta logs show. The sim uses the talent’s 12% a rank; on the beta it procs about 7.2% a rank, a bug the developers say a later build fixes.',
     docRef: `${WAR}#23-rage-warrior-specific`,
   },
   ragingBlows: {
@@ -139,11 +143,12 @@ const REGISTRY = {
     docRef: `${DT}#31-haste`,
   },
   foreverWhiteRage: {
-    text: 'Each landed white hit gives a fixed rage set by weapon speed (3.46 per second one-handed, 4.5 two-handed), from low-level beta logs by other players.',
+    text: 'Each landed white hit gives a fixed rage set by weapon speed (3.46 per second one-handed, 4.5 two-handed), as low-level beta logs show.',
     docRef: `${RAGE}#forever-normalized-rage-per-swing-`,
   },
   foreverOffHandRage: {
-    text: 'Off-hand white hits give half the main-hand rate before Dual Wield Specialization.',
+    // rage.md#off-hand-rage-: measured in low-level beta logs (254 off-hand swings, 7 warriors).
+    text: 'Off-hand white hits give half the main-hand rate before Dual Wield Specialization, as low-level beta logs show.',
     docRef: `${RAGE}#forever-normalized-rage-per-swing-`,
   },
   damageTakenRage: {
@@ -151,7 +156,7 @@ const REGISTRY = {
     docRef: `${RAGE}#forever-`,
   },
   damageTakenRageFlat: {
-    text: 'Rage from damage taken uses an earlier fit, 1.5 × health lost ÷ 230.6, which the beta logs don’t support.',
+    text: 'Rage from damage taken uses an earlier fit, 1.5 × health lost ÷ 230.6, which low-level beta logs don’t support.',
     docRef: `${RAGE}#forever-`,
   },
   damageTakenRageHealthLost: {
@@ -337,9 +342,16 @@ const REGISTRY = {
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
   },
   revengeWindow: {
-    // warrior.md §2.8, Q12: no tier 1–3 source gives its length; 5 s is Overpower's.
+    // warrior.md §2.8, Q12: no tier 1–3 source gives its length; 5 s is Overpower's. Its damage: `revengeDamage`.
     text: 'A block, dodge or parry of the boss’s swings opens Revenge for 5 s, assumed like Overpower’s window, and using it closes the window; untested. A 4 s window would cost about 0.05% of your TPS.',
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
+  },
+  revengeDamage: {
+    // warrior.md §3.1 (Revenge's row), Q38: no source, measurement or other sim gives an attack-power term
+    // (the last step of doctrine §2's fallback order, open question B86). The text follows Improved Revenge's rank (`revengeDamageText`);
+    // this one is the default Protection build's 3/3.
+    text: 'Revenge deals the Forever client’s 109–133, ×1.6 with Improved Revenge 3/3 (174–213), with nothing from your attack power. Low-level beta logs show it hitting much harder than that, probably from attack power, by an amount nobody has measured, so your Revenges and their threat may be too low here.',
+    docRef: `${WAR}#31-damage-abilities`,
   },
   spellTable: {
     // warrior.md §7 "Spell-table abilities" and Q33; the plan names the abilities and the verb ({detail}).
@@ -353,7 +365,7 @@ const REGISTRY = {
   },
   spellTableCrit: {
     // warrior.md §7 "Spell-table abilities" and Q33: the ones that deal damage ({detail}; Demoralizing Shout deals none).
-    text: '{detail} at your special-attack crit chance, not your spell crit, as a melee ability does; untested.',
+    text: '{detail} at your special-attack crit chance, not your spell crit, as a melee ability does. Low-level beta logs show Thunder Clap critting far less often, about 0.3% of the time, so its crits here may be too many.',
     docRef: `${WAR}#7-implementation-notes`,
   },
   bloodthrill: {
@@ -369,8 +381,9 @@ const REGISTRY = {
     docRef: `${WAR}#31-damage-abilities`,
   },
   rendTickCrits: {
-    text: 'Each Rend tick adds 2% of your attack power as it lands, a coefficient another Forever sim measured at a low level that nobody has confirmed at 60. The ticks can crit, at your special-attack crit chance when Rend landed, with the same bonus as your abilities’ crits (×2.2 with Impale 2/2); untested in Forever.',
-    docRef: `${WAR}#25-crits-impale-flurry-deep-wounds`,
+    // warrior.md §3.1 "Rend's attack power" (WarriorSim's 0.02, step 4 of doctrine §2's fallback order), Q32, Q37. Shown in `forever` only.
+    text: 'Each Rend tick adds 2% of your attack power as it lands. The game’s data gives Rend no attack-power share, but low-level beta logs show its ticks growing with attack power, and nobody has measured by how much, so the sim uses another warrior sim’s 2%, unconfirmed at 60. The ticks can crit, as those logs show, at your special-attack crit chance when Rend landed, with the same bonus as your abilities’ crits (×2.2 with Impale 2/2).',
+    docRef: `${WAR}#31-damage-abilities`,
   },
   executeRageTenths: {
     text: 'Execute turns all the rage left after its cost into damage, tenths of a rage point included (15 damage per rage); the server may count whole points only.',
@@ -1043,12 +1056,20 @@ const REGISTRY = {
     docRef: `${RANGED}#4-auto-shot-the-timer-the-wind-up-and-clipping`,
   },
   serpentStingCrits: {
-    text: 'Serpent Sting’s ticks can crit, as the Forever client’s flag says, at your spell crit when it lands, for 1.5 times the damage (Mortal Shots raises it). Untested in combat.',
+    // hunter.md §3.4, OQ-H1: ×2 measured in beta logs; the chance untested. Mortal Shots' raise is the talent's
+    // own [C] (hunter.md §4), not an assumption, and not every spec has it (B2L-9).
+    text: 'Serpent Sting’s ticks can crit, as the Forever client’s flag says, for double damage like a shot’s crit, as low-level beta logs show. The chance is assumed to be your spell crit when it lands; untested.',
     docRef: `${HUNTER}#34-serpent-sting-r8-13555`,
   },
   arcaneShotResists: {
+    // spells.md §3; their damage is `shotScaling`.
     text: 'Arcane Shot and Serpent Sting lose the boss’s average resist of their school (6% at level 63), as spells do; untested for shots.',
     docRef: 'docs/mechanics/spells.md#3-resistances',
+  },
+  shotScaling: {
+    // hunter.md OQ-H9: no source, measurement or other sim gives a term (the last step of doctrine §2's fallback order, open question B87).
+    text: 'Arcane Shot deals a flat 217 and Serpent Sting 83 a tick, with nothing from your attack power, as the Forever client gives them. Low-level beta logs show them hitting harder, probably from attack power, by an amount nobody has measured, so they may be worth more.',
+    docRef: `${HUNTER}#oq-h9-arcane-shot-and-serpent-sting-scaling`,
   },
   huntersMarkLands: {
     text: 'Hunter’s Mark always lands, and its +71 ranged attack power counts for your shots and Auto Shots; your pet gets only the tenth of it that it inherits from your ranged attack power.',
@@ -1165,6 +1186,59 @@ export const thornsText = (own: boolean, profile: RuleProfileId): string =>
   profile === 'forever'
     ? REGISTRY[own ? 'thornsOwn' : 'thorns'].text
     : `${own ? 'Your own Thorns' : 'Thorns'} deals ${THORNS_DAMAGE.classicEra} Nature damage, as in Classic Era, with no spell damage added. ${THORNS_HITS}`
+
+/**
+ * The `unbridledWrathSwings` assumption, with the reader's spec's loss at the beta's 7.2% a rank
+ * (warrior.md §2.3 "Unbridled Wrath on the beta": Fury −0.7%, Arms −1.0%, the default setups at the
+ * default seed, 50,000 fights each). Other specs' losses aren't measured, so their text stops at the rate.
+ */
+export const unbridledWrathText = (spec: SpecId, profile: RuleProfileId = 'forever'): string => {
+  const base = REGISTRY.unbridledWrathSwings.text
+  // Classic Era has no beta and its bug: just the swings it procs from (B2V-4).
+  if (profile !== 'forever') return base.replace(/ The sim uses the talent’s .*$/, '')
+  const loss = ({ 'warrior-fury': '0.7%', 'warrior-arms': '1%' } as Partial<Record<SpecId, string>>)[spec]
+  return loss ? `${base} At the beta’s rate you’d lose about ${loss} of your damage.` : base
+}
+
+/**
+ * The `revengeDamage` assumption for Improved Revenge at `rank` (×(1 + 0.2 × rank), warrior.md §3.1 and
+ * W14): the damage range it gives the rank-5 Revenge's 109–133, rounded to whole points.
+ */
+export const revengeDamageText = (rank: number): string => {
+  if (rank === 3) return REGISTRY.revengeDamage.text
+  const m = 1 + 0.2 * rank
+  const range = rank > 0 ? `, ×${m.toFixed(1)} with Improved Revenge ${rank}/3 (${Math.round(109 * m)}–${Math.round(133 * m)})` : ''
+  return REGISTRY.revengeDamage.text.replace(', ×1.6 with Improved Revenge 3/3 (174–213)', range)
+}
+
+/** A number to one decimal place, without a trailing ".0". */
+const oneDecimal = (x: number) => String(Math.round(x * 10) / 10)
+
+/**
+ * The `shotScaling` assumption (hunter.md OQ-H9), naming only the shots the rotation uses: Arcane
+ * Shot's flat damage and Serpent Sting's tick, raised by Improved Stings at `stingsRank` (+6 / 13 / 20%,
+ * hunter.md §4), as the plan's tick is (B2V-1). The registry's is both shots without the talent.
+ */
+export const shotScalingText = ({ arcane, sting, stingsRank }: { arcane: boolean; sting: boolean; stingsRank: number }): string => {
+  const tick = SERPENT_STING_SPELL.dotTickDamage ?? 0
+  const raised = stingsRank > 0 ? ` (${oneDecimal(tick * (1 + (IMPROVED_STINGS[stingsRank] ?? 20) / 100))} with Improved Stings ${stingsRank}/3)` : ''
+  const parts = [
+    ...(arcane ? [`Arcane Shot deals a flat ${ARCANE_SHOT_SPELL.min}`] : []),
+    ...(sting ? [`Serpent Sting ${arcane ? '' : 'deals '}${tick} a tick${raised}`] : []),
+  ]
+  const both = parts.length > 1
+  return `${parts.join(' and ')}, with nothing from your attack power, as the Forever client gives ${both ? 'them' : 'it'}. Low-level beta logs show ${both ? 'them' : 'it'} hitting harder, probably from attack power, by an amount nobody has measured, so ${both ? 'they' : 'it'} may be worth more.`
+}
+
+/**
+ * The `serpentStingCrits` assumption with Mortal Shots at `rank` (+6% crit damage a rank on the
+ * sting's tick crits, hunter.md §3.4 and §4: ×2.3 at 5/5), which the talentless text leaves out (B2V-2).
+ */
+export const serpentStingCritsText = (rank: number): string => {
+  if (rank <= 0) return REGISTRY.serpentStingCrits.text
+  const m = withCritBonus(SERPENT_STING_SPELL.critMultiplier, 6 * rank)
+  return REGISTRY.serpentStingCrits.text.replace('like a shot’s crit,', `like a shot’s crit (×${Number(m.toFixed(2))} with Mortal Shots ${rank}/5),`)
+}
 
 /** Items in prose: "a", "a and b", "a, b and c". */
 const prose = (items: readonly string[]) => (items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)

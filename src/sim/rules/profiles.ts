@@ -213,6 +213,7 @@ export const FOREVER: RulesProfile = {
     white: 'normalized',
     normalizedOneHand: 3.46,
     normalizedTwoHand: 4.5,
+    // docs/mechanics/rage.md#off-hand-rage-: half, measured on 254 off-hand swings from 7 warriors
     offHandBase: 0.5,
     avoidedWhiteShare: 0,
     // docs/mechanics/rage.md#classic-era-formula-c

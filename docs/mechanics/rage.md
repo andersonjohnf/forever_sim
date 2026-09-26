@@ -163,11 +163,45 @@ server-side, so the client tables can't confirm it.
 
 | Unknown | Default | Why |
 | --- | --- | --- |
-| Off-hand rage | This doc defines the off-hand **base**: `0.5 × 3.46 × OH speed`. Dual Wield Specialization then multiplies the result by `1 + 0.2 × rank` (×2.0 at 5/5). That multiplier is owned by [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific) and example W23, so 5/5 gives the full 3.46 × speed. | A 50% off-hand base is what makes "+100% off-hand rage at 5/5" a sensible talent. [tzcnt](https://github.com/tzcnt/WarriorSim/blob/master/js/classes/player.js) does the same. The ElliotWood sim instead gives the full rate plus the talent. |
+| Off-hand rage | This doc defines the off-hand **base**: `0.5 × 3.46 × OH speed`, measured ([off-hand rage](#off-hand-rage-)). Dual Wield Specialization then multiplies the result by `1 + 0.2 × rank` (×2.0 at 5/5). That multiplier is owned by [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific) and example W23, so 5/5 gives the full 3.46 × speed. | The beta logs give the off hand exactly half the main hand's rate per second of weapon speed. The ElliotWood sim's full rate plus the talent doesn't fit them. |
 | Hasted or base speed | Base (unhasted) weapon speed | With the hasted interval, haste would be rage-neutral per second. Both Forever sims use base speed. |
 | Level scaling | None: the same `k` at every level | Nothing points to scaling, but it is untested. |
 | Extra attacks (Windfury, Sword procs, Reckoning) | Give rage like a normal landed hit | Same as Classic. Untested. |
 | Bear form | The two-hander's `k × 2.5 s` = **11.25** per landed bear auto | Measured: 22 of 26 clean pairs of bear swings in the public beta logs, from 17 druids, rose by 11.2–11.3 ([bear white hits](#bear-white-hits-in-the-public-beta-logs-)). |
+
+### Off-hand rage [?]
+
+**An off-hand hit gives half a main-hand hit's rate: `0.5 × 3.46 × OH speed`** before Dual Wield
+Specialization. The advanced log has no hand flag on a landed swing, so each dual-wielding warrior's
+landed white swings are read by the rage they give (the change in the power snapshot, with nothing
+else touching the pool in between, as in [rounding](#rounding)): every one of them falls into two
+groups, one at `3.46 × s` for a one-hander's speed `s` and one at half of `3.46 × s'`:
+
+| Warrior (weapons as posted or read) | Main-hand swings, rage | Off-hand swings, rage | `3.46 × speed`, and half of it |
+| --- | --- | --- | --- |
+| Nooch (two 1.3 s daggers) | 36 at 4.4–4.5 | 70 at 2.2–2.3 | 4.498; 2.249 |
+| Siax (1.8 s, 1.3 s) | 29 at 6.2–6.3 | 33 at 2.2–2.3 | 6.228; 2.249 |
+| Tarch (2.0 s, 1.9 s) | 75 at 6.9–7.0 | 30 at 3.2–3.3 | 6.92; 3.287 |
+| Arle (1.8 s, 1.6 s) | 24 at 6.2–6.3 | 21 at 2.7–2.8 | 6.228; 2.768 |
+| Alei (2.8 s, 1.7 s) | 15 at 9.6–9.7 | 25 at 2.9–3.0 | 9.688; 2.941 |
+| Zomd (2.6 s and 1.8 s, both ways round) | 56 at 8.9–9.0 or 6.2–6.3 | 64 at 3.1–3.2 or 4.4–4.5 | 8.996 or 6.228; 3.114 or 4.498 |
+| Cap (2.3 s, 1.7 s) | 10 at 7.9–8.0 | 11 at 2.9–3.0 | 7.958; 2.941 |
+
+254 off-hand swings from 7 low-level warriors (build 1.60.1, 22–23 Sep 2026), all at half.
+At the full rate the off-hand groups would need weapons of 0.65–0.95 s, which don't exist, and
+Nooch's two identical daggers split 4.5 and 2.25. The halves are exact, so none of these warriors
+had Dual Wield Specialization (Tarch's posted talents have none). **A check that doesn't use the
+rage:** a missed swing (`SWING_MISSED`) does carry the hand flag. The times between each warrior's
+flagged off-hand misses repeat at the off hand's speed (Siax 1,302 ms, Tarch 1,941, Arle 1,641,
+Alei 1,724, Cap 1,716, Zomd 1,880), and the same hand's next landed swing falls in the half-rate
+group after 23 of 26 off-hand misses, and in the full-rate group after 16 of 17 main-hand misses.
+So the grouping is by hand, and the half rate isn't an artefact of reading hands from the rage. The analysts behind the
+[Unbridled Wrath report](../classes/warrior.md#unbridled-wrath-on-the-beta-) read the off hand's
+rate the same way, 1.73 × speed. Tagged [?] as a third-party log analysis
+([D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23));
+it's untested at 60 and with the talent. Logs: [magey/forever-warrior#4][fw-4] and its discussions,
+[Marrow's labelled logs][marrow-logs], and [Arle's double-dagger test log][arle-log] (posted in
+[magey/forever-warrior#3][fw3]).
 
 ### Outcome summary for a white swing
 
@@ -696,7 +730,7 @@ For a Classic tank, rage income is dominated by damage taken.
 | Improved Bloodrage | +2 / +5 instant | +25% / +50% to all Bloodrage rage | [F] |
 | Improved Berserker Rage | 5 / 10 rage | Same, plus movement-impairment removal | [F] |
 | Boundless Rage | — | +10 / +20 / +30 maximum rage | [F] |
-| Dual Wield Specialization | Damage only | +20% off-hand rage per rank | [F] (the base off-hand rate is [?]) |
+| Dual Wield Specialization | Damage only | +20% off-hand rage per rank | [F] (the base off-hand rate, half, is measured [?]) |
 | Anger Management | 1 rage / 3 s (hidden) | 1 rage / 3 s (in the tooltip) | [F] — no change |
 | Druid Enrage | 20 over 10 s | 10 now + 20 over 10 s | [F] |
 | Natural Reaction | — | 5 rage on dodge (100% at 5/5) | [F] |
@@ -782,7 +816,7 @@ function whiteHitRage(o: Outcome, hand: Hand, w: Weapon, dmgDealt: number, would
   if (cfg.model === 'forever') {
     if (o === 'miss' || o === 'dodge' || o === 'parry' || dmgDealt <= 0) return 0;
     const k = w.twoHand ? 4.5 : 3.46;                // [?] fitted to logged swings (rounding)
-    const oh = hand === 'off' ? 0.5 : 1;             // [?] off-hand base
+    const oh = hand === 'off' ? 0.5 : 1;             // [?] off-hand base, measured (#off-hand-rage-)
     return k * w.baseSpeedSec * oh;
   }
   // classic [C]
@@ -909,7 +943,8 @@ sample size (doctrine §2, tier 2).
    - Confirm `k = 3.46 / 4.5` at 60. The logs fit 3.4608 and 4.4975 at low level
      ([rounding](#rounding)); a two-hander's 4.4975 could be 1.3 × 3.46 = 4.498.
    - Hasted or base speed: log with and without Flurry or a haste effect.
-   - The off-hand base rate: 50% or 100%, and how DWS scales it.
+   - The off-hand base rate is half at low level ([off-hand rage](#off-hand-rage-)); confirm it
+     at 60, and how Dual Wield Specialization scales it (×2.0 at 5/5 by its text).
    - Whether extra attacks (Windfury, Sword Weaponmaster, Reckoning) give rage.
 3. **Bear rage.** Normalization applies to bears, at the two-hander's rate: 11.25 per landed
    auto at levels 3–14 in the public beta logs (22 of 26 clean pairs, 17 druids;
@@ -992,6 +1027,8 @@ sample size (doctrine §2, tier 2).
 
 [client]: ../data/client.md#doc-claims-checked-against-the-raw-client
 [fd-logs]: https://github.com/tzcnt/forever-data/tree/c7d17462c50d1eb0103aa5e2aff52f77f33e3418/raw-logs
+[fw-4]: https://github.com/magey/forever-warrior/issues/4
+[marrow-logs]: https://github.com/ppach/marrow.github.io/tree/master/eternal/data/logs
 [lutz-gist]: https://gist.github.com/077264a1aada001889e5ce0f47674623
 [bear-sheet]: https://docs.google.com/spreadsheets/d/1weJmcrnK-Zj7tW6iWY4InpKZRsJ9c685fxzn0Ec-qXs
 [bw-mf4]: https://github.com/magey/forever-warrior/issues/4
@@ -1005,6 +1042,7 @@ sample size (doctrine §2, tier 2).
 [fb72]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/72
 [fb78]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/78
 [fw3]: https://github.com/magey/forever-warrior/issues/3
+[arle-log]: https://gist.github.com/Arlewow/a622100ad149f4fc31ddf95f9b3aab2c
 [wsf-rage]: https://github.com/wowsims/forever/commit/f9f9f21883
 [f-pws1]: https://us.forums.blizzard.com/en/wow/t/2354715/2
 [f-pws2]: https://us.forums.blizzard.com/en/wow/t/2356535/1

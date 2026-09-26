@@ -511,7 +511,7 @@ threat-value scale with a plain white hit in a known stance.
    1.60.1.70009). Blizzard's own Season of Discovery hotfix (2 December 2024) sets Lacerate (414644,
    Forever's rank 1 under the same id) to 3.33 × damage on the hit and the ticks; the user kept the
    flat 206 by the rule that the same threat words make the same threat on every tank (user
-   decision, 2026-09-26). ×3.33 would put the default bear about 40% over the warrior and 85% over
+   decision, 2026-09-26). ×3.33 would put the default bear about 40% over the warrior and 84% over
    the paladin ([druid bear](#druid-bear)). **Primal Bite**'s (Mangle (Bear) until 1.60.1.70009)
    threat is assumed dmg × 1: its tooltip names no threat, and Season of Discovery's ×1.5 for Mangle
    (Bear) doesn't carry over to Forever's reworked spell (user decision, 2026-09-26). Neither is

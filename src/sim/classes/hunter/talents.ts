@@ -133,7 +133,7 @@ export const IMPROVED_STINGS = [0, 6, 13, 20]
 /** Barrage (19461): +3 / 7 / 10% damage to Aimed Shot and Multi-Shot (and Volley) [F]. */
 export const BARRAGE = [0, 3, 7, 10]
 
-/** A crit multiplier with its crit damage bonus raised by `pct`% (Mortal Shots: ×2 → ×2.3; ×1.5 → ×1.65) [C]. */
+/** A crit multiplier with its crit damage bonus raised by `pct`% (Mortal Shots 5/5: ×2 → ×2.3, Serpent Sting's tick crits included, hunter.md §3.4) [C]. */
 export const withCritBonus = (multiplier: number, pct: number) => 1 + (multiplier - 1) * (1 + pct / 100)
 
 /** The build's changes to a shot's spell (hunter.md §4): Improved Stings, Barrage, Mortal Shots. */

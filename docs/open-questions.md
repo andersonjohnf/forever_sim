@@ -760,13 +760,14 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Assumes:** procs on white swings and extra attacks only, not HS/Cleave swings, as the Forever
   data's proc mask (auto attacks) says [F data] ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25));
   Classic sims also counted HS swings [C]. **Partly answered (2026-09-26):** public beta logs show
-  no procs from about 250 HS and Cleave hits, 2 rage with a two-hander, and no weapon-speed
-  scaling [?]. They also show about 7.5% a rank, not 12%: a bug the developers say a later build
-  fixes, so the sim keeps 12% ([warrior §2.3](classes/warrior.md#unbridled-wrath-on-the-beta-)).
+  no procs from 397 HS and Cleave hits (none within 50 ms that a white swing didn't account for),
+  2 rage with a two-hander, and no weapon-speed scaling [?]. They also show about 7.2% a rank, not
+  12%: a bug the developers say a later build fixes, so the sim keeps 12%
+  ([warrior §2.3](classes/warrior.md#unbridled-wrath-on-the-beta-)).
 - **Test:** on the build with the fix, 5/5 Unbridled Wrath: its procs against landed white swings,
   and HS swings vs white swings.
 - **Samples:** ≥1,000 white swings; ≥300 Heroic Strike swings.
-- **Changes:** the UW chance (at the beta's 7.5% a rank: Fury −0.65%, Arms −1.0% DPS); Fury and
+- **Changes:** the UW chance (at the beta's 7.2% a rank: Fury −0.7%, Arms −1.0% DPS); Fury and
   Arms rage.
 - **Docs:** [warrior §2.3](classes/warrior.md#23-rage-warrior-specific),
   [Q5](classes/warrior.md#9-open-questions);

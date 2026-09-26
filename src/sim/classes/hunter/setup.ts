@@ -45,7 +45,7 @@ export function hunterAssumptions(plan: Plan, talents: TalentRanks): AssumptionI
   if (abilities.has('aimedShot') || abilities.has('multiShot') || abilities.has('sniperShot')) ids.push('shotCastHaste')
   if (abilities.has('serpentSting')) ids.push('serpentStingCrits')
   // Its text covers both: Arcane Shot's Arcane and Serpent Sting's Nature resists (doctrine §4).
-  if (abilities.has('arcaneShot') || abilities.has('serpentSting')) ids.push('arcaneShotResists')
+  if (abilities.has('arcaneShot') || abilities.has('serpentSting')) ids.push('arcaneShotResists', 'shotScaling')
   if (abilities.has('huntersMark')) ids.push('huntersMarkLands')
   if (plan.pet) ids.push('petBaseStats', 'focusRegen', 'petTable', 'petBuffs')
   if (rank(talents, 'Careful Aim') > 0) ids.push('carefulAim')

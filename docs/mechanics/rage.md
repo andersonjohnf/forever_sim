@@ -172,7 +172,7 @@ server-side, so the client tables can't confirm it.
 ### Off-hand rage [?]
 
 **An off-hand hit gives half a main-hand hit's rate: `0.5 × 3.46 × OH speed`** before Dual Wield
-Specialization. The advanced log has no hand flag on a swing, so each dual-wielding warrior's
+Specialization. The advanced log has no hand flag on a landed swing, so each dual-wielding warrior's
 landed white swings are read by the rage they give (the change in the power snapshot, with nothing
 else touching the pool in between, as in [rounding](#rounding)): every one of them falls into two
 groups, one at `3.46 × s` for a one-hander's speed `s` and one at half of `3.46 × s'`:
@@ -187,15 +187,21 @@ groups, one at `3.46 × s` for a one-hander's speed `s` and one at half of `3.46
 | Zomd (2.6 s and 1.8 s, both ways round) | 56 at 8.9–9.0 or 6.2–6.3 | 64 at 3.1–3.2 or 4.4–4.5 | 8.996 or 6.228; 3.114 or 4.498 |
 | Cap (2.3 s, 1.7 s) | 10 at 7.9–8.0 | 11 at 2.9–3.0 | 7.958; 2.941 |
 
-254 off-hand swings from 7 warriors (levels 10–17, build 1.60.1, 22–23 Sep 2026), all at half.
+254 off-hand swings from 7 low-level warriors (build 1.60.1, 22–23 Sep 2026), all at half.
 At the full rate the off-hand groups would need weapons of 0.65–0.95 s, which don't exist, and
 Nooch's two identical daggers split 4.5 and 2.25. The halves are exact, so none of these warriors
-had Dual Wield Specialization (Tarch's posted talents have none). The analysts behind the
+had Dual Wield Specialization (Tarch's posted talents have none). **A check that doesn't use the
+rage:** a missed swing (`SWING_MISSED`) does carry the hand flag. The times between each warrior's
+flagged off-hand misses repeat at the off hand's speed (Siax 1,302 ms, Tarch 1,941, Arle 1,641,
+Alei 1,724, Cap 1,716, Zomd 1,880), and the same hand's next landed swing falls in the half-rate
+group after 23 of 26 off-hand misses, and in the full-rate group after 16 of 17 main-hand misses.
+So the grouping is by hand, and the half rate isn't an artefact of reading hands from the rage. The analysts behind the
 [Unbridled Wrath report](../classes/warrior.md#unbridled-wrath-on-the-beta-) read the off hand's
 rate the same way, 1.73 × speed. Tagged [?] as a third-party log analysis
 ([D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23));
 it's untested at 60 and with the talent. Logs: [magey/forever-warrior#4][fw-4] and its discussions,
-[Marrow's labelled logs][marrow-logs], and a public double-dagger test log.
+[Marrow's labelled logs][marrow-logs], and [Arle's double-dagger test log][arle-log] (posted in
+[magey/forever-warrior#3][fw3]).
 
 ### Outcome summary for a white swing
 
@@ -999,6 +1005,7 @@ sample size (doctrine §2, tier 2).
 [fb72]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/72
 [fb78]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/78
 [fw3]: https://github.com/magey/forever-warrior/issues/3
+[arle-log]: https://gist.github.com/Arlewow/a622100ad149f4fc31ddf95f9b3aab2c
 [wsf-rage]: https://github.com/wowsims/forever/commit/f9f9f21883
 [f-pws1]: https://us.forums.blizzard.com/en/wow/t/2354715/2
 [f-pws2]: https://us.forums.blizzard.com/en/wow/t/2356535/1

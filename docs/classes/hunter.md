@@ -93,7 +93,7 @@ Normalized weapon damage, no bonus, a 0.5 s cast (hasted as Aimed Shot's [?]), 2
 ### 3.3 Arcane Shot (r8, 14287)
 217 Arcane, instant, 190 mana, its own 6 s cooldown (category 1173). A school shot: the ranged table's
 miss and crit, the Arcane multipliers and the boss's average resist, no armor; crit ×2 as a shot's [?]:
-in the public beta logs, 28 of 422 Arcane Shots from 77 hunters crit, each at 2.00–2.08 times the
+in the public beta logs ([the logs and the method](#beta-logs)), 28 of 422 Arcane Shots from 77 hunters crit, each at 2.00–2.08 times the
 shot's logged base (the base leaves out the target's damage-taken bonuses), none near a spell's ×1.5.
 The same logs show low ranks hitting for more than their base points, an unmeasured term the sim leaves
 out ([OQ-H9](#oq-h9-arcane-shot-and-serpent-sting-scaling)).
@@ -104,10 +104,11 @@ coefficient, 230 mana [F] [client] (SpellEffect, SpellPower, SpellMisc, 1.60.1.7
 111 a tick, 250 mana) is taught by an Ahn'Qiraj book (Guide: Serpent Sting IX, item 21306 → 25295 [F]
 [client] (ItemSparse, ItemEffect, ItemXItemEffect, 1.60.1.70009)), and Ahn'Qiraj comes long after
 launch ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). Its ticks can crit (the flag), at your spell crit as it lands [?], **×2 as
-a shot's crit** [?]; a partial resist on average [?]. The ×2 is measured: in the public beta logs
-(build 1.60.1, 18–25 Sep 2026, levels up to 20), 27 of 527 Serpent Sting ticks from 66 hunters crit,
-from 19 hunters. The 12 crits of ticks of 9 or more (that didn't overkill) read 2.00–2.18 times the
-tick's logged base; smaller ticks (3–4) round wider. A ×1.5 crit of a 16-damage tick is 24, where the
+a shot's crit** [?]; a partial resist on average [?]. The ×2 is measured in the public beta logs
+(build 1.60.1, 18–25 Sep 2026, levels up to 20; [the logs and the method](#beta-logs)): 527 Serpent
+Sting ticks from 66 hunters include 27 crits, from 19 of the hunters. The 12 crits of ticks of 9 or
+more (that didn't overkill) read 2.00–2.18 times the tick's logged base; smaller ticks (3–4) round
+wider. A ×1.5 crit of a 16-damage tick is 24, where the
 logs show 33. Until
 2026-09-26 the sim used a spell's ×1.5; the ×2 adds 0.7% to Marksmanship's DPS, 0.2% to Beast
 Mastery's and 0.4% to Survival's (the default seed, 10,000 fights). The logs can't tell spell crit from ranged crit at those
@@ -165,7 +166,7 @@ talents: Savage Strikes, Predator's Edge, Counterattack, Expose Prey, Lacerating
 | Improved Arcane Shot (19454) | −0.3 … −1.5 s | Arcane Shot's cooldown |
 | Lone Wolf (415370) | 20% | all your damage without a pet: a build with it fights without one |
 | Trueshot Aura (1299346) | | +50 ranged attack power (rank 5), before the pull |
-| Mortal Shots (19485) | 6 … 30% | the crit damage bonus of Auto Shot, Aimed Shot, Multi-Shot, Arcane Shot and Serpent Sting: ×2 → ×2.3, ×1.5 → ×1.65 [C] (Sniper Shot isn't in its mask) |
+| Mortal Shots (19485) | 6 … 30% | the crit damage bonus of Auto Shot, Aimed Shot, Multi-Shot, Arcane Shot and Serpent Sting: ×2 → ×2.3 at 5/5, Serpent Sting's tick crits included (§3.4) [C] (Sniper Shot isn't in its mask) |
 | Barrage (19461) | 3, 7, 10% | Aimed Shot's and Multi-Shot's damage |
 | Ranged Weapon Specialization (19507) | 1 … 5% | the ranged weapon's damage: Auto Shot and the physical shots [?] |
 | Sniper Shot (1310687) | | §3.5 |
@@ -490,5 +491,26 @@ the difference in damage over the difference in attack power is the coefficient.
   and [player_classlevelstats](https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_classlevelstats.sql);
   [RatingBuster at d11164c](https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua). Not evidence.
 - The core's sources for the ranged table, Auto Shot, the pet and Focus ([ranged-and-pets.md](../mechanics/ranged-and-pets.md#sources)).
+- <a id="beta-logs"></a>**Public beta combat logs** (build 1.60.1, 18–25 Sep 2026), third-party
+  logs re-read on 2026-09-26 for §3.3, §3.4, OQ-H1 and OQ-H9 [?]
+  ([D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23)):
+  [tzcnt/forever-data @c7d1746][fd-logs]; the logs attached to
+  [forever-bugs#81][fb-81] (`resistances.txt`, `Fireball Vuln Test.txt`) and
+  [forever-bugs#54][fb-54]; those attached to [magey/forever-warrior#4][fw-4] and its
+  [discussions][fw-disc] (the 23–25 Sep logs and discussion 13's Fishliver logs);
+  [Marrow's labelled logs][marrow-logs] (the `tarch_uw*` set); and [1337LutZ's gist][lutz-gist].
+  **Method:** each `SPELL_DAMAGE` (Arcane Shot) or `SPELL_PERIODIC_DAMAGE` (Serpent Sting) event a
+  player's hunter logs with the crit flag, its amount with any resisted, absorbed or overkill part
+  added back, over the base amount the advanced log records for that hit. The ranges quoted use
+  hits of 9 or more whose crit didn't overkill, since smaller ones round too coarsely; the crit
+  rates are crits over all the hunters' ticks or shots of that spell.
 - [fh-changes] The forever-hunter wiki, [Forever Beta Changes](https://github.com/classic-hunter/forever-hunter/wiki/Forever-Beta-Changes):
   the testers' report of the pet's inheritance [?] (secondary).
+
+[fd-logs]: https://github.com/tzcnt/forever-data/tree/c7d17462c50d1eb0103aa5e2aff52f77f33e3418/raw-logs
+[fb-81]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/81
+[fb-54]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/54
+[fw-4]: https://github.com/magey/forever-warrior/issues/4
+[fw-disc]: https://github.com/magey/forever-warrior/discussions
+[marrow-logs]: https://github.com/ppach/marrow.github.io/tree/master/eternal/data/logs
+[lutz-gist]: https://gist.github.com/077264a1aada001889e5ce0f47674623

@@ -16,6 +16,7 @@ import itemJson from '@/data/items/pre-bis.json'
 import raceJson from '@/data/races/races.json'
 import { racesForClass, type RaceData } from '@/data/races/types'
 import type { ItemData } from '@/data/items/types'
+import { revengeDamageText, unbridledWrathText } from './assumptions'
 import { buildPlan, setOf } from './build'
 import { STANCE, STANCE_ANY, TRIGGER } from './types'
 
@@ -700,6 +701,16 @@ describe('assumptions', () => {
     expect(shout.find((a) => a.id === 'spellTable')!.text).toMatch(/^Demoralizing Shout rolls the spell table/)
     expect(shout.map((a) => a.id)).not.toContain('spellTableCrit')
     expect(notes({ 'warrior.protection.revenge.enabled': false }).map((a) => a.id)).not.toContain('revengeWindow')
+    expect(notes({ 'warrior.protection.revenge.enabled': false }).map((a) => a.id)).not.toContain('revengeDamage')
+  })
+
+  it('gives Revenge’s damage its own assumption, linked to warrior.md §3.1, at the build’s Improved Revenge rank (BU-1, Q38)', () => {
+    const revenge = buildPlan(defaultConfig('warrior-protection')).assumptions.find((a) => a.id === 'revengeDamage')!
+    expect(revenge.docRef).toBe('docs/classes/warrior.md#31-damage-abilities')
+    expect(revenge.text).toMatch(/^Revenge deals the Forever client’s 109–133, ×1\.6 with Improved Revenge 3\/3 \(174–213\), with nothing from your attack power\./)
+    // The default build takes 3/3; other ranks give their own range, and none leaves the talent out.
+    expect(revengeDamageText(1)).toMatch(/^Revenge deals the Forever client’s 109–133, ×1\.2 with Improved Revenge 1\/3 \(131–160\), with nothing/)
+    expect(revengeDamageText(0)).toMatch(/^Revenge deals the Forever client’s 109–133, with nothing from your attack power\./)
   })
 
   it('surfaces Unbridled Wrath on Heroic Strike swings and Raging Blows only when the build relies on them', () => {
@@ -715,6 +726,18 @@ describe('assumptions', () => {
     expect(twoHander).not.toContain('ragingBlows')
     expect(twoHander).toContain('unbridledWrathSwings')
     expect(ids({ ...fury, rotation: { 'warrior.fury.whirlwind.enabled': false } })).not.toContain('ragingBlows')
+  })
+
+  it('gives the Unbridled Wrath assumption the beta’s rate and only the reader’s spec’s loss at it (warrior.md §2.3, BU-8)', () => {
+    const text = (config: SimConfig) => buildPlan(config).assumptions.find((a) => a.id === 'unbridledWrathSwings')?.text
+    const fury = text(defaultConfig('warrior-fury'))!
+    expect(fury).toMatch(/The sim uses the talent’s 12% a rank; on the beta it procs about 7\.2% a rank/)
+    expect(fury).toMatch(/At the beta’s rate you’d lose about 0\.7% of your damage\.$/)
+    expect(fury).not.toMatch(/Arms/)
+    const arms = text(defaultConfig('warrior-arms'))!
+    expect(arms).toMatch(/At the beta’s rate you’d lose about 1% of your damage\.$/)
+    expect(arms).not.toMatch(/Fury/)
+    expect(unbridledWrathText('warrior-protection')).toMatch(/later build fixes\.$/)
   })
 
   it('gives a Gnome of every class its Eureka!: the aura, its charges and cuts, the abilities it modifies, and the assumption with its cut (classes/eureka.ts)', () => {

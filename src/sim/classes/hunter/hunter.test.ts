@@ -158,11 +158,17 @@ describe('the default hunters’ plans', () => {
     expect(buildPlan(config).assumptions.some((a) => a.id === 'ammoNotFired')).toBe(false)
   })
 
-  it('lists the resist assumption when Serpent Sting is used without Arcane Shot, and not with neither', () => {
+  it('lists the resist and scaling assumptions when Serpent Sting is used without Arcane Shot, and not with neither', () => {
     const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
     // Marksmanship's default: Serpent Sting on, Arcane Shot off.
-    expect(ids(defaultConfig(MM))).toContain('arcaneShotResists')
-    expect(ids({ ...defaultConfig(MM), rotation: { 'hunter.marksmanship.serpentSting.enabled': false } })).not.toContain('arcaneShotResists')
+    expect(ids(defaultConfig(MM))).toEqual(expect.arrayContaining(['arcaneShotResists', 'shotScaling']))
+    const neither = ids({ ...defaultConfig(MM), rotation: { 'hunter.marksmanship.serpentSting.enabled': false } })
+    expect(neither).not.toContain('arcaneShotResists')
+    expect(neither).not.toContain('shotScaling')
+    // The scaling has its own row, linked to hunter.md's open question, not the resist's (BU-10, OQ-H9).
+    const scaling = buildPlan(defaultConfig(MM)).assumptions.find((a) => a.id === 'shotScaling')!
+    expect(scaling.docRef).toBe('docs/classes/hunter.md#oq-h9-arcane-shot-and-serpent-sting-scaling')
+    expect(buildPlan(defaultConfig(MM)).assumptions.find((a) => a.id === 'arcaneShotResists')!.text).not.toMatch(/attack power/)
   })
 
   it('Lone Wolf: Marksmanship fights without a pet for +20% damage; Beast Mastery and Survival have a cat', () => {

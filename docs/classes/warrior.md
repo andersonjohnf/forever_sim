@@ -241,7 +241,7 @@ This section adds the warrior's own sources and sinks.
 | Source or modifier | Rule | Tag |
 | --- | --- | --- |
 | Max rage | 100 + 10 × Boundless Rage rank, so 130 at 3/3. Gnomes get +5% max rage from Expansive Mind; how the two combine is Q17 | [F] [tal] [rac] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (aura 418, 100/200/300 tenths) |
-| Unbridled Wrath | On every **auto attack** that deals damage (hit, crit, glance or block; not miss, dodge or parry), a 12% per rank chance to gain 1 rage, or 2 with a two-hander. Auto attacks are white swings of either hand and extra attacks; **Heroic Strike and Cleave swings don't proc it**, since the talent's proc mask is "melee auto attack" only and those swings are melee abilities ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). The pre-SoD WarriorSim let Heroic Strike swings proc it (it has no Cleave); the sim no longer does. The beta logs bear the mask out (none of about 250 Heroic Strike and Cleave hits procced it; Q5) and show 2 rage with a two-hander and no weapon-speed (PPM) scaling. **They also show a lower chance, about 7.5% a rank, which the developers call a bug, fixed "in a future beta build"** ([Unbridled Wrath on the beta](#unbridled-wrath-on-the-beta-)): the sim keeps the talent's 12% | [F] [tal] [client] (SpellAuraOptions, CurvePoint, 1.60.1.69913; the mask again in 1.60.1.70009) (12322 mask 0x4, curve 12–60, energize 12964 = 10 tenths); the beta's rate [?] [fb-105] |
+| Unbridled Wrath | On every **auto attack** that deals damage (hit, crit, glance or block; not miss, dodge or parry), a 12% per rank chance to gain 1 rage, or 2 with a two-hander. Auto attacks are white swings of either hand and extra attacks; **Heroic Strike and Cleave swings don't proc it**, since the talent's proc mask is "melee auto attack" only and those swings are melee abilities ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). The pre-SoD WarriorSim let Heroic Strike swings proc it (it has no Cleave); the sim no longer does. The beta logs bear the mask out (none of 397 Heroic Strike and Cleave hits had a proc within 50 ms that a white swing at the same moment didn't account for; Q5) and show 2 rage with a two-hander and no weapon-speed (PPM) scaling. **They also show a lower chance, about 7.2% a rank, which the developers call a bug, fixed "in a future beta build"** ([Unbridled Wrath on the beta](#unbridled-wrath-on-the-beta-)): the sim keeps the talent's 12% | [F] [tal] [client] (SpellAuraOptions, CurvePoint, 1.60.1.69913; the mask again in 1.60.1.70009) (12322 mask 0x4, curve 12–60, energize 12964 = 10 tenths); the beta's rate [?] [fb-105] |
 | Dual Wield Specialization | Rage from off-hand auto attacks × (1 + 0.20 × rank), so ×2.0 at 5/5. Applied to the rage [rage.md](../mechanics/rage.md) computes for that off-hand swing, including dodge rage | [F] [tal] [client] (CurvePoint, 1.60.1.69913) |
 | Anger Management | +1 rage every 3 s in combat, on a fixed 3 s tick from combat start | [F] [tal]; [C] |
 | Bloodrage | +10 rage at once, then +1 per second for 10 s. Improved Bloodrage multiplies all of it by 1 + 0.25 × rank (15 + 15 at 2/2). 60 s cooldown, off the GCD, puts the warrior in combat, so it can be used before the pull | [F] [sb] [tal] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (2687 = 100, 29131 = 10 per s; 25/50) |
@@ -258,7 +258,7 @@ This section adds the warrior's own sources and sinks.
 Public beta combat logs (build 1.60.1, 22–23 Sep 2026) count Unbridled Wrath's procs (its
 `SPELL_ENERGIZE`, 12964) against the warrior's landed white swings (hits, crits, glances, blocks):
 
-| Character, talent rank (posted) | Weapons | Landed swings | Procs | Rate | Per rank |
+| Character, talent rank (posted, or the tooltip's) | Weapons | Landed swings | Procs | Rate | Per rank |
 | --- | --- | --: | --: | --- | --- |
 | Tarch, 1/5 | 3.3 s two-hander; 2.0 and 1.9 s one-handers | 244 | 19 | 7.8% | 7.8% |
 | Tarch, 2/5 | same | 250 | 41 | 16.4% | 8.2% |
@@ -267,10 +267,14 @@ Public beta combat logs (build 1.60.1, 22–23 Sep 2026) count Unbridled Wrath's
 | Budder, 1/5 | 3.6 s two-hander | 435 | 34 | 7.8% | 7.8% |
 | Budder, 2/5 | same | 427 | 62 | 14.5% | 7.3% |
 | Zomd, 5/5 | 3.8 s two-hander; 2.6 and 1.8 s one-handers | 1,159 | 414 | 35.7% | 7.1% |
+| Alei, 5/5 (the tooltip's 60%) | 2.8 and 1.7 s one-handers | 280 | 90 | 32.1% | 6.4% |
+| Nooch, 5/5 (the tooltip's 60%) | two 1.3 s daggers | 501 | 167 | 33.3% | 6.7% |
 
-Pooled over the three characters, 706 procs in 9,418 rank-weighted swings give **7.5% a rank**
-(95% CI 7.0–8.0%); the talent's 12% is ruled out at every rank. Two more warriors whose rank wasn't posted
-(Alei 32.1%, 280 swings; Nooch 33.3%, 501) fit 4/5 at the beta's rate as well as 3/5 at 12%. The chance per
+Pooled over the five characters, 963 procs in 13,323 rank-weighted swings give **7.2% a rank**
+(95% CI 6.8–7.6%); the talent's 12% is ruled out at every rank. Alei's and Nooch's ranks weren't
+posted, but [magey/forever-warrior#4][fw-4] compares both with the tooltip's 60%, the 5/5
+chance; the three with posted ranks alone give 7.5% (706 procs in 9,418, 95% CI 7.0–8.0%),
+the figure the tracker report quotes. The chance per
 swing is the same with a 1.3 s dagger as with a 3.8 s two-hander, so it isn't a PPM: Tarch's
 two-hander gives 8.9% a rank against his one-handers' 8.2%, where a PPM would make it about 1.7
 times as much (the analysts behind the tracker report fit an exponent on speed of 0.05, CI −0.24 to
@@ -281,8 +285,8 @@ The tracker report of this ([forever-bugs#105][fb-105], 2026-09-23) was answered
 maintainer on 2026-09-24: "Fixed in a future beta build. Not this upcoming one, but the one after."
 So the beta's rate is a bug the developers mean to fix, and the sim models the talent as the client
 and tooltip give it, **12% a rank** [F]. If the fix doesn't land, the default goes to the measured
-rate: at 7.5% a rank the default Fury warrior makes 0.65% less damage and the default Arms warrior
-1.0% less (the default seed, 50,000 fights each; question 5).
+rate: at 7.2% a rank the default Fury warrior makes 0.7% less damage and the default Arms warrior
+1.0% less (842.64 → 836.91 and 821.07 → 812.73, the default seed, 50,000 fights each; question 5).
 
 **Cost reductions.** All are flat and stack additively:
 
@@ -3183,13 +3187,14 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
 5. **Unbridled Wrath.** Does it proc from Heroic Strike and Cleave swings? The data's mask is
    "auto attack", so the sim procs it from white swings and extra attacks only
    ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)); the pre-SoD WarriorSim
-   counted Heroic Strike swings [ws-player]. The beta logs agree with the mask: about 250 Heroic
-   Strike and Cleave hits procced it once at most, where white swings procced it a third of the
-   time ([§2.3](#unbridled-wrath-on-the-beta-)) [?]. **Still open: the chance.** On the beta it
-   procs 7.5% a rank, not the talent's 12%, a bug the developers say a later build fixes
+   counted Heroic Strike swings [ws-player]. The beta logs agree with the mask: none of 397 Heroic
+   Strike and Cleave hits had a proc within 50 ms that a white swing at the same moment didn't
+   account for, where white swings procced it a third of the time
+   ([§2.3](#unbridled-wrath-on-the-beta-)) [?]. **Still open: the chance.** On the beta it
+   procs 7.2% a rank, not the talent's 12%, a bug the developers say a later build fixes
    [fb-105]; the sim uses 12% [F]. **Test:** on the fixed build, 5/5 Unbridled Wrath, count its
    energizes against landed white swings (≥1,000 swings); if it stays near 36%, the default moves
-   to the measured rate (−0.65% Fury, −1.0% Arms).
+   to the measured rate (−0.7% Fury, −1.0% Arms).
 6. **Heroic Strike queue and off-hand miss.** Does a queued Heroic Strike still lift the
    dual-wield miss penalty from off-hand swings, as in Classic Era's "not a bug" [bnet-hsq]?
    A third-party beta test says yes (5.19% vs 18.27% off-hand miss over 77 and 394 swings,
@@ -3411,11 +3416,12 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     crits at the special-attack crit chance for ×2 (×2.2 with Impale, whose class mask has it)
     ([§7](#7-implementation-notes) "Spell-table abilities") [?]. **The beta logs disagree on the
     crits:** 4 of 1,348 Thunder Claps from 39 warriors crit (0.3%, 95% CI 0.1–0.8%), where the same
-    warriors' white swings crit 10.4% of the time (783 of 7,511); the crits read 1.06–1.44 times the logged
-    base. So it seems to crit at the warrior's spell crit, near zero, not the special-attack
-    crit [?]. The engine still uses the special-attack crit: changing a spell-table ability's crit
-    chance is an engine change, left open. With Thunder Clap off in the default Balanced rotation
-    the headline doesn't move; the Defensive rotation's Thunder Clap threat is a little high.
+    warriors' white swings crit 10.4% of the time (783 of 7,511). The 4 crits read 1.06–1.44 times
+    the logged base, neither a ×1.5 nor a ×2 crit, so they may not be ordinary crits at all. Either
+    way it seems to crit at the warrior's spell crit, near zero, not the special-attack crit [?]. The engine still uses the special-attack crit: changing a spell-table ability's crit
+    chance is an engine change, left open ([known gaps](../known-gaps.md)). With Thunder Clap off in
+    the default Balanced rotation the headline doesn't move; the Defensive rotation's Thunder Clap
+    threat is a little high.
     **Test:** against mobs three levels higher, with and without +hit, count Thunder Clap's and
     Demoralizing Shout's misses and the rage a missed one costs, and Thunder Clap's crits and their
     size against its hits.

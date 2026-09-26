@@ -75,11 +75,11 @@ row says otherwise. Spell ranges are at level 60 before spell damage.
 | Area | Classic Era [C] | WoW Forever [F] | Source |
 | --- | --- | --- | --- |
 | Fireball r11 (10151) | 561–715, DoT 18 × 4 | **396.57–505.43** (451 ± 12.1%), DoT **14 × 4**; coefficient 1.0 both | [client] (SpellEffect, 1.60.1.70009; [f10151]); tooltip "397 to 505 … 56 Fire damage over 8 sec" |
-| Scorch r7 (10207) | 237–279 | **166.68–196.12**; 0.429 | [client] ([f10207]) |
+| Scorch r7 (10207) | 237–279 | **166.28–195.72**; 0.429 | [client] ([f10207]) |
 | Fire Blast r7 (10199) | 446–524 | **416.66–489.34**; 0.429 | [client] ([f10199]) |
 | Pyroblast r8 (18809) | 716–890, DoT 67 × 4 | **519.84–646.16**, DoT **53 × 4** (0.15 a tick); 1.0 | [client] ([f18809]) |
-| Frostbolt r10 (10181) | 440.6–474.6 | **382.89–412.31** (−13%); 0.814 | [client] ([f10181]) |
-| Arcane Missiles r7 (10212 → 10274) | 195.6 a missile, 0.24 | **174.6** a missile, **0.286** | [client] ([f10274]) |
+| Frostbolt r10 (10181) | 440–474 | **382.29–411.71** (−13%); 0.814 | [client] ([f10181]) |
+| Arcane Missiles r7 (10212 → 10274) | 195 a missile, 0.24 | **174** a missile, **0.286** | [client] ([f10274]) |
 | Improved Scorch (11095 → 22959) | Fire Vulnerability on the boss for everyone's Fire (aura 87) | **your own**: aura 270 on the boss, "+3% Fire damage from the Mage" a stack | [client] (SpellEffect, 1.60.1.69913); [Improved Scorch](#improved-scorch) |
 | Winter's Chill (11180 → 12579) | +2% crit a stack for anyone's Frost spells | **your own**: aura 308, class mask **Frostbolt and Ice Lance** only | [client] (SpellEffect); [Winter's Chill](#winters-chill) |
 | Combustion (11129) | ends after 3 Fire crits | ends after **4** non-periodic Fire crits (`ProcCharges` 4) | [client] (SpellAuraOptions) |
@@ -110,8 +110,9 @@ row says otherwise. Spell ranges are at level 60 before spell damage.
 
 ## Spells
 
-Ranges are base × (1 ± variance / 2) plus the rank's per-level points up to 60
-([spells §5](../mechanics/spells.md#5-spell-power-and-coefficients)); each matches the Forever
+Ranges are base × (1 ± variance / 2) plus the rank's per-level points up to 60, truncated to a
+whole number as the client renders them ([per-level values](../data/items.md#per-level-values);
+[spells §5](../mechanics/spells.md#5-spell-power-and-coefficients)); each matches the Forever
 tooltip [F] [client] (SpellEffect, SpellMisc, SpellPower, SpellCastTimes, 1.60.1.69913;
 `src/data/spells/mage.json`). Every one is magic (DefenseType 1), on the GCD, and triggers procs.
 "SP" is the school's spell damage.
@@ -132,7 +133,7 @@ rank 10 (10181) and Arcane Missiles rank 7 (10212), the top ranks a trainer teac
 | Spell (id) | Range at 60 | SP coefficient | Mana | Cast, cooldown |
 | --- | --- | --- | --- | --- |
 | Fireball r11 (10151) | 396.57–505.43 (451 ± 12.07%), then a DoT of 14 every 2 s for 8 s (4 ticks, coefficient 0) | 1.0 | 395 | 3.5 s (3.0 with Improved Fireball 5/5) |
-| Scorch r7 (10207) | 166.68–196.12 (178 ± 8.27%, +1.7 a level from 58) | 0.429 | 150 | 1.5 s |
+| Scorch r7 (10207) | 166.28–195.72 (178 ± 8.27%, + trunc(1.7 a level from 58) = 3) | 0.429 | 150 | 1.5 s |
 | Fire Blast r7 (10199) | 416.66–489.34 (438 ± 8.30%, +3 a level from 54 to 59) | 0.429 | 340 | instant, 8 s (6 s with Wake of Fire 2/2) |
 | Pyroblast r8 (18809) | 519.84–646.16 (583 ± 10.83%), then 53 every 3 s for 12 s (4 ticks, 0.15 a tick) | 1.0 | 440 | 6 s (Hot Streak cuts it) |
 
@@ -152,7 +153,7 @@ rank 10 (10181) and Arcane Missiles rank 7 (10212), the top ranks a trainer teac
 
 | Spell (id) | Range at 60 | SP coefficient | Mana | Cast |
 | --- | --- | --- | --- | --- |
-| Frostbolt r10 (10181) | 382.89–412.31 (386 ± 3.81%, +2.9 a level from 56 to 60) | 0.814 | 260 (221 with Frost Channeling 3/3) | 3.0 s (2.5 with Improved Frostbolt 5/5) |
+| Frostbolt r10 (10181) | 382.29–411.71 (386 ± 3.81%, + trunc(2.9 a level from 56 to 60) = 11) | 0.814 | 260 (221 with Frost Channeling 3/3) | 3.0 s (2.5 with Improved Frostbolt 5/5) |
 
 #### Frostbolt
 
@@ -169,7 +170,7 @@ travel time isn't simulated ([spells OQ-S13](../mechanics/spells.md#open-questio
 
 | Spell (id) | Damage at 60 | SP coefficient | Mana | Cast |
 | --- | --- | --- | --- | --- |
-| Arcane Missiles r7 (10212 → missile 10274) | 5 missiles of 174.6 (171 + 0.9 a level from 56; the tooltip truncates to 174), one a second from 1 s after the start (aura 23, period 1,000) | 0.286 a missile | 595 | a 5 s channel |
+| Arcane Missiles r7 (10212 → missile 10274) | 5 missiles of 174 (171 + trunc(0.9 a level from 56) = 171 + 3, as the tooltip renders it), one a second from 1 s after the start (aura 23, period 1,000) | 0.286 a missile | 595 | a 5 s channel |
 | Arcane Blast r5 (1239700) | 364.25–423.75 (394 ± 7.55%) | 0.714 | 15% of base mana (181) | 2.5 s |
 
 - **Each missile is its own spell**, with its own hit, crit and partial resist, and fires its own
@@ -876,8 +877,8 @@ engine in `src/sim/classes/mage/mage.test.ts` ("worked examples"), in the `forev
    the Elements), rank 11: (451 + 1.0 × 400) × 1.10 × 1.03 × 1.15 × 1.10 × 0.94 = **1,146.51** at the
    middle of its range (**1,073.18–1,219.84** over 396.57–505.43). Curse of the Elements' −75 can't take the
    boss below its own 0, so the level's 24 still resists.
-2. **A Frostbolt crit** (rank 10, Ice Shards 5/5): (397.6 + 0.814 × 400) × 2.0 = (397.6 + 325.6) ×
-   2.0 = **1,446.4** (**1,416.97–1,475.83** over its range). It's binary, so a landed one takes no partial
+2. **A Frostbolt crit** (rank 10, Ice Shards 5/5): (397 + 0.814 × 400) × 2.0 = (397 + 325.6) ×
+   2.0 = **1,445.2** (**1,415.77–1,474.63** over its range). It's binary, so a landed one takes no partial
    resist.
 3. **Ignite from one 1,000 crit** (Ignite 5/5): 40% = **400** into the pool; **2 ticks of 200 × 0.94 =
    188**, 2 s and 4 s after the crit. With Fire Vulnerability or Curse of the Elements up, the crit

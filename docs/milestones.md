@@ -445,10 +445,10 @@ where it changes) and updates only its own ux.md subsection.
 The changes the user adopted after comparing WarriorSim's Forever mode with ours
 ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25); the six comparisons were
 research only). They ship as soon as the gate passes, ahead of the tooltips.
-- [ ] **W1 Warrior and engine:** Deep Wounds rolls; Unbridled Wrath only from auto attacks;
+- [x] **W1 Warrior and engine:** Deep Wounds rolls; Unbridled Wrath only from auto attacks;
       Rend's ticks add 0.02 × AP; Windfury's attack-power buff keeps its second charge
-- [ ] **W2 Pre-AQ ranks:** every class's abilities and the buff catalogue drop the AQ books' ranks;
-      Gift of Arthas joins the boss debuffs
+- [x] **W2 Pre-AQ ranks:** every class's abilities and the buff catalogue drop the AQ books' ranks
+- [x] **W5 Gift of Arthas** joins the boss debuffs (Max consumables), +8 on each direct physical hit
 - [x] **W3 Skyborne warriors and hunters:** the class-row placeholder (D24) in place of the refusal
 - [ ] **W4 Re-tune:** the warrior defaults after W1–W2, with every spec's headline checked (D29)
 

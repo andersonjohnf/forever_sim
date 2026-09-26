@@ -43,6 +43,7 @@ const NO_ABILITIES: SimConfig['rotation'] = {
   'warrior.fury.bloodthirst.enabled': false,
   'warrior.fury.whirlwind.enabled': false,
   'warrior.fury.overpower.enabled': false,
+  'warrior.fury.rend.enabled': false,
   'warrior.fury.heroicStrike.enabled': false,
   'warrior.fury.hamstring.enabled': false,
   'warrior.fury.execute.enabled': false,
@@ -601,6 +602,9 @@ describe('golden run (fixed config and seed)', () => {
   //   716.09 → 695.06, Arms 690.40 → 674.75 DPS; Protection 1,001.65 → 944.45 TPS (Defensive 932.66 →
   //   882.32); the bear 1,125.69 → 1,100.47 TPS (Defensive 1,092.83 → 1,068.36); the cat 567.60 → 554.10
   //   DPS.
+  // - D36's re-tune (W4, warrior.md §5.2 "Re-tuning after D36"): the 13/38/0 build (Precision 3, Improved Execute 2,
+  //   no Impale or Anger Management), the Rend dance below the Overpower dance, and that dance up to 45 rage. DPS
+  //   805.35 → 844.30, TPS 473.51 → 493.49; Execute's cost 15 → 10, and Rend's 0.02 × AP ticks join the bleeds.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)
@@ -619,6 +623,9 @@ describe('golden run (fixed config and seed)', () => {
   //   (6 s before); Slam's cooldown is 18 s, less Improved Slam's 1.5 s a rank (15 s at 2/2, as before).
   //   Overpower 9,942 → 16,760 casts (11.44 M → 19.33 M damage), Hamstring 9,343 → 7,488 and Spearing
   //   Strike 5,119 → 4,842 for its global cooldowns; DPS 647.48 → 690.40, TPS 373.96 → 391.03.
+  // - D36's re-tune (W4, warrior.md §5.3 "Re-tuning after D36"): the 35/16/0 build (Improved Execute 1, Improved
+  //   Cleave 2, no Spearing Strike or Piercing Howl), Overpower first after Battle Shout and Hamstring from 30.
+  //   DPS 797.08 → 822.14, TPS 451.07 → 467.70.
   it('keeps the default Arms warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-arms'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)
@@ -674,6 +681,9 @@ describe('golden run (fixed config and seed)', () => {
   //   (warrior.md §5.4). Sunder Armor's threat 36.67 M → 10.16 M, Shield Slam 20.06 M → 24.28 M; TPS
   //   1,241.15 → 993.42, DPS unchanged (385.89). Max TPS now keeps Shield Block (D26's rule: its blocks
   //   make more threat than its rage would elsewhere): TPS 1,003.59, DPS 387.90, damage taken 738.18.
+  // - D36's re-tune (W4, warrior.md §6.1): the 13/5/33 build with Deep Wounds (Improved Rend 3, Deep Wounds 3 for
+  //   Improved Sunder Armor 3, Vanguard, Toughness 1 and an Improved Heroic Strike point). TPS 944.98 → 987.82, DPS
+  //   373.37 → 410.20 (Defensive below: 882.78 → 925.59 TPS, 351.76 → 386.49 DPS); the rotation is unchanged.
   it('keeps the default Protection warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)

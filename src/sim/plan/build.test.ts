@@ -3,7 +3,8 @@
 import { describe, expect, it } from 'vitest'
 import { decodeTalentCode, encodeTalentCode } from '@/data/talents/types'
 import { meleeChances } from '../core/attack-table'
-import { defaultConfig, TALENT_DATA } from '../defaults'
+import { defaultConfig as todaysDefaultConfig, TALENT_DATA } from '../defaults'
+import { withPopularTalents } from '../classes/warrior/popular-builds'
 import { presetBuffIds } from '../effects/presets'
 import { Sim } from '../engine/sim'
 import { rotationOff } from '../engine/test-helpers'
@@ -17,6 +18,10 @@ import { racesForClass, type RaceData } from '@/data/races/types'
 import type { ItemData } from '@/data/items/types'
 import { buildPlan, setOf } from './build'
 import { STANCE, STANCE_ANY, TRIGGER } from './types'
+
+/** Today's default setup with the popular warrior builds, the defaults until W4, which these tests were written
+ * for (popular-builds.ts; warrior.md §6.1). */
+const defaultConfig = (...args: Parameters<typeof todaysDefaultConfig>) => withPopularTalents(todaysDefaultConfig(...args))
 
 /** A bare config: no gear, no talents, no buffs, and no Battle Shout of Arms's own (warrior.md §5.3 row 1). */
 function bare(spec: SpecId = 'warrior-arms', patch: Partial<SimConfig> = {}): SimConfig {
@@ -460,7 +465,8 @@ describe('talents, racials and stances', () => {
     // The Fury default with Bloodthrill 1/5 instead of a point of Improved Heroic Strike's.
     const ranks = decodeTalentCode(TALENT_DATA.warrior, d.talents)
     const withBloodthrill = encodeTalentCode(TALENT_DATA.warrior, { ...ranks, 'warrior-arms-bloodthrill': 1, 'warrior-arms-improved-heroic-strike': 2 })
-    const { plan, assumptions } = buildPlan({ ...d, talents: withBloodthrill, rotation: { 'warrior.fury.overpower.enabled': true } })
+    // The Rend dance (W4) off: Bloodthrill's proc needs your Rend.
+    const { plan, assumptions } = buildPlan({ ...d, talents: withBloodthrill, rotation: { 'warrior.fury.overpower.enabled': true, 'warrior.fury.rend.enabled': false } })
     const op = plan.abilities.find((a) => a.id === 'overpower')!
     expect(plan.auras[op.window].id).toBe('overpowerWindow')
     const dodge = plan.procs.find((p) => p.id === 'overpowerDodge')!
@@ -469,6 +475,8 @@ describe('talents, racials and stances', () => {
     expect(plan.procs.map((p) => p.id)).not.toContain('bloodthrill')
     expect(assumptions.map((a) => a.id)).toContain('overpowerWindow')
     expect(assumptions.map((a) => a.id)).not.toContain('bloodthrill')
+    // With the Rend dance, on by default since W4, it's kept.
+    expect(buildPlan({ ...d, talents: withBloodthrill }).plan.procs.map((p) => p.id)).toContain('bloodthrill')
   })
 
   it('gives a weapon racial’s crit to all attacks and spells while either hand holds that weapon (warrior.md §2.9) [?] (Q15)', () => {
@@ -589,11 +597,11 @@ describe('base values the sim stands in for (D24), and setups it can’t run yet
     // docs/mechanics/character-stats.md#warrior-base-attributes: the warrior class row is the Human
     // row 120/80/110/30/45; docs/classes/hunter.md#75-base-values: the hunter's is 55/125/90/65/70.
     const cases = [
-      ['warrior-fury', 'Str 120, Agi 80, Sta 110, Int 30, Spi 45'],
-      ['warrior-protection', 'Str 120, Agi 80, Sta 110, Int 30, Spi 45'],
-      ['hunter-marksmanship', 'Str 55, Agi 125, Sta 90, Int 65, Spi 70'],
+      ['warrior-fury', 'Str 120, Agi 80, Sta 110, Int 30, Spi 45', 'warrior'],
+      ['warrior-protection', 'Str 120, Agi 80, Sta 110, Int 30, Spi 45', 'warrior'],
+      ['hunter-marksmanship', 'Str 55, Agi 125, Sta 90, Int 65, Spi 70', 'hunter'],
     ] as const
-    for (const [spec, row] of cases) {
+    for (const [spec, row, cls] of cases) {
       for (const race of ['alliance-skyborne-high-order', 'horde-skyborne-windshaper']) {
         const bundle = buildPlan(defaultConfig(spec, race))
         expect(bundle.blockers, `${spec} ${race}`).toEqual([])
@@ -602,7 +610,7 @@ describe('base values the sim stands in for (D24), and setups it can’t run yet
         const ids = bundle.assumptions.map((a) => a.id)
         expect(ids).not.toContain('unknownBaseAttributes')
         expect(bundle.assumptions.find((a) => a.id === 'baseStatPlaceholders')!.text).toContain(
-          `base attributes ${row}, the class row with no race adjustment, as Skyborne’s is unknown;`,
+          `base attributes ${row}, a ${cls}’s base stats before any racial bonus, as the Skyborne’s aren’t known;`,
         )
       }
     }
@@ -828,10 +836,14 @@ describe('assumptions', () => {
     expect(ids({ ...arms, rotation: { 'warrior.arms.rend.enabled': false } })).not.toContain('bloodthrill')
     const berserker = ids({ ...arms, rotation: { 'warrior.arms.baseStance': 'berserker' } })
     for (const id of ['overpowerWindow', 'bloodthrill', 'rendTickCrits', 'rendOnHit']) expect(berserker).not.toContain(id)
-    // Fury's default uses only the Overpower window, for its Overpower dance (on since M2.5b).
+    // Fury's default uses the Overpower window, for its Overpower dance (on since M2.5b), and Rend's, for its Rend
+    // dance (on since W4); without the Rend dance, only the window.
     const fury = ids(defaultConfig('warrior-fury'))
-    expect(fury).toContain('overpowerWindow')
-    for (const id of ['bloodthrill', 'slamCast', 'spearingStrike', 'rendTickCrits', 'rendOnHit']) expect(fury).not.toContain(id)
+    for (const id of ['overpowerWindow', 'rendTickCrits', 'rendOnHit']) expect(fury).toContain(id)
+    for (const id of ['bloodthrill', 'slamCast', 'spearingStrike']) expect(fury).not.toContain(id)
+    const noRend = ids({ ...defaultConfig('warrior-fury'), rotation: { 'warrior.fury.rend.enabled': false } })
+    expect(noRend).toContain('overpowerWindow')
+    for (const id of ['bloodthrill', 'slamCast', 'spearingStrike', 'rendTickCrits', 'rendOnHit']) expect(noRend).not.toContain(id)
     expect(ids({ ...defaultConfig('warrior-fury'), rotation: { 'warrior.fury.overpower.enabled': false } })).not.toContain('overpowerWindow')
   })
 
@@ -899,5 +911,45 @@ describe('set bonuses', () => {
     const chest = agility({ chest: { itemId: 272490 } })
     expect(agility({ chest: { itemId: 272490 }, head: { itemId: 16526 } }) - chest).toBe(15) // its own 15 Agility, no bonus
     expect(agility({ chest: { itemId: 272490 }, legs: { itemId: 272492 } }) - chest).toBe(13 + 20) // its own 13, and the bonus
+  })
+})
+
+// warrior.md §2.5 (review DL-4): the rolling Deep Wounds is Forever's assumption; `classicEra` restarts
+// the bleed, Classic Era's own rule, so its results don't say it rolls.
+describe('the Deep Wounds assumption', () => {
+  it('is in a `forever` Fury warrior’s results, and not in a `classicEra` one’s', () => {
+    const ids = (profile: 'forever' | 'classicEra') => buildPlan(withRules(defaultConfig('warrior-fury'), profile)).assumptions.map((a) => a.id)
+    expect(ids('forever')).toContain('deepWounds')
+    expect(ids('classicEra')).not.toContain('deepWounds')
+  })
+})
+
+// buffs doc §1.1 (D36, review DU-8): the ranks trainable before Ahn'Qiraj, said for every setup whose
+// buffs or abilities an Ahn'Qiraj book would raise.
+describe('the pre-Ahn’Qiraj ranks assumption', () => {
+  const text = (config: SimConfig) => buildPlan(config).assumptions.find((a) => a.id === 'preAqRanks')?.text
+  const withBuffs = (spec: SpecId, enabled: string[]): SimConfig => {
+    const d = defaultConfig(spec)
+    return { ...d, buffs: { ...d.buffs, enabled } }
+  }
+  const PLAIN = 'Abilities and buffs use the ranks trainable before Ahn’Qiraj, not the higher ones its books teach.'
+  const BLESSINGS = 'Abilities and buffs use the ranks trainable before Ahn’Qiraj, not the higher ones its books teach, and the Greater Blessings’ rank 2 is taken to need Ahn’Qiraj too.'
+
+  it('is in every spec’s default results, naming the Greater Blessings where a Blessing of Might or Wisdom is on', () => {
+    for (const spec of SPEC_IDS) {
+      const d = defaultConfig(spec)
+      const blessing = d.buffs.enabled.includes('blessingOfMight') || d.buffs.enabled.includes('blessingOfWisdom')
+      expect(text(d), spec).toBe(blessing ? BLESSINGS : PLAIN)
+    }
+  })
+
+  it('follows the setup: a Fury warrior’s own Battle Shout, a mage’s Frostbolt; none for a Shadow priest with no such buff', () => {
+    // Fury keeps its own Battle Shout up, and its Heroic Strike is a book's rank too.
+    expect(text(withBuffs('warrior-fury', []))).toBe(PLAIN)
+    expect(text(withBuffs('mage-frost', []))).toBe(PLAIN)
+    // Mind Blast, Mind Flay and Shadow Word: Pain have no Ahn'Qiraj book, nor Kings.
+    expect(text(withBuffs('priest-shadow', []))).toBeUndefined()
+    expect(text(withBuffs('priest-shadow', ['blessingOfKings']))).toBeUndefined()
+    expect(text(withBuffs('priest-shadow', ['blessingOfWisdom']))).toBe(BLESSINGS)
   })
 })

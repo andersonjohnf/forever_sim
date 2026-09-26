@@ -48,7 +48,7 @@ const SPELL = {
   spCoefficient: 0,
 } as const
 
-/** A rank's range at level 60: base × (1 ± variance / 2), plus its per-level points up to 60. */
+/** A rank's range at level 60: base × (1 ± variance / 2), plus its per-level points up to 60, truncated (docs/data/items.md#per-level-values). */
 const range = (base: number, variance: number, perLevel = 0, baseLevel = 60, maxLevel = 60) => {
   const grow = atLevel60(0, perLevel, baseLevel, maxLevel)
   const [min, max] = spread(base, variance)
@@ -158,8 +158,8 @@ export const INCINERATE_SPELL: SpellDef = {
 export const INCINERATE: AbilityDef = { ...WARLOCK, id: 'incinerate', name: 'Incinerate', icon: 'spell_fire_burnout', kind: 'spell', ...mana(325), castMs: 2500, castHasted: true, spellDef: INCINERATE_SPELL }
 
 /**
- * Searing Pain r6 (17923): 114 base points, variance 0.16216215, +1.2 a level from 58, so 107.16–125.64
- * at 60 (the tooltip's 107–125 at 58), coefficient 0.429, Fire; 168 mana, a 1.5 s cast [F] [client]
+ * Searing Pain r6 (17923): 114 base points, variance 0.16216215, + trunc(1.2 a level from 58) = 2, so
+ * 106.76–125.24 at 60 (the tooltip's 107–125), coefficient 0.429, Fire; 168 mana, a 1.5 s cast [F] [client]
  * (SpellEffect, SpellPower, SpellMisc, SpellLevels, 1.60.1.69913). "Causes a high amount of threat":
  * the warlock's threat isn't a DPS result, so its damage makes plain damage threat (warlock.md §11.3).
  * The sim casts it for Demonic Brand, Demonology's row (§6.4); its brand is `demonicBrand` (demons.ts).
@@ -176,8 +176,8 @@ export const SEARING_PAIN_SPELL: SpellDef = {
 export const SEARING_PAIN: AbilityDef = { ...WARLOCK, id: 'searingPain', name: 'Searing Pain', icon: 'spell_fire_soulburn', kind: 'spell', ...mana(168), castMs: 1500, castHasted: true, spellDef: SEARING_PAIN_SPELL }
 
 /**
- * Shadowburn r6 (18871), a talent: 266 base points, variance 0.1092437, +1.8 a level from 56, so
- * 258.67–288.33 at 60 (the tooltip's 258–288), coefficient 0.429, Shadow; 365 mana, a 15 s cooldown
+ * Shadowburn r6 (18871), a talent: 266 base points, variance 0.1092437, + trunc(1.8 a level from 56) = 7, so
+ * 258.47–287.53 at 60 (the tooltip's 258–288), coefficient 0.429, Shadow; 365 mana, a 15 s cooldown
  * (category 651), instant [F] [client] (SpellEffect, SpellLevels, SpellCooldowns, 1.60.1.69913). Its
  * Soul Shard isn't tracked (warlock.md Q6).
  */

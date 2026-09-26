@@ -77,7 +77,7 @@ describe('the Balance spells against the Forever client (druid.md §11.2)', () =
     const [sfMin, sfMax] = spread(sf.effectBasePointsF!, sf.variance!)
     expect(STARFIRE_SPELL.min).toBeCloseTo(sfMin + sfGrow, 9)
     expect(STARFIRE_SPELL.max).toBeCloseTo(sfMax + sfGrow, 9)
-    expect([STARFIRE_SPELL.min, STARFIRE_SPELL.max].map((x) => Math.round(x * 100) / 100)).toEqual([313.81, 369.39])
+    expect([STARFIRE_SPELL.min, STARFIRE_SPELL.max].map((x) => Math.round(x * 100) / 100)).toEqual([313.21, 368.79])
     expect(STARFIRE_SPELL.spCoefficient).toBe(sf.effectBonusCoefficient)
     expect(STARFIRE.castMs).toBe(spell(9876).castTime!.base)
     expect(STARFIRE.costTenths).toBe(10 * spell(9876).power![0].manaCost!)
@@ -174,9 +174,9 @@ describe('worked examples (druid.md §11.7)', () => {
 
   it('B1, B2: Starfire and Wrath at 500 spell damage with Moonfury, and Vengeance’s ×2.0 crits', () => {
     const sf = resolved(STARFIRE).spellDef!
-    expect((mid(sf) + 500) * moonfury * resist).toBeCloseTo(870.21, 2)
+    expect((mid(sf) + 500) * moonfury * resist).toBeCloseTo(869.59, 2)
     expect(sf.critMultiplier).toBe(spellCritMultiplier(100))
-    expect((mid(sf) + 500) * moonfury * resist * sf.critMultiplier).toBeCloseTo(1740.43, 2)
+    expect((mid(sf) + 500) * moonfury * resist * sf.critMultiplier).toBeCloseTo(1739.19, 2)
     const w = resolved(WRATH).spellDef!
     expect((mid(w) + 0.571 * 500) * moonfury * resist).toBeCloseTo(395.51, 2)
     expect((mid(w) + 0.571 * 500) * moonfury * resist * 2).toBeCloseTo(791.01, 2)
@@ -185,7 +185,7 @@ describe('worked examples (druid.md §11.7)', () => {
   it('B3: Moonfire with Improved Moonfire, Genesis, Nature’s Splendor and Moonfury', () => {
     const mf = resolved(MOONFIRE).spellDef!
     expect(mf.bonusCrit).toBe(10)
-    expect((mid(mf) + 0.15 * 500) * mf.damageMult * moonfury * resist).toBeCloseTo(244.09, 2)
+    expect((mid(mf) + 0.15 * 500) * mf.damageMult * moonfury * resist).toBeCloseTo(243.4, 2)
     const tick = (mf.dotTickDamage! + mf.dotSpCoefficient! * 500) * mf.damageMult * moonfury * resist
     expect(tick).toBeCloseTo(149.28, 2)
     expect(mf.dotTicks).toBe(5)
@@ -362,6 +362,8 @@ describe('golden run and determinism (docs/doctrine.md#4-engine)', () => {
   //   either side's code reverted, the other side's snapshot reproduces exactly.
   // - D36, pre-Ahn'Qiraj ranks (W2): Starfire r6 (9876: 313.81–369.39, 315 mana) for r7 (349.96–412.04, 340),
   //   and Blessing of Wisdom r5. 448.73 → 445.04 DPS.
+  // - The per-level term truncated, as the client renders it (docs/data/items.md#per-level-values): Starfire
+  //   r6 and Moonfire r10 add trunc(4.6) = 4 (313.21–368.79, 128.46–149.54). 445.04 → 444.80 DPS.
   it('keeps the default Balance druid’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(BALANCE), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

@@ -84,7 +84,7 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
     },
   ],
   // Fury 2·3: 12%/rank to gain 1 rage (2 with a two-hander) on a landed auto attack: white swings of
-  // either hand and extra attacks, not Heroic Strike or Cleave swings (§2.3: 12319's proc mask 0x4, D36)
+  // either hand and extra attacks, not Heroic Strike or Cleave swings (§2.3: 12322's proc mask 0x4, D36)
   'Unbridled Wrath': (r) =>
     [false, true].map(
       (twoHand): Effect => ({

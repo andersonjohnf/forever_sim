@@ -19,6 +19,7 @@ const DEFAULT_ORDER = [
   'bloodthirst',
   'whirlwind',
   'overpower',
+  'rend',
   'heroicStrike',
   'hamstring',
   'berserkerRage',
@@ -69,6 +70,9 @@ for (const width of [1280, 390]) {
       await expect(list.getByRole('button', { name: /^Move / })).toHaveCount(DEFAULT_ORDER.length - 1)
       const whirlwind = list.locator('[data-apl-row="whirlwind"]')
       await expect(whirlwind).toContainText('Bloodthirst 0.5 s away')
+      // The Rend dance (W4), below the Overpower dance, on by default.
+      await expect(list.locator('[data-apl-row="rend"]')).toContainText('Again with 3 s left · up to 25 rage · not in the execute phase')
+      await expect(list.getByRole('switch', { name: 'Rend (stance dance)', exact: true })).toBeChecked()
       for (const target of [
         whirlwind.getByRole('button', { name: 'Move Whirlwind, position 11' }),
         whirlwind.getByRole('button', { name: 'Whirlwind', exact: true }),
@@ -117,21 +121,21 @@ for (const width of [1280, 390]) {
       const handle = list.getByRole('button', { name: /^Move Whirlwind/ })
       await handle.focus()
       await page.keyboard.press('Space')
-      await expect(liveRegion(page)).toContainText(/Whirlwind is over position 11 of 16|Picked up Whirlwind/)
+      await expect(liveRegion(page)).toContainText(/Whirlwind is over position 11 of 17|Picked up Whirlwind/)
       await page.keyboard.press('ArrowUp')
-      await expect(liveRegion(page)).toHaveText('Whirlwind is over position 10 of 16.')
+      await expect(liveRegion(page)).toHaveText('Whirlwind is over position 10 of 17.')
       await page.keyboard.press('Space')
       await expect.poll(() => order(page)).toEqual(moved('whirlwind', 'bloodthirst'))
-      await expect(page.locator('[id^="DndLiveRegion"]')).toHaveText('Whirlwind dropped at position 10 of 16.')
+      await expect(page.locator('[id^="DndLiveRegion"]')).toHaveText('Whirlwind dropped at position 10 of 17.')
       // The handle keeps focus, and its name says its new place.
       await expect(list.getByRole('button', { name: 'Move Whirlwind, position 10' })).toBeFocused()
       // Escape cancels a move.
       await page.keyboard.press('Space')
-      await expect(liveRegion(page)).toContainText(/Whirlwind is over position 10 of 16|Picked up Whirlwind/)
+      await expect(liveRegion(page)).toContainText(/Whirlwind is over position 10 of 17|Picked up Whirlwind/)
       await page.keyboard.press('ArrowDown')
-      await expect(liveRegion(page)).toHaveText('Whirlwind is over position 11 of 16.')
+      await expect(liveRegion(page)).toHaveText('Whirlwind is over position 11 of 17.')
       await page.keyboard.press('Escape')
-      await expect(liveRegion(page)).toHaveText('Moving Whirlwind was cancelled. It’s still at position 10 of 16.')
+      await expect(liveRegion(page)).toHaveText('Moving Whirlwind was cancelled. It’s still at position 10 of 17.')
       await expect.poll(() => order(page)).toEqual(moved('whirlwind', 'bloodthirst'))
     })
 
@@ -142,23 +146,23 @@ for (const width of [1280, 390]) {
       await list.getByRole('button', { name: 'Move Death Wish, position 3', exact: true }).focus()
       await page.keyboard.press('Space')
       await page.keyboard.press('ArrowUp')
-      await expect(liveRegion(page)).toHaveText('Death Wish is over position 2 of 16.')
+      await expect(liveRegion(page)).toHaveText('Death Wish is over position 2 of 17.')
       await page.keyboard.press('Space')
       await expect.poll(() => order(page)).toEqual(moved('deathWish', 'battleShout'))
-      await expect(liveRegion(page)).toHaveText('Death Wish dropped at position 2 of 16.')
+      await expect(liveRegion(page)).toHaveText('Death Wish dropped at position 2 of 17.')
     })
 
     test('reorders with Move up and Move down in a row’s settings, which stop at the ends', async ({ page }) => {
       const list = await openRotation(page)
       let settings = await openRow(page, list, 'Heroic Strike')
-      await expect(settings.getByText(phone ? 'At position 13 of 16' : 'Position 13 of 16', { exact: true })).toBeVisible()
+      await expect(settings.getByText(phone ? 'At position 14 of 17' : 'Position 14 of 17', { exact: true })).toBeVisible()
       await settings.getByRole('button', { name: 'Move up', exact: true }).click()
-      await expect(announcement(page)).toHaveText('Heroic Strike moved to position 12 of 16.')
+      await expect(announcement(page)).toHaveText('Heroic Strike moved to position 13 of 17.')
       await settings.getByRole('button', { name: 'Move up', exact: true }).click()
       await expect(settings.getByRole('button', { name: 'Move up', exact: true })).toBeFocused()
-      expect(await order(page)).toEqual(moved('heroicStrike', 'whirlwind'))
-      await settings.getByRole('button', { name: 'Move down', exact: true }).click()
       expect(await order(page)).toEqual(moved('heroicStrike', 'overpower'))
+      await settings.getByRole('button', { name: 'Move down', exact: true }).click()
+      expect(await order(page)).toEqual(moved('heroicStrike', 'rend'))
       await closeRow(page)
 
       // Battle Shout can't pass the pinned pre-pull, and Slam is last.
@@ -174,7 +178,7 @@ for (const width of [1280, 390]) {
       await closeRow(page)
       // The pre-pull's settings have no moves.
       settings = await openRow(page, list, 'Before the pull')
-      await expect(settings.getByText('Fixed at position 1 of 16', { exact: true }).first()).toBeVisible()
+      await expect(settings.getByText('Fixed at position 1 of 17', { exact: true }).first()).toBeVisible()
       await expect(settings.getByRole('button', { name: /^Move (up|down)$/ })).toHaveCount(0)
       await closeRow(page)
       if (phone) await expect(list.getByRole('button', { name: 'Before the pull', exact: true })).toBeFocused()
@@ -196,7 +200,7 @@ for (const width of [1280, 390]) {
       await expect(executeBt).toContainText('Not used: Bloodthirst is off.')
       await expect(list.getByRole('switch', { name: 'Bloodthirst in the execute phase', exact: true })).toBeChecked()
       await list.getByRole('switch', { name: 'Bloodthirst', exact: true }).click()
-      await expect(executeBt).toContainText('From 2,220 AP')
+      await expect(executeBt).toContainText('From 2,434 AP')
       await expect(preset(page)).toHaveText('Custom')
 
       const settings = await openRow(page, list, 'Heroic Strike')
@@ -299,7 +303,7 @@ test.describe('a run and a share link', () => {
     // Heroic Strike first: it's off the GCD, but spends the rage before Bloodthirst can.
     await list.getByRole('button', { name: 'Heroic Strike', exact: true }).click()
     const settings = page.getByRole('complementary', { name: 'Heroic Strike settings' })
-    for (let i = 0; i < 11; i++) await settings.getByRole('button', { name: 'Move up', exact: true }).click()
+    for (let i = 0; i < 12; i++) await settings.getByRole('button', { name: 'Move up', exact: true }).click()
     const newOrder = moved('heroicStrike', 'battleShout')
     expect(await order(page)).toEqual(newOrder)
     await expect(results.getByRole('group', { name: 'DPS' })).toContainText('Setup changed')

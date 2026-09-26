@@ -89,8 +89,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
     [
       "judgementOfFury",
-      12098718.31441953,
-      19745108.28913269,
+      12086965.199419513,
+      19725927.205452695,
       25187,
       22957,
       1969,
@@ -247,9 +247,9 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
   ],
   "dps": {
-    "ci95": 1.1341926389025938,
-    "mean": 460.4057649960669,
-    "stdev": 18.299479340538856,
+    "ci95": 1.1341414043159859,
+    "mean": 460.3403761659591,
+    "stdev": 18.298652702958087,
   },
   "dtps": {
     "ci95": 3.5351873457963494,
@@ -281,9 +281,9 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     "spentPerFight": 19439.756,
   },
   "tps": {
-    "ci95": 1.8430110776078181,
-    "mean": 744.9181936022349,
-    "stdev": 29.735815576885415,
+    "ci95": 1.842931929057356,
+    "mean": 744.8114790314988,
+    "stdev": 29.734538565190633,
   },
 }
 `;
@@ -377,8 +377,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "judgementOfFury",
-      12098718.31441953,
-      19745108.28913269,
+      12086965.199419513,
+      19725927.205452695,
       25187,
       22957,
       1969,
@@ -535,9 +535,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
   ],
   "dps": {
-    "ci95": 1.1341926389025938,
-    "mean": 460.4057649960669,
-    "stdev": 18.299479340538856,
+    "ci95": 1.1341414043159859,
+    "mean": 460.3403761659591,
+    "stdev": 18.298652702958087,
   },
   "dtps": {
     "ci95": 3.5351873457963494,
@@ -569,9 +569,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     "spentPerFight": 19439.756,
   },
   "tps": {
-    "ci95": 1.8430110776078181,
-    "mean": 744.9181936022349,
-    "stdev": 29.735815576885415,
+    "ci95": 1.842931929057356,
+    "mean": 744.8114790314988,
+    "stdev": 29.734538565190633,
   },
 }
 `;

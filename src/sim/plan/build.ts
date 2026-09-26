@@ -22,7 +22,8 @@ import { mageAssumptions, mageFreeCast, mageManaPlan } from '../classes/mage/set
 import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
 import { priestAssumptions, priestManaPlan, priestPlan } from '../classes/priest/setup'
 import { hunterAssumptions, hunterManaPlan } from '../classes/hunter/setup'
-import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
+import { resolveRotationValues } from '../classes/options'
+import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance, rotationOptions, rotationSetup } from '../classes/rotation'
 import { explosiveThrowDetail, swingsInMelee, withSharedConsumables } from '../classes/shared-consumables'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
@@ -38,7 +39,7 @@ import { SPEC_META } from '../specs'
 import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
-import { Assumptions, BEAR_TEXT } from './assumptions'
+import { Assumptions, BEAR_TEXT, preAqRanksText } from './assumptions'
 import { PET_BUFFS, petInheritanceDetail, petPlan } from './pet'
 import { firesAmmo, isRangedWeapon, noRangedMods, rangedPlan, type RangedMods } from './ranged'
 import {
@@ -207,6 +208,30 @@ const BASE_MAX_RAGE = 100
  */
 const DPS_DAMAGE_INTERVAL_MS = 2000
 
+/**
+ * What an Ahn'Qiraj book would raise (buffs doc §1.1, D36; the books in src/sim/aq-ranks.test.ts): the
+ * sim uses the rank before it, which the `preAqRanks` assumption says. The buffs, and the abilities
+ * by name.
+ */
+const PRE_AQ_BUFFS: ReadonlySet<string> = new Set(['battleShout', 'blessingOfMight', 'blessingOfWisdom', 'strengthOfEarth', 'graceOfAir', 'deadlyPoisonMainHand', 'deadlyPoisonOffHand'])
+const PRE_AQ_ABILITIES: ReadonlySet<string> = new Set([
+  'Battle Shout',
+  'Heroic Strike',
+  'Revenge',
+  'Backstab',
+  'Feint',
+  'Frostbolt',
+  'Fireball',
+  'Arcane Missiles',
+  'Shadow Bolt',
+  'Immolate',
+  'Corruption',
+  'Starfire',
+  'Multi-Shot',
+  'Serpent Sting',
+  'Aspect of the Hawk',
+])
+
 interface Weapon {
   hand: 0 | 1
   /** The equipped item; null for a druid form's weapon with nothing equipped (druid.md §2.1). */
@@ -234,6 +259,8 @@ interface Collected {
   targetArmor: number
   /** The boss's static flat Holy damage taken: another paladin's Judgement of the Crusader (buffs doc §4.2). */
   holyTaken: number
+  /** The boss's static flat physical damage taken: a tank's Gift of Arthas (buffs doc §4.2). */
+  physicalTaken: number
   bossAp: number
   bossSlowPct: number
   offHand: { damagePct: number; hit: number; ragePct: number }
@@ -458,6 +485,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     maxEnergyMult: 1,
     targetArmor: 0,
     holyTaken: 0,
+    physicalTaken: 0,
     bossAp: 0,
     bossSlowPct: 0,
     offHand: { damagePct: 0, hit: 0, ragePct: 0 },
@@ -594,17 +622,23 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
    */
   /** The Buffs tab's effects that reach a pet (docs/mechanics/ranged-and-pets.md §8). */
   const petBuffs: Effect[] = []
-  const filledGroups = buffGroupFillers(config.buffs.enabled, config.buffs.raid, config.spec, [...maintained, ...(setup.replacesBuffs ?? [])])
+  // The Rotation settings as the Buffs tab reads them (sim/index.ts `rotationValues`), for the buffs a
+  // setting leaves unused: the boss's physical debuffs with a Demonology warlock's Imp (`buffUnusedReason`).
+  const settings = resolveRotationValues(rotationOptions(config.spec), config.rotation, setup.talents, rotationSetup(config.spec, setup.talents, config.race))
+  const filledGroups = buffGroupFillers(config.buffs.enabled, config.buffs.raid, config.spec, [...maintained, ...(setup.replacesBuffs ?? [])], settings)
   // A buff the talents bring takes its exclusive group too: a Balance druid's own Moonkin Aura leaves a
   // Leader of the Pack out, as the game's "exclusive with" does (docs/classes/druid.md §11.1).
   const talentGroups = new Set((setup.replacesBuffs ?? []).flatMap((id) => BUFFS_BY_ID.get(id)?.exclusiveGroup ?? []))
+  /** The Buffs tab's entries the plan applies (the pre-Ahn'Qiraj ranks' note below). */
+  const appliedBuffs = new Set<string>(maintained)
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
-    if (!buff || !forSpecClass(buff, config.spec) || !buffProvided(buff, config.buffs.raid, config.spec) || buffUnusedReason(buff, config.spec)) continue
+    if (!buff || !forSpecClass(buff, config.spec) || !buffProvided(buff, config.buffs.raid, config.spec) || buffUnusedReason(buff, config.spec, settings)) continue
     if (maintained.includes(id) || setup.replacesBuffs?.includes(id)) continue
     if (buff.exclusiveGroup !== undefined && talentGroups.has(buff.exclusiveGroup)) continue
     const effects = catalogueEffects(buff, profile)
     apply(effects, null)
+    appliedBuffs.add(id)
     if (PET_BUFFS.has(id)) petBuffs.push(...effects.filter((e) => holds(e.when)))
     for (const e of effects) {
       if (e.kind === 'targetArmor') hasDebuffs.armor = true
@@ -1429,6 +1463,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(classId === 'hunter' ? { mana: hunterManaPlan(derived, block.mp5, setup.talents) } : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
     ...(c.holyTaken ? { holyTaken: c.holyTaken } : {}),
+    // docs/mechanics/damage-and-timing.md#24-damage-modifier-stacking: Gift of Arthas on the boss.
+    ...(c.physicalTaken ? { physicalTaken: c.physicalTaken } : {}),
     // docs/mechanics/spells.md §3, §9: the schools' numbers, when any isn't plain.
     ...(schools ? { schools } : {}),
     // docs/classes/mage.md#ignite: the rolling Ignite, when a proc feeds it.
@@ -1566,7 +1602,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const standIns: string[] = []
   if (placeholders.includes('base attributes')) {
     // Every class's Skyborne rows are the class row: Skyborne's race offsets are unknown (OQ-1).
-    const neutral = config.race.includes('skyborne') ? ', the class row with no race adjustment, as Skyborne’s is unknown' : ''
+    const neutral = config.race.includes('skyborne') ? `, a ${meta.className.toLowerCase()}’s base stats before any racial bonus, as the Skyborne’s aren’t known` : ''
     standIns.push(`base attributes Str ${block.baseStr}, Agi ${block.baseAgi}, Sta ${block.baseSta}, Int ${block.baseInt}, Spi ${block.baseSpi}${neutral}`)
   }
   if (placeholders.includes('base attack power')) standIns.push(`base attack power ${signed(block.baseAp)} before Strength`)
@@ -1621,11 +1657,19 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (procIds.has('windfury') && weapons[HAND.main] && c.tempEnchants.length && !windfuryHoldsMainHand) notes.add(mainHandPoison ? 'windfuryPoison' : 'windfuryStone')
   // buffs doc §3.6: two stones stack, and one on either hand counts for both [?].
   if (elementalStones > 1 || (elementalStones === 1 && weapons[HAND.off])) notes.add('elementalStone')
-  if (procIds.has('deepWounds')) notes.add('deepWounds')
+  // warrior.md §2.5: the rolling Deep Wounds is Forever's [?]; `classicEra`'s restart is Classic Era's [C], no assumption.
+  if (procIds.has('deepWounds') && profile.combat.deepWoundsRolls) notes.add('deepWounds')
   // buffs doc §1.2 (BR5): Thorns on the tank, a raid druid's or the bear's own.
   if (procIds.has('thorns')) notes.add('thorns')
   if (procIds.has('thornsOwn')) notes.add('thornsOwn')
+  // buffs doc §4.2, damage-and-timing §2.4: where Gift of Arthas' +8 adds, and which hits get it [?].
+  if (c.physicalTaken) notes.add('giftOfArthas')
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')
+  // buffs doc §1.1 (D36): a buff or ability whose next rank an Ahn'Qiraj book teaches (src/sim/aq-ranks.test.ts).
+  const blessings = appliedBuffs.has('blessingOfMight') || appliedBuffs.has('blessingOfWisdom')
+  if (blessings || [...appliedBuffs].some((id) => PRE_AQ_BUFFS.has(id)) || abilities.some((a) => PRE_AQ_ABILITIES.has(a.name))) {
+    notes.addText('preAqRanks', preAqRanksText(blessings))
+  }
   if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add(classId === 'rogue' ? 'rogueArmorPen' : 'weaponmasterMace')
   // threat.md#warrior: in `forever` Sunder Armor's threat is the Forever client's plus a share of the
   // attack power [?] (its own note), the rest Classic Era's; in `classicEra` all are Classic Era's,
@@ -1844,6 +1888,9 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       return
     case 'holyTaken':
       c.holyTaken += e.value
+      return
+    case 'physicalTaken':
+      c.physicalTaken += e.value
       return
     case 'bossAp':
       c.bossAp += e.value

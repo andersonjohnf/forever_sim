@@ -1,8 +1,32 @@
 {
   "$comment": "Every talent build code the repo stores or documents, by class: the spec defaults and presets (src/sim/defaults.ts), the class docs' builds (warrior.md §6.1, druid.md §7.1, paladin.md), a popular Restoration build and the codes in tests. Share links and saved setups store build codes, so a code must keep meaning the same build: `ranks` lists, per tree, the ranks by talent name the code decoded to when it was written ('Name rank, Name rank'; '' for an empty tree). Hand-authored scraper input, the one source of truth for stored codes: scripts/scrape/talents-client.mjs refuses to write a dataset under which a code decodes to other ranks, and src/data/data.test.ts checks the committed datasets against it (docs/data/talents.md#build-codes-verified). If a doc changes a build, change it here too. The class sections are codes on today's trees; `legacy` keeps the codes stored when the trees were an older build's, frozen.",
   "warrior": {
+    "20303203-050520035152310051-": {
+      "note": "Fury default (13/38/0, WarriorSim's Forever build; since W4), warrior.md §6.1",
+      "ranks": [
+        "Improved Heroic Strike 2, Improved Rend 3, Improved Tactical Mastery 3, Improved Overpower 2, Deep Wounds 3",
+        "Cruelty 5, Unbridled Wrath 5, Improved Cleave 2, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows 1, Enrage 5, Improved Execute 2, Precision 3, Death Wish 1, Flurry 5, Bloodthirst 1",
+        ""
+      ]
+    },
+    "20305213032515201-050520030001-": {
+      "note": "Arms default (35/16/0, WarriorSim's Forever build; since W4), warrior.md §6.1",
+      "ranks": [
+        "Improved Heroic Strike 2, Improved Rend 3, Improved Tactical Mastery 5, Improved Overpower 2, Anger Management 1, Deep Wounds 3, Two-Handed Weapon Specialization 3, Impale 2, Bloodthrill 5, Sweeping Strikes 1, Weaponmaster 5, Improved Slam 2, Mortal Strike 1",
+        "Cruelty 5, Unbridled Wrath 5, Improved Cleave 2, Boundless Rage 3, Improved Execute 1",
+        ""
+      ]
+    },
+    "25300003-05-552001233000210531": {
+      "note": "Protection default (13/5/33, with Deep Wounds; since W4), warrior.md §6.1",
+      "ranks": [
+        "Improved Heroic Strike 2, Deflection 5, Improved Rend 3, Deep Wounds 3",
+        "Cruelty 5",
+        "Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Shield Wall 2, Concussion Blow 1, Bastion 5, Focused Rage 3, Shield Slam 1"
+      ]
+    },
     "30305013002-050530035150010051-": {
-      "note": "Fury default (17/34/0), warrior.md §6.1",
+      "note": "The former Fury default (17/34/0, the popular build; until W4): saved setups and share links may hold it",
       "ranks": [
         "Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Anger Management 1, Deep Wounds 3, Impale 2",
         "Cruelty 5, Unbridled Wrath 5, Improved Cleave 3, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows 1, Enrage 5, Death Wish 1, Flurry 5, Bloodthirst 1",
@@ -18,7 +42,7 @@
       ]
     },
     "30305213132515201-05050103-": {
-      "note": "Arms default (37/14/0), warrior.md §6.1",
+      "note": "The former Arms default (37/14/0, the popular build; until W4): saved setups and share links may hold it",
       "ranks": [
         "Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Improved Overpower 2, Anger Management 1, Deep Wounds 3, Spearing Strike 1, Two-Handed Weapon Specialization 3, Impale 2, Bloodthrill 5, Sweeping Strikes 1, Weaponmaster 5, Improved Slam 2, Mortal Strike 1",
         "Cruelty 5, Unbridled Wrath 5, Piercing Howl 1, Boundless Rage 3",
@@ -26,7 +50,7 @@
       ]
     },
     "35-05-552101233301210531": {
-      "note": "Protection default (8/5/38), warrior.md §6.1",
+      "note": "The former Protection default (8/5/38, from P2's review until W4): saved setups and share links may hold it",
       "ranks": [
         "Improved Heroic Strike 3, Deflection 5",
         "Cruelty 5",

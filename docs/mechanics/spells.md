@@ -124,7 +124,7 @@ multipliers ([§9](#9-caster-raid-buffs-and-debuffs)).
 | The cast-time rule (fallback) | a direct spell: cast time ÷ 3.5 s, with the cast time at least 1.5 s (instants count as 1.5 s) and at most 3.5 s (`castTimeCoefficient`): 3.0 s → 0.857, 1.5 s → 0.429 | [C] ([R1][r1-const]: Scorch and Fire Blast 1.5/3.5, Fireball 1.0; [anlif][anlif-sb]: Shadow Bolt 3/3.5) |
 | Frostbolt's slow | 0.814 = 3/3.5 × 0.95: a spell with a side effect gets 95% | [C] ([R1][r1-const] `0.814286`); the client value [F] |
 | DoTs, channels, hybrids, AoE, spells below level 20 | the duration ÷ 15 s rule, channels' duration ÷ 3.5 s, the hybrid split, the AoE and low-level penalties: the client's coefficient is used for each spell, so the sim needs none of these rules | no Classic Era source found for the rules [?]; the client values are [F] [C] |
-| Ranks below 60 | a rank's base grows by its per-level points up to its maximum level; a range is `base × (1 ± variance/2)` in the Forever client | [F] ([paladin conventions](../classes/paladin.md#conventions-used-below)) |
+| Ranks below 60 | a rank's base grows by its per-level points up to its maximum level, truncated toward zero to a whole number as the client renders it ([per-level values](../data/items.md#per-level-values)); a range is `base × (1 ± variance/2)` in the Forever client | [F] ([paladin conventions](../classes/paladin.md#conventions-used-below)) |
 
 ## 6. Channels
 
@@ -299,12 +299,12 @@ What the Forever client changes for casters, read from its tables against Classi
   | Shadow Word: Pain (8) | 127 × 6 | 142 × 6 | 0.2 / 0.167 a tick |
   | Mind Blast (9) | 477–503 | 508–536 | 0.429 / 0.429 |
   | Mind Flay (6) | 130 × 3 | 142 × 3 | 0.167 / 0.15 a tick |
-  | Lightning Bolt (10) | 190–212, **2.5 s** | 429–477, 3.0 s | **0.714** / 0.857 |
+  | Lightning Bolt (10) | 189–211, **2.5 s** | 429–477, 3.0 s | **0.714** / 0.857 |
   | Starfire (7) | 350–412 | 496–584 | 1.0 / 1.0 |
-  | Moonfire (10) | 129–151, DoT 60 × 4 | 196–228, DoT 96 × 4 | 0.15 + 0.13, both |
+  | Moonfire (10) | 128–150, DoT 60 × 4 | 196–228, DoT 96 × 4 | 0.15 + 0.13, both |
 
   A rank learned before 60 includes its per-level points to 60 (Mind Blast, Lightning Bolt,
-  Moonfire), rounded to whole points. These are the raw client rows; the class slices confirm them against the rendered tooltips, which win where they differ
+  Moonfire), truncated to whole points ([per-level values](../data/items.md#per-level-values)). These are the raw client rows; the class slices confirm them against the rendered tooltips, which win where they differ
   ([doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable), [OQ-S8](#open-questions)).
 - **Raid debuffs made personal:** Improved Scorch's Fire Vulnerability and Winter's Chill are the
   mage's own, and Shadow Weaving the priest's: Fire Vulnerability and Shadow Weaving stay debuffs

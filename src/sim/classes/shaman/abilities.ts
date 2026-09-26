@@ -114,7 +114,7 @@ const SPELL = {
   takenScale: 0,
 } as const
 
-/** A rank's range at level 60: base × (1 ± variance / 2), plus its per-level points up to 60 (paladin.md#conventions-used-below). */
+/** A rank's range at level 60: base × (1 ± variance / 2), plus its per-level points up to 60, truncated (docs/data/items.md#per-level-values). */
 const range = (base: number, variance: number, perLevel: number, baseLevel: number, maxLevel: number) => {
   const grow = atLevel60(0, perLevel, baseLevel, maxLevel)
   const [min, max] = spread(base, variance)
@@ -138,8 +138,8 @@ export const EARTH_SHOCK_SPELL: SpellDef = {
 }
 
 /**
- * Frost Shock r4 (10473): 283 base points, variance 0.056, +1.8 a level from 58, so 278.68–294.52 at
- * 60; coefficient 0.386; Frost [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). Its slow does
+ * Frost Shock r4 (10473): 283 base points, variance 0.056, + trunc(1.8 a level from 58) = 3, so 278.08–293.92
+ * at 60; coefficient 0.386; Frost [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). Its slow does
  * nothing to a boss's damage in this sim. Stormstrike's aura doesn't boost it.
  */
 export const FROST_SHOCK_SPELL: SpellDef = {
@@ -153,8 +153,8 @@ export const FROST_SHOCK_SPELL: SpellDef = {
 }
 
 /**
- * Lightning Bolt r10 (15208): 196 base points, variance 0.10835215, +1.2 a level from 56 to 61, so
- * 190.18–211.42 at 60; coefficient 0.714; Nature (Classic Era: 428–476 at 0.857) [F] [client]
+ * Lightning Bolt r10 (15208): 196 base points, variance 0.10835215, + trunc(1.2 a level from 56 to 61) = 4,
+ * so 189.38–210.62 at 60; coefficient 0.714; Nature (Classic Era: 428–476 at 0.857) [F] [client]
  * (SpellEffect, SpellLevels, 1.60.1.69913). Stormstrike's aura boosts it. Its travel time (speed 20)
  * isn't simulated.
  */
@@ -328,8 +328,8 @@ export const LIGHTNING_BOLT_R4_SPELL: SpellDef = {
 export const LIGHTNING_BOLT_R4 = spellAbility(LIGHTNING_BOLT_R4_SPELL, 60, { castMs: 2500, castHasted: true })
 
 /**
- * Chain Lightning r4 (10605): 123 base points, variance 0.11111111, +0.8 a level from 56 to 61, so
- * 119.19–133.21 at 60; coefficient 0.571; Nature; 3 targets, each jump −30%, of which one boss takes
+ * Chain Lightning r4 (10605): 123 base points, variance 0.11111111, + trunc(0.8 a level from 56 to 61) = 3,
+ * so 119.17–132.83 at 60; coefficient 0.571; Nature; 3 targets, each jump −30%, of which one boss takes
  * the first [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). Classic Era's rank 4 is 505–564
  * [C]. Stormstrike's aura boosts it.
  */

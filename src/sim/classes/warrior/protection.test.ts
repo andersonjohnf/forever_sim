@@ -3,7 +3,8 @@
 import { describe, expect, it } from 'vitest'
 import spellsJson from '@/data/client/spells.json'
 import type { ClientSpells } from '@/data/client/types'
-import { TALENT_DATA, defaultConfig } from '../../defaults'
+import { TALENT_DATA, defaultConfig as todaysDefaultConfig } from '../../defaults'
+import { withPopularTalents } from './popular-builds'
 import { COND, STANCE, STANCE_ANY } from '../../plan/types'
 import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
 import type { OnUseSpec } from '../../effects/types'
@@ -33,6 +34,10 @@ import {
 import { IMPROVED_REVENGE_PCT_PER_RANK, withTalents } from './modifiers'
 import { PROTECTION_APL, PROTECTION_IDS as ID, PROTECTION_OPTIONS, PROTECTION_PRIORITY, protectionMaintainedBuffs, protectionRotation } from './protection'
 import { maxRageOf } from './shared'
+
+/** Today's default setup with the popular warrior builds, the defaults until W4, which these tests were written
+ * for (popular-builds.ts; warrior.md §6.1). */
+const defaultConfig = (...args: Parameters<typeof todaysDefaultConfig>) => withPopularTalents(todaysDefaultConfig(...args))
 
 const spells = (spellsJson as unknown as ClientSpells).spells
 const RAGE = 1

@@ -96,6 +96,9 @@ test.describe('Demonology warlock', () => {
     await expect(sunder).toBeDisabled()
     await expect(sunder).not.toBeChecked()
     await expect(buffs.getByText(/Not used: only your demon’s swings meet the boss’s armor, and your Imp \(see Rotation\) doesn’t swing\.$/).first()).toBeVisible()
+    // And Gift of Arthas' +8, the same way (G5U-3).
+    await expect(buffs.getByRole('switch', { name: 'Gift of Arthas' })).toBeDisabled()
+    await expect(buffs.getByText('Not used: only your demon’s swings take the +8, and your Imp (see Rotation) doesn’t swing.')).toBeVisible()
     // Summoning the demon you sacrificed cancels its buff.
     const rotation = await openTab(page, 'Rotation')
     await choice(rotation, 'Demon', 'Succubus').click()
@@ -112,6 +115,7 @@ test.describe('Demonology warlock', () => {
     await expect(sunderNone).toBeDisabled()
     await expect(sunderNone).not.toBeChecked()
     await expect(buffs.getByText(/Not used: only your demon’s swings meet the boss’s armor, and you keep no demon out \(see Rotation\)\.$/).first()).toBeVisible()
+    await expect(buffs.getByText('Not used: only your demon’s swings take the +8, and you keep no demon out (see Rotation).')).toBeVisible()
   })
 
   test('simulates, and its results show the demon’s rows, its passives and its assumptions', { tag: '@smoke' }, async ({ page }) => {

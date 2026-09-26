@@ -76,7 +76,7 @@ test.describe('the Rotation tab at wide widths', () => {
       await expect(page.getByRole('complementary', { name: /settings$/ })).toHaveCount(0)
       const settings = page.locator('[data-apl-row="bloodrage"]').getByRole('region', { name: 'Bloodrage settings' })
       await expect(settings.getByRole('heading', { name: 'Bloodrage' })).toBeFocused()
-      await expect(settings.getByText('Position 7 of 16')).toBeVisible()
+      await expect(settings.getByText('Position 7 of 17')).toBeVisible()
       // It's a panel on a phone only: no Back to list here.
       await expect(tab.getByRole('button', { name: 'Back to list' })).toHaveCount(0)
       // Under the row, pushing the next one down.
@@ -87,11 +87,11 @@ test.describe('the Rotation tab at wide widths', () => {
       const up = settings.getByRole('button', { name: 'Move up' })
       expect((await box(up)).width).toBeLessThan(8 * REM)
       await up.click()
-      await expect(settings.getByText('Position 6 of 16')).toBeVisible()
+      await expect(settings.getByText('Position 6 of 17')).toBeVisible()
       await expect(up).toBeFocused()
       await expect(page.locator('[data-apl-row]').nth(5)).toHaveAttribute('data-apl-row', 'bloodrage')
       await settings.getByRole('button', { name: 'Move down' }).click()
-      await expect(settings.getByText('Position 7 of 16')).toBeVisible()
+      await expect(settings.getByText('Position 7 of 17')).toBeVisible()
       await expect(settings.getByRole('button', { name: 'Move down' })).toBeFocused()
       // Its switch works from here, and is named for what it does.
       await settings.getByRole('switch', { name: 'Use Bloodrage', exact: true }).click()
@@ -129,7 +129,7 @@ test.describe('the Rotation tab at wide widths', () => {
       await expect(settings.getByRole('button', { name: 'Back to list' })).toHaveCount(0)
       // The name shows once, in the heading with its place; the switch's line is its help, and its
       // name for a screen reader is still "Use Bloodrage".
-      await expect(settings.getByText('Position 7 of 16')).toBeVisible()
+      await expect(settings.getByText('Position 7 of 17')).toBeVisible()
       await expect(settings.getByText('Bloodrage', { exact: true })).toHaveCount(2)
       expect((await box(settings.getByText('Bloodrage', { exact: true }).last())).width).toBeLessThanOrEqual(1)
       const use = settings.getByRole('switch', { name: 'Use Bloodrage', exact: true })
@@ -139,7 +139,7 @@ test.describe('the Rotation tab at wide widths', () => {
       const up = settings.getByRole('button', { name: 'Move up' })
       expect((await box(up)).width).toBeLessThan(8 * REM)
       await up.click()
-      await expect(settings.getByText('Position 6 of 16')).toBeVisible()
+      await expect(settings.getByText('Position 6 of 17')).toBeVisible()
       await expect(up).toBeFocused()
       await page.keyboard.press('Escape')
       await expect(row).toBeFocused()
@@ -165,11 +165,11 @@ test.describe('the Rotation tab at wide widths', () => {
     const live = page.locator('[id^="DndLiveRegion"]')
     await tab.getByRole('button', { name: 'Move Whirlwind, position 11' }).focus()
     await page.keyboard.press('Space')
-    await expect(live).toContainText(/Whirlwind is over position 11 of 16|Picked up Whirlwind/)
+    await expect(live).toContainText(/Whirlwind is over position 11 of 17|Picked up Whirlwind/)
     await page.keyboard.press('ArrowUp')
-    await expect(live).toHaveText('Whirlwind is over position 10 of 16.')
+    await expect(live).toHaveText('Whirlwind is over position 10 of 17.')
     await page.keyboard.press('Space')
-    await expect(live).toHaveText('Whirlwind dropped at position 10 of 16.')
+    await expect(live).toHaveText('Whirlwind dropped at position 10 of 17.')
     await expect(tab.getByRole('button', { name: 'Move Whirlwind, position 10' })).toBeFocused()
   })
 
@@ -180,9 +180,9 @@ test.describe('the Rotation tab at wide widths', () => {
     await tab.getByRole('button', { name: 'Move Whirlwind, position 11' }).focus()
     await page.keyboard.press('Space')
     await page.keyboard.press('ArrowUp')
-    await expect(live).toHaveText('Whirlwind is over position 10 of 16.')
+    await expect(live).toHaveText('Whirlwind is over position 10 of 17.')
     await page.keyboard.press('Space')
-    await expect(live).toHaveText('Whirlwind dropped at position 10 of 16.')
+    await expect(live).toHaveText('Whirlwind dropped at position 10 of 17.')
     await expect(page.getByRole('region', { name: 'Bloodrage settings' })).toBeVisible()
   })
 

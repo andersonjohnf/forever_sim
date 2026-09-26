@@ -5,7 +5,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
   "abilities": [
     [
       "ignite",
-      9151440.402695524,
+      9150108.927966418,
       15907,
       26440,
       0,
@@ -15,7 +15,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "scorch",
-      7497304.871123435,
+      7489825.451477931,
       12556,
       7777,
       4424,
@@ -75,9 +75,9 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
   ],
   "dps": {
-    "ci95": 2.2369104838479075,
-    "mean": 524.7932159147613,
-    "stdev": 36.091132830324305,
+    "ci95": 2.2368920304153876,
+    "mean": 524.7441067415331,
+    "stdev": 36.09083509588698,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -109,9 +109,9 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     "spentPerFight": 20536.2,
   },
   "tps": {
-    "ci95": 1.6329564205114724,
-    "mean": 386.8584372043168,
-    "stdev": 26.34671682410408,
+    "ci95": 1.6329416456776207,
+    "mean": 386.8240607830571,
+    "stdev": 26.346478441524653,
   },
 }
 `;

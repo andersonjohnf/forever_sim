@@ -719,12 +719,12 @@ describe('Fury rotation options (warrior.md §5.1, §5.2)', () => {
     expect(FURY_RENAMED_OPTIONS).toEqual({ 'warrior.fury.racial.syncWithDeathWish': 'warrior.fury.cooldowns.syncWithDeathWish' })
   })
 
-  it('uses the §5.2 defaults, the best rotation found (D23, M2.5b): the Overpower dance up to 40 rage, Heroic Strike from 40 with its cancel and in the phase, no Hamstring', () => {
+  it('uses the §5.2 defaults, the best rotation found (D23, M2.5b, W4): the Overpower dance up to 45 rage, the Rend dance, Heroic Strike from 40 with its cancel and in the phase, no Hamstring', () => {
     const defaults = Object.fromEntries(FURY_OPTIONS.map((o) => [o.id, o.default]))
     expect(defaults).toMatchObject({
       'warrior.fury.execute.enabled': true,
       'warrior.fury.execute.minExtraRage': 0,
-      'warrior.fury.execute.btOverExecuteAp': 2220,
+      'warrior.fury.execute.btOverExecuteAp': 2434,
       'warrior.fury.execute.whirlwindInExecute': false,
       'warrior.fury.execute.heroicStrikeInExecute': true,
       'warrior.fury.bloodthirst.enabled': true,
@@ -732,7 +732,10 @@ describe('Fury rotation options (warrior.md §5.1, §5.2)', () => {
       'warrior.fury.whirlwind.reserve': 0,
       'warrior.fury.whirlwind.btCdMinSec': 0.5,
       'warrior.fury.overpower.enabled': true,
-      'warrior.fury.overpower.maxRage': 40,
+      'warrior.fury.overpower.maxRage': 45,
+      'warrior.fury.rend.enabled': true,
+      'warrior.fury.rend.refreshBelowSec': 3,
+      'warrior.fury.rend.maxRage': 25,
       'warrior.fury.heroicStrike.enabled': true,
       'warrior.fury.heroicStrike.minRage': 40,
       'warrior.fury.heroicStrike.unqueue': true,
@@ -775,6 +778,7 @@ describe('Fury rotation options (warrior.md §5.1, §5.2)', () => {
       'bloodthirst', // 8
       'whirlwind', // 9
       'overpower', // 10
+      'rend', // 10b (W4)
       'heroicStrike', // 11
       'hamstring', // 12
       'berserkerRage', // 13
@@ -794,6 +798,8 @@ const NO_CD = {
   'warrior.fury.recklessness.enabled': false,
   'warrior.fury.bloodrage.enabled': false,
   'warrior.fury.berserkerRage.enabled': false,
+  // The Rend dance (row 10b, W4) came after the M2.2a list; its own test is below.
+  'warrior.fury.rend.enabled': false,
 }
 
 describe('furyRotation', () => {
@@ -807,16 +813,16 @@ describe('furyRotation', () => {
     const { abilities, rotation } = furyRotation(NO_CD, withBt, noAura)
     expect(abilities.map((a) => a.id)).toEqual(['bloodthirst', 'execute', 'whirlwind', 'overpower', 'heroicStrike'])
     expect(rotation.map((e) => e.ability)).toEqual([0, 1, 0, 2, 3, 3, 3, 4])
-    const upTo40 = { code: COND.maxRage, a: 400, b: 0 }
+    const upTo45 = { code: COND.maxRage, a: 450, b: 0 }
     expect(rotation.map((e) => e.conditions)).toEqual([
-      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }], // 6: Bloodthirst in the execute phase
+      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }], // 6: Bloodthirst in the execute phase
       [{ code: COND.minRage, a: 150, b: 0 }], // 7: Execute
       [notExec], // 8: Bloodthirst
       [notExec, { code: COND.minRage, a: 250, b: 0 }, { code: COND.cooldownAtLeast, a: 0, b: 500 }], // 9: Whirlwind
-      // 10: the Overpower dance at rage ≤ 40, GCD-safe as Berserker Rage is in each phase (row 13).
-      [notExec, { code: COND.gcdSafe, a: 0b101, b: 1500 }, upTo40],
-      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, { code: COND.gcdSafe, a: 0b1, b: 1500 }, upTo40],
-      [inExec, { code: COND.apBelow, a: 2220, b: 0 }, upTo40],
+      // 10: the Overpower dance at rage ≤ 45, GCD-safe as Berserker Rage is in each phase (row 13).
+      [notExec, { code: COND.gcdSafe, a: 0b101, b: 1500 }, upTo45],
+      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }, { code: COND.gcdSafe, a: 0b1, b: 1500 }, upTo45],
+      [inExec, { code: COND.apBelow, a: 2434, b: 0 }, upTo45],
       [{ code: COND.minRage, a: 400, b: 0 }], // 11: Heroic Strike, in both phases
     ])
     expect(rotation.slice(4, 7).map((e) => e.danceTo)).toEqual([STANCE.battle, STANCE.battle, STANCE.battle])
@@ -835,7 +841,7 @@ describe('furyRotation', () => {
     ])
     expect(rotation[2].conditions).toEqual([
       { code: COND.gcdSafe, a: 0b11, b: 1500 },
-      { code: COND.maxRage, a: 400, b: 0 },
+      { code: COND.maxRage, a: 450, b: 0 },
     ])
     expect(rotation[3].conditions).toEqual([{ code: COND.minRage, a: 400, b: 0 }])
   })
@@ -896,8 +902,8 @@ describe('furyRotation', () => {
     const btWait = { code: COND.cooldownAtLeast, a: 0, b: 500 }
     expect(rotation.filter((e) => e.ability === ww).map((e) => e.conditions)).toEqual([
       [notExec, minRage, btWait],
-      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, minRage, btWait],
-      [inExec, { code: COND.apBelow, a: 2220, b: 0 }, minRage],
+      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }, minRage, btWait],
+      [inExec, { code: COND.apBelow, a: 2434, b: 0 }, minRage],
     ])
     // Without Bloodthirst there is nothing to wait on: one line for both phases.
     const noBt = furyRotation({ ...NO_CD, 'warrior.fury.execute.whirlwindInExecute': true }, new Map(), noAura)
@@ -948,6 +954,7 @@ describe('furyRotation: the cooldowns (warrior.md §5.2 rows 2–5 and 13)', () 
       'bloodrage', // 5
       ...['bloodthirst', 'execute', 'bloodthirst', 'whirlwind'], // 6–9
       ...['overpower', 'overpower', 'overpower'], // 10: the dance, outside the phase and in it above and below btOverExecuteAp
+      'rend', // 10b: the Rend dance, outside the phase (W4)
       'heroicStrike', // 11
       ...['berserkerRage', 'berserkerRage', 'berserkerRage'], // 13: outside the phase, and in it above and below btOverExecuteAp
     ])
@@ -1014,8 +1021,8 @@ describe('furyRotation: the cooldowns (warrior.md §5.2 rows 2–5 and 13)', () 
     expect(linesOf(r, 'berserkerRage')).toEqual([
       [{ code: COND.executePhase, a: 0, b: 0 }, safe((1 << bt) | (1 << ww)), limit],
       // In the phase: Bloodthirst counts only while row 6 uses it; Whirlwind only with whirlwindInExecute.
-      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apAtLeast, a: 2220, b: 0 }, safe(1 << bt), limit],
-      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apBelow, a: 2220, b: 0 }, limit],
+      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apAtLeast, a: 2434, b: 0 }, safe(1 << bt), limit],
+      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apBelow, a: 2434, b: 0 }, limit],
     ])
     expect(r.abilities[at(r, 'berserkerRage')].rageTenths).toBe(100)
     const withWw = furyRotation({ 'warrior.fury.execute.whirlwindInExecute': true }, talents, noAura)
@@ -1169,28 +1176,47 @@ describe('furyRotation: the Overpower dance and Slam (warrior.md §5.2 rows 10 a
 
   it('the Overpower dance is on by default (M2.5b) and Slam off; without the dance, no dance lines or procs', () => {
     const defaults = Object.fromEntries(FURY_OPTIONS.map((o) => [o.id, o.default]))
-    expect(defaults).toMatchObject({ 'warrior.fury.overpower.enabled': true, 'warrior.fury.overpower.maxRage': 40, 'warrior.fury.slam.enabled': false })
+    expect(defaults).toMatchObject({ 'warrior.fury.overpower.enabled': true, 'warrior.fury.overpower.maxRage': 45, 'warrior.fury.slam.enabled': false })
     const r = furyRotation({}, talents, noAura)
     expect(r.abilities.map((a) => a.id)).toContain('overpower')
     expect(r.abilities.map((a) => a.id)).not.toContain('slam')
     expect(r.procs).toEqual(overpowerWindowProcs(talents))
-    const off = furyRotation({ 'warrior.fury.overpower.enabled': false }, talents, noAura)
+    // The Rend dance (row 10b) is the other dance: with both off, none.
+    const off = furyRotation({ 'warrior.fury.overpower.enabled': false, 'warrior.fury.rend.enabled': false }, talents, noAura)
     expect(off.abilities.map((a) => a.id)).not.toContain('overpower')
     expect(off.procs).toEqual([])
     expect(off.rotation.every((e) => e.danceTo === undefined)).toBe(true)
   })
 
+  it('row 10b: the Rend dance to Battle Stance after the Overpower dance, outside the execute phase, while Rend is due, at rage ≤ maxRage, GCD-safe for Bloodthirst and Whirlwind (W4)', () => {
+    const r = furyRotation({}, talents, noAura)
+    const [bt, ww, rend] = [at(r, 'bloodthirst'), at(r, 'whirlwind'), at(r, 'rend')]
+    expect(ids(r).slice(ids(r).lastIndexOf('overpower') + 1, ids(r).indexOf('heroicStrike'))).toEqual(['rend'])
+    const lines = linesOf(r, 'rend')
+    expect(lines.map((e) => e.danceTo)).toEqual([STANCE.battle])
+    // Again with 3 s left (unless it lasts to the end), up to 25 rage.
+    expect(lines.map((e) => e.conditions)).toEqual([[notExec, { code: COND.abilityAuraRefresh, a: rend, b: 3000 }, { code: COND.maxRage, a: 250, b: 0 }, safe((1 << bt) | (1 << ww))]])
+    // Its ticks add 0.02 × AP in `forever` (D36), and Improved Rend isn't in these talents.
+    expect(r.abilities[rend]).toMatchObject({ costTenths: 100, stances: STANCE.battle | STANCE.defensive, dotTickApCoefficient: 0.02 })
+    // The settings: the refresh window and the rage limit; without Execute, no phase condition; off, no Rend.
+    const set = furyRotation({ 'warrior.fury.execute.enabled': false, 'warrior.fury.rend.refreshBelowSec': 0, 'warrior.fury.rend.maxRage': 40 }, talents, noAura)
+    expect(linesOf(set, 'rend').map((e) => e.conditions)).toEqual([
+      [{ code: COND.abilityAuraRefresh, a: at(set, 'rend'), b: 0 }, { code: COND.maxRage, a: 400, b: 0 }, safe((1 << at(set, 'bloodthirst')) | (1 << at(set, 'whirlwind')))],
+    ])
+    expect(ids(furyRotation({ 'warrior.fury.rend.enabled': false }, talents, noAura))).not.toContain('rend')
+  })
+
   it('row 10: an Overpower dance to Battle Stance after Whirlwind, GCD-safe for Bloodthirst and Whirlwind at rage ≤ maxRage, in both phases as row 13', () => {
     const r = furyRotation({}, talents, noAura)
     const [bt, ww, op] = [at(r, 'bloodthirst'), at(r, 'whirlwind'), at(r, 'overpower')]
-    const limit = { code: COND.maxRage, a: 400, b: 0 }
-    expect(ids(r).slice(ids(r).lastIndexOf('whirlwind') + 1, ids(r).indexOf('heroicStrike'))).toEqual(['overpower', 'overpower', 'overpower'])
+    const limit = { code: COND.maxRage, a: 450, b: 0 }
+    expect(ids(r).slice(ids(r).lastIndexOf('whirlwind') + 1, ids(r).indexOf('heroicStrike'))).toEqual(['overpower', 'overpower', 'overpower', 'rend'])
     const lines = linesOf(r, 'overpower')
     expect(lines.map((e) => e.danceTo)).toEqual([STANCE.battle, STANCE.battle, STANCE.battle])
     expect(lines.map((e) => e.conditions)).toEqual([
       [notExec, safe((1 << bt) | (1 << ww)), limit],
-      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, safe(1 << bt), limit],
-      [inExec, { code: COND.apBelow, a: 2220, b: 0 }, limit],
+      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }, safe(1 << bt), limit],
+      [inExec, { code: COND.apBelow, a: 2434, b: 0 }, limit],
     ])
     expect(r.abilities[op]).toMatchObject({ costTenths: 50, stances: STANCE.battle, unavoidable: true, window: OVERPOWER_WINDOW })
     // Its window's opener comes with it: a dodge; Bloodthrill too when talented (the plan drops it without Rend).

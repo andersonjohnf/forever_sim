@@ -89,6 +89,12 @@ export function runError(sim: { status: string; error: string | null; errorKey: 
 export const isSetupError = (message: string) => /can[’']t be simulated|simulation isn[’']t available|to simulate this spec/i.test(message)
 
 /**
+ * Whether a refusal asks for a ranged weapon (a ranged spec with none, build.ts), so the alert can take
+ * you to Gear's Ranged slot. A unit test ties this to the engine's message.
+ */
+export const needsRangedWeapon = (message: string) => /Add a ranged weapon/.test(message)
+
+/**
  * Whether a failed run's message already says what to do next, so the retry advice would repeat it:
  * a hung worker ("Run it again") or one that couldn't start ("Reload the page"), where resetting the
  * spec wouldn't help.

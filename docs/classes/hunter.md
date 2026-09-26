@@ -94,8 +94,6 @@ Normalized weapon damage, no bonus, a 0.5 s cast (hasted as Aimed Shot's [?]), 2
 217 Arcane, instant, 190 mana, its own 6 s cooldown (category 1173). A school shot: the ranged table's
 miss and crit, the Arcane multipliers and the boss's average resist, no armor; crit ×2 as a shot's [?].
 
-<a id="34-serpent-sting-r9-25295"></a>
-
 ### 3.4 Serpent Sting (r8, 13555)
 A pure DoT on the ranged table: the hit roll lands it, 5 ticks of 83 Nature every 3 s, no
 coefficient, 230 mana [F] [client] (SpellEffect, SpellPower, SpellMisc, 1.60.1.70009). Rank 9 (25295,
@@ -119,8 +117,6 @@ and Auto Shots' ranged attack power, not your pet's (a melee attacker).
 
 ### 3.8 Bestial Wrath (19574)
 The pet deals +50% damage (aura 79) for 18 s; 12% of base mana (206), a 2 min cooldown, off the GCD [F].
-
-<a id="39-aspect-of-the-hawk-r7-25296"></a>
 
 ### 3.9 Aspect of the Hawk (r5, 14321)
 +90 ranged attack power (aura 124) until cancelled, cast before the pull [F] [client] (SpellEffect,

@@ -77,9 +77,9 @@ offer one [?] ([open question 6](#open-questions)).
 | Stormstrike (17364) cost, cooldown | 21% of base mana, 20 s | **125 mana, 8 s** | [client] (SpellPower, SpellCooldowns, 1.60.1.69913; [f17364]) |
 | Stormstrike damage | weapon damage (effect 58), the weapon's own speed | **normalized** weapon damage (effect 121) | [client] (SpellEffect; [f17364]) |
 | Stormstrike's aura | +20% to the next 2 Nature damage sources from anyone (aura 87) | **+20% to the caster's own next Lightning Bolt, Chain Lightning or Earth Shock** (aura 271, class mask 0x100003), 1 charge, 12 s | [client] (SpellEffect, SpellAuraOptions, SpellDuration; [f17364]) |
-| Lightning Bolt r10 (15208) | 428–476, 0.857, 3.0 s, 265 mana | **190.18–211.42** (196 ± 10.8%, +1.2 a level from 56), **0.714**, **2.5 s**, **220 mana** | [client] (SpellEffect, SpellLevels, SpellCastTimes, SpellPower; [f15208]) |
+| Lightning Bolt r10 (15208) | 428–476, 0.857, 3.0 s, 265 mana | **189.38–210.62** (196 ± 10.8%, + trunc(1.2 a level from 56) = 4), **0.714**, **2.5 s**, **220 mana** | [client] (SpellEffect, SpellLevels, SpellCastTimes, SpellPower; [f15208]) |
 | Earth Shock r7 (10414) | 517–545 | **293.06–308.94** (301 ± 5.27%), 0.386, 450 mana | [client] ([f10414]) |
-| Frost Shock r4 (10473) | 492–520 | **278.68–294.52** (283 ± 5.6%, +1.8 a level from 58), 0.386, 430 mana | [client] ([f10473]) |
+| Frost Shock r4 (10473) | 492–520 | **278.08–293.92** (283 ± 5.6%, + trunc(1.8 a level from 58) = 3), 0.386, 430 mana | [client] ([f10473]) |
 | Flame Shock r6 (29228) | 292 + 320 over 12 s | 166 (0.214) + 4 × 44 over 12 s (0.1 a tick), 410 mana; not in the Enhancement rotation | [client] ([f29228]) |
 | Shock cooldown | category 19, 6 s | same, on the GCD | [client] (SpellCategories, SpellCooldowns) |
 | Windfury Weapon r4 (16362) | enchant 1669 → 439431 (20%, proc mask 0x14, 1.5 s) and 16361 (+333 AP, 2 extra attacks) | the same rows; the tooltip adds "When applied to main hand, disables any benefit you personally receive from Windfury Totem." | [client] (SpellItemEnchantment, SpellAuraOptions, SpellEffect, 1.60.1.69913); Forever tooltip (`src/data/spells/shaman.json`) |
@@ -115,7 +115,7 @@ level 68 (333 + 8 × 12.5), not at 60.
 ## Conventions used below
 
 - **Rank at level 60.** A rank learned below 60 grows by its per-level points up to 60 or its max
-  level, and a range is base × (1 ± variance / 2) [F] ([paladin.md](paladin.md#conventions-used-below)).
+  level, truncated to a whole number ([per-level values](../data/items.md#per-level-values)), and a range is base × (1 ± variance / 2) [F] ([paladin.md](paladin.md#conventions-used-below)).
 - **Damage class** is `SpellCategories.DefenseType`: the shocks and Lightning Bolt are magic
   (DefenseType 1: the spell table, crit ×1.5); Stormstrike is melee (2: the special-attack table,
   crit ×2) with neither No Active Defense nor Always Hit, so it can miss, be dodged or parried
@@ -225,8 +225,8 @@ Measured on the default setup (20,000 fights, seed 1): the rule is worth **+1.17
 | Spell | Range at 60 | SP coefficient | Mana (base → default build) | Cast, cooldown | Stormstrike boost | Tag |
 | --- | --- | --- | --- | --- | --- | --- |
 | Earth Shock r7 (10414), Nature | 293.06–308.94 | 0.386 | 450 → **247** | instant, 6 s shared | yes | [F] [client] ([f10414]) |
-| Frost Shock r4 (10473), Frost | 278.68–294.52 | 0.386 | 430 → **236** | instant, 6 s shared | no | [F] [client] ([f10473]) |
-| Lightning Bolt r10 (15208), Nature | 190.18–211.42 | 0.714 | 220 (Maelstrom Weapon cuts it) | 2.5 s cast | yes | [F] [client] ([f15208]) |
+| Frost Shock r4 (10473), Frost | 278.08–293.92 | 0.386 | 430 → **236** | instant, 6 s shared | no | [F] [client] ([f10473]) |
+| Lightning Bolt r10 (15208), Nature | 189.38–210.62 | 0.714 | 220 (Maelstrom Weapon cuts it) | 2.5 s cast | yes | [F] [client] ([f15208]) |
 
 - **The spell table** [combat-tables §9](../mechanics/combat-tables.md#9-spell-hit-and-crit-generic):
   a miss roll at 17% − spell hit against a level-63 boss, then a crit roll at spell crit, ×1.5 (×2.0
@@ -308,7 +308,7 @@ shaman in the raid and Self only brings them
 | Strength of Earth (rank 4) | +42 Strength | on |
 | Grace of Air (rank 2) | +77 Agility | on (the air totem) |
 | Mana Spring | 10 mana every 2 s | on |
-| Windfury Totem | 20% on a main-hand hit, 1 extra attack with +246 AP | **off**: Windfury Weapon disables it for you |
+| Windfury Totem | 20% chance on a main-hand hit for an extra attack; it, and whatever you swing or cast in the next 1 s, gets +246 AP (the next auto attack only, [buffs doc](../mechanics/buffs-debuffs-consumables.md#windfury-totem)) | **off**: Windfury Weapon disables it for you |
 
 Values, durations (5 min, [F]) and exclusivity are the
 [buffs doc](../mechanics/buffs-debuffs-consumables.md#11-attack-power-stats-and-crit)'s: one air
@@ -645,10 +645,10 @@ runs through the engine in `src/sim/classes/shaman/shaman.test.ts`.
 1. **Earth Shock** (Concussion 5/5, Shamanistic Focus): cost 450 × (1 − 0.45) = 247.5 → **247**
    (with Convection 5/5 too: 450 × 0.45 = 202.5 → **202**; Frost Shock 430 → **236**). Damage
    (293.06–308.94 + 0.386 × 100) × 1.05 × 0.94 = **327.35–343.02, 335.19** on average; a crit
-   ×1.5 = 502.78. Frost Shock: (278.68–294.52 + 38.6) × 0.94 = **305.69** on average (Concussion
+   ×1.5 = 502.78. Frost Shock: (278.08–293.92 + 38.6) × 0.94 = **305.12** on average (Concussion
    doesn't touch it). With Totem of Rage, either shock ×1.02 (Earth Shock 341.89).
 2. **Lightning Bolt and Maelstrom Weapon** (Concussion 5/5, Maelstrom Weapon 5/5): damage
-   (190.18–211.42 + 0.714 × 100) × 1.05 × 0.94 = **268.66** on average. Cast time and cost by stacks:
+   (189.38–210.62 + 0.714 × 100) × 1.05 × 0.94 = **267.87** on average. Cast time and cost by stacks:
    5 → **instant, free**; 4 → 0.5 s, 44 mana; 3 → 1.0 s, 88; 2 → 1.5 s, 132; 1 → 2.0 s, 176
    (2,500 ms and 220 mana × (1 − 0.2 × stacks), rounded down). With one stack a landed swing and
    Lightning Bolt at 5, it goes on every 5th swing and the stacks start again from 0. A cast one
@@ -657,7 +657,7 @@ runs through the engine in `src/sim/classes/shaman/shaman.test.ts`.
    weapon's speed; 125 mana at 0, 8, 16 s…; its crits are the crit slice of all strikes (one roll).
 4. **Stormstrike's boost**: Stormstrike at 0 s, Earth Shock at 1.5 s: **335.19 × 1.2 = 402.22**,
    and the aura is gone; the next Earth Shock at 7.5 s deals 335.19. A Lightning Bolt the same:
-   268.66 × 1.2 = **322.39**. A missed spell keeps the aura; Frost Shock neither gets it nor uses it
+   267.87 × 1.2 = **321.45**. A missed spell keeps the aura; Frost Shock neither gets it nor uses it
    up; a Stormstrike that misses puts nothing up.
 5. **Windfury Weapon** (Elemental Weapons 3/3): extra attack power 333 × 1.4 = **466.2**; each of the
    2 extra attacks is a white swing: 250 + (1200 + 466.2) / 14 × 3.6 = **678.45**. It procs from
@@ -731,9 +731,9 @@ TraitDefinition, CurvePoint).
 
 | Area | Classic Era [C] | WoW Forever [F] |
 | --- | --- | --- |
-| Lightning Bolt r10 (15208) | 428–476 at 0.857, 3.0 s, 265 mana | **190.18–211.42 at 0.714, 2.5 s, 220 mana** |
+| Lightning Bolt r10 (15208) | 428–476 at 0.857, 3.0 s, 265 mana | **189.38–210.62 at 0.714, 2.5 s, 220 mana** |
 | Lightning Bolt r4 (915) | 88–100, 3.0 s, 75 mana | **55.22–62.78 at 0.714** (every rank from 3 up has 0.714; 49.63–56.37 until 1.60.1.70009 raised ranks 3 and 4), 2.5 s, 60 mana |
-| Chain Lightning r4 (10605) | 505–563, 2.5 s, 605 mana, 6 s cooldown | **119.37–133.03 at 0.571**, 2.0 s, 485 mana, 6 s cooldown |
+| Chain Lightning r4 (10605) | 505–563, 2.5 s, 605 mana, 6 s cooldown | **119.17–132.83 at 0.571**, 2.0 s, 485 mana, 6 s cooldown |
 | Flame Shock r6 (29228) | 292 + 320 over 12 s | **166 (0.214) + 4 × 44 (0.1 a tick)**, the **periodic-crit flag**, 410 mana |
 | Lava Burst r3 (1238300) | — (not in Classic Era) | **new tier-7 talent**: 192.14–247.86 Fire at 0.714, 2.5 s, 265 mana, 10 s cooldown, **+20% while your Flame Shock is on the target**. 1.60.1.70009 raised ranks 1 and 2 (408490 113 → 164, 1238299 179 → 196 base points), not rank 3 |
 | Elemental Mastery | 31-point talent | **gone** from the tree |
@@ -757,9 +757,9 @@ Values at level 60; a range is base × (1 ± variance / 2) plus per-level points
 
 | Spell | Damage | Coefficient | Cast, cooldown | Mana (base → default) | Tag |
 | --- | --- | --- | --- | --- | --- |
-| Lightning Bolt r10 (15208), Nature | 190.18–211.42 | 0.714 | 2.5 s → **2.0 s** | 220 → **198** | [F] [client] ([f15208]) |
+| Lightning Bolt r10 (15208), Nature | 189.38–210.62 | 0.714 | 2.5 s → **2.0 s** | 220 → **198** | [F] [client] ([f15208]) |
 | Lightning Bolt r4 (915), Nature | 55.22–62.78 | 0.714 | 2.5 s → **2.0 s** | 60 → **54** | [F] [client] ([f915], 1.60.1.70009) |
-| Chain Lightning r4 (10605), Nature | 119.37–133.03 (the first target) | 0.571 | 2.0 s → **1.5 s**, 6 s | 485 → **436** | [F] [client] ([f10605]) |
+| Chain Lightning r4 (10605), Nature | 119.17–132.83 (the first target) | 0.571 | 2.0 s → **1.5 s**, 6 s | 485 → **436** | [F] [client] ([f10605]) |
 | Flame Shock r6 (29228), Fire | 166, then 4 × 44 every 3 s | 0.214, 0.1 a tick | instant, shocks' 6 s → **5.2 s** | 410 → **369** | [F] [client] ([f29228]) |
 | Lava Burst r3 (1238300), Fire | 192.14–247.86; ×1.2 with your Flame Shock up | 0.714 | 2.5 s → **2.0 s**, 10 s | 265 → **238** | [F] [client] ([f1238300]) |
 | Earth Shock r7 (10414), Nature | 293.06–308.94 | 0.386 | instant, shocks' cooldown | 450 → **405** | [F] ([Shocks](#shocks-and-lightning-bolt)) |
@@ -994,14 +994,14 @@ Assumptions unless stated: level 60 vs a level-63 boss; spells land and never cr
 **SP 400** for every school; the boss's average partial resist, **6%** (×0.94); the default
 build's talents. Each runs through the engine in `src/sim/classes/shaman/elemental.test.ts`.
 
-1. **Lightning Bolt r10**: (190.18–211.42 + 0.714 × 400) × 1.05 (Concussion) × 0.94 =
-   **469.60–490.56, 480.08** on average; a crit ×2.0 (Elemental Fury) = 960.15. Cost 220 × 0.9 =
+1. **Lightning Bolt r10**: (189.38–210.62 + 0.714 × 400) × 1.05 (Concussion) × 0.94 =
+   **468.81–489.77, 479.29** on average; a crit ×2.0 (Elemental Fury) = 958.57. Cost 220 × 0.9 =
    **198**; cast 2,500 − 500 = **2,000 ms**, **1,818 ms** with Berserking (+10%). With Totem of the
-   Storm, +33 × 0.714 = 23.56 on the base: 503.33.
+   Storm, +33 × 0.714 = 23.56 on the base: 502.54.
 2. **Lightning Bolt r4**: (55.22–62.78 + 285.6) × 1.05 × 0.94 = **336.39–343.85, 340.12**; 60 × 0.9
    = **54** mana; 2,000 ms.
-3. **Chain Lightning** (one target): (119.37–133.03 + 0.571 × 400) × 1.05 × 0.94 = **343.25–356.73,
-   349.99**; 485 × 0.9 = 436.5 → **436** mana; 2,000 − 500 = **1,500 ms**; 6 s cooldown.
+3. **Chain Lightning** (one target): (119.17–132.83 + 0.571 × 400) × 1.05 × 0.94 = **343.05–356.54,
+   349.79**; 485 × 0.9 = 436.5 → **436** mana; 2,000 − 500 = **1,500 ms**; 6 s cooldown.
 4. **Flame Shock**: (166 + 0.214 × 400) × 1.15 (Call of Flame) × 0.94 = **271.98** at once, then
    (44 + 0.1 × 400) × 1.15 × 0.94 = **90.80** at 3, 6, 9 and 12 s (363.22); a tick's crit ×2.0 =
    181.61. 410 × 0.9 = **369** mana; the shocks' cooldown 6 − 0.8 = **5.2 s**.

@@ -31,6 +31,8 @@ describe('golden run (fixed config and seed)', () => {
   //   559.7 → 565.7 over 20,000 fights on seed 2701.
   // - D36, pre-Ahn'Qiraj ranks (W2): Blessing of Wisdom r5 (36 mp5) for r6 (40): mana only, 565.39 → 565.40
   //   DPS.
+  // - The per-level term truncated, as the client renders it (docs/data/items.md#per-level-values): Mind
+  //   Blast r9 adds trunc(5.2) = 5 (476.87–503.13). 565.40 → 565.37 DPS.
   it('keeps the default Shadow Priest’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('priest-shadow'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

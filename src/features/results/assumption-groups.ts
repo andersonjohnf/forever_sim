@@ -42,6 +42,8 @@ export const ASSUMPTION_GROUP = {
   unmodelledSetBonuses: 'gear',
   onUseConsumables: 'gear',
   explosiveThrow: 'gear',
+  // A tank's Gift of Arthas on the boss, from Buffs (buffs doc §4.2).
+  giftOfArthas: 'gear',
   hyjalFlask: 'gear',
   procRates: 'gear',
   ironfoeChance: 'gear',
@@ -71,6 +73,8 @@ export const ASSUMPTION_GROUP = {
   baseStatPlaceholders: 'character',
   // How the sim plays the class: rage, abilities and talents.
   whiteSwingsOnly: 'class',
+  // The ranks trainable before Ahn'Qiraj, for the abilities and buffs (buffs doc §1.1).
+  preAqRanks: 'class',
   formWeapon: 'class',
   formWeaponCat: 'class',
   omenOfClarity: 'class',

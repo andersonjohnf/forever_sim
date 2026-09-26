@@ -25,6 +25,7 @@ const MELEE = [
   'faerieFire',
   'curseOfRecklessness',
   'armorShatter',
+  'giftOfArthas',
   'elixirOfGreaterStrength',
   'jujuPower',
   'winterfallFirewater',
@@ -57,6 +58,7 @@ function attacksOnly(e: Effect): boolean {
       return !e.spellDamage && !e.spellCrit
     case 'haste':
     case 'targetArmor':
+    case 'physicalTaken':
     case 'bossAp':
     case 'weaponDamage':
     case 'weaponCrit':
@@ -73,8 +75,11 @@ function attacksOnly(e: Effect): boolean {
 }
 
 const casters = SPEC_IDS.filter((s) => SPEC_META[s].caster)
-/** The melee's armor debuffs on the boss, which a caster whose pet swings keeps (SpecMeta.petMelee: Demonology, docs/classes/warlock.md §11.2). */
-const ARMOR = ['sunderArmor', 'exposeArmor', 'faerieFire', 'curseOfRecklessness', 'armorShatter']
+/**
+ * The melee's debuffs on the boss, which a caster whose pet swings keeps (SpecMeta.petMelee: Demonology,
+ * docs/classes/warlock.md §11.2): the armor debuffs, and Gift of Arthas' +8 on each physical hit.
+ */
+const ARMOR = ['sunderArmor', 'exposeArmor', 'faerieFire', 'curseOfRecklessness', 'armorShatter', 'giftOfArthas']
 /** The melee entries a caster doesn't get. */
 const meleeFor = (spec: SpecId) => (SPEC_META[spec].petMelee ? MELEE.filter((id) => !ARMOR.includes(id)) : MELEE)
 const melee = SPEC_IDS.filter((s) => !SPEC_META[s].caster)
@@ -162,10 +167,11 @@ describe('melee and caster entries (forSpecs)', () => {
     for (const spec of casters) expect(hidden(spec), spec).toEqual(SPEC_META[spec].classId === 'druid' ? meleeFor(spec) : meleeFor(spec).filter((id) => id !== 'mightyRagePotion'))
   })
 
-  it('give a caster whose pet swings the boss’s armor debuffs, in its Standard raid too: the Demonology warlock (ranged-and-pets.md §8)', () => {
+  it('give a caster whose pet swings the boss’s armor debuffs and Gift of Arthas, in its presets too: the Demonology warlock (ranged-and-pets.md §8)', () => {
     expect(casters.filter((s) => SPEC_META[s].petMelee)).toEqual(['warlock-demonology'])
     for (const id of ARMOR) expect(forSpecClass(BUFFS.find((b) => b.id === id)!, 'warlock-demonology'), id).toBe(true)
     expect(presetBuffIds('raid', 'warlock-demonology', FULL_RAID)).toEqual(expect.arrayContaining(['sunderArmor', 'faerieFire', 'curseOfRecklessness']))
     expect(presetBuffIds('raid', 'warlock-demonology', FULL_RAID)).not.toContain('battleShout')
+    expect(presetBuffIds('max', 'warlock-demonology', FULL_RAID)).toContain('giftOfArthas')
   })
 })

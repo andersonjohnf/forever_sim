@@ -52,7 +52,7 @@ Both specs need the following. Each item links to its section.
 9. **Target type** from [encounter.md](../mechanics/encounter.md) gates Exorcism and Holy
    Wrath.
 10. **Level scaling of lower-rank spells.** A rank learned below 60 grows by
-    `EffectRealPointsPerLevel` per level up to its max level
+    `EffectRealPointsPerLevel` per level up to its max level, truncated to a whole number
     ([Conventions](#conventions-used-below)).
 
 ---
@@ -188,7 +188,9 @@ and the docs it links; this list only summarizes them, with the same tags.
   rates are server-side ([hotfix caveat](../data/client.md#hotfix-caveat)).
 - **Rank at level 60.** Every table uses the max rank a level-60 paladin has. Where
   `SpellLevels.BaseLevel` < 60, add `EffectRealPointsPerLevel × (min(60, MaxLevel) −
-  BaseLevel)` to the base: JoR r8 +8.2, JoF r7 +7.38, SoR r8 dummy +94, SotC r6 AP +19.2.
+  BaseLevel)` to the base, truncated toward zero to a whole number as the client renders it
+  ([per-level values](../data/items.md#per-level-values)): JoR r8 +8 (8.2), JoF r7 +7 (7.38),
+  SoR r8 dummy +94, SotC r6 AP +19 (19.2).
   foreverchanges tooltips show the unscaled base ("Numbers are base values, before talents,
   gear and level scaling",
   [spellbook](https://foreverchanges.pro/spellbook/paladin)) [F]. Ranges come from
@@ -304,7 +306,7 @@ always uses the halved value.
 | Modifiers | Improved Seals ×1.15, Vengeance, JotC | [F] |
 | Triggers | **Nothing**: the proc triggers no Windfury, Crusader, Hand of Justice, Vengeance or Vindication, even when it crits. The white hit that carries it still does [?] | 25713's Attr3 is `0x40000` (Always Hit) only, without NOT_A_PROC `0x200` [F] [client] (SpellMisc, 1.60.1.70009); the server's use of it [?] ([conventions](#conventions-used-below), [open question 22](#open-questions)) |
 
-**Judgement of Righteousness** (r8, 20286): **162–178 + 8.2 = 170.2–186.2 at level 60**,
+**Judgement of Righteousness** (r8, 20286): **162–178 + 8 = 170–186 at level 60**,
 plus **0.5 × SP**, ×1.15 Improved Seals. Melee class, No Active Defense, no Always Hit: melee
 miss, crit ×2, no dodge, parry or block [F] [client] (SpellEffect, SpellMisc, SpellCategories,
 1.60.1.70009; [20286][f20286]). It has no weapon damage, so it rolls the miss first and crit on a
@@ -364,7 +366,7 @@ It corroborates the client data above but isn't a guild measurement.
 | Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt** | [F] (effect 1 = 50). Stacking or refresh rules [?]: the sim keeps **one** absorb, which each proc replaces and the next hit that costs you health uses up, lasting at most the seal's 30 s. A boss's hit is thousands, so it always takes all of it, which is what [Improved Seal of Fury](#protection-tree)'s mana needs. The absorb itself isn't taken off that hit (about 20 damage, under 1% of damage taken) ([open question 10](#open-questions)) |
 | Hit table | Proc 20418: melee class, No Active Defense + Always Hit, like SoR | [F] [client] (SpellMisc, SpellCategories, 1.60.1.70009) |
 | Triggers | **Nothing**, like SoR's proc: no Windfury, Crusader, Hand of Justice, Vengeance or Vindication from it [?] | 20418's Attr3 is `0x40000` only, without NOT_A_PROC [F] [client] (SpellMisc, 1.60.1.70009); the server's use of it [?] ([open question 22](#open-questions)) |
-| Judgement of Fury (r7) | 20414: **146–160 + 7.38 = 153.4–167.4 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense, no Always Hit (can miss; then crit on a landed one, two rolls [?]). **Taunts for 4 s** | [F] [client] (SpellEffect, SpellMisc, 1.60.1.70009; [20414][f20414]); taunt: tooltip |
+| Judgement of Fury (r7) | 20414: **146.3–159.7 + 7 = 153.3–166.7 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense, no Always Hit (can miss; then crit on a landed one, two rolls [?]). **Taunts for 4 s** | [F] [client] (SpellEffect, SpellMisc, 1.60.1.70009; [20414][f20414]); taunt: tooltip |
 | Improved Seals | applies to the proc and the judgement | [F] [client] (SpellEffect spell mask includes 20418 and 20414, 1.60.1.70009) |
 
 **The seal value** [?]. The SoF aura carries the same weapon-speed "seal value" dummy as SoR,
@@ -1508,8 +1510,8 @@ default setup.
    178 + 0.429 × 100 = **220.9**; ×1.15 = **254.04**. Crit ×2. Can't miss (Always Hit on
    20966), be dodged, parried or blocked, so its expected damage carries no miss factor, unlike
    JoR's in example 4. (`classicEra`: magic class, spell hit and ×1.5 crit.)
-4. **Judgement of Righteousness r8 at 60**: (162..178) + 8.2 → average 178.2 + 0.5 × 100 =
-   **228.2**; ×1.15 = **262.43**.
+4. **Judgement of Righteousness r8 at 60**: (162..178) + 8 → average 178 + 0.5 × 100 =
+   **228**; ×1.15 = **262.2**.
 5. **Holy Strike r8** (1.60.1.70009's 50%), its tooltip's reading: normalized MH = 250 + 1200 ×
    3.3 / 14 = 532.857; × 0.50 = 266.429; + 93 (average of 81.375..104.625) = 359.429; + 0.429 × 100
    = **402.33**; Sacred Arbiter ×1.20 = **482.79**. Range with Sacred Arbiter and a 200–300 weapon:
@@ -1539,9 +1541,9 @@ default setup.
     4 blocks the buff ends even if 10 s haven't passed.
 13. **Seal of Fury, SP 300, a 2.7 s one-hander**: 35 + 0.85 × 16.91 × 2.7 (38.81) + 30 = **103.81**
     Holy per landed white hit; threat × 1.6 = **166.10**; absorb 51.90 with a shield. With the default
-    1.5 s axe and no SP: 35 + 21.56 = **56.56**. Judgement of Fury at 60: average 160.38 +
-    0.45 × 300 = **295.38** (the default Prot build has no Improved Seals; with it,
-    ×1.15 = 339.69).
+    1.5 s axe and no SP: 35 + 21.56 = **56.56**. Judgement of Fury at 60: average 160 +
+    0.45 × 300 = **295** (the default Prot build has no Improved Seals; with it,
+    ×1.15 = 339.25).
 14. **Holy Strike threat (Prot)**: a 300-damage Holy Strike → 300 × 1.6 × 1.25 = **600**.
 15. **Shield Specialization**: with 6000 max mana, blocks at t = 0, 1, 2 and 3 s restore
     360 mana at 0 and 3 s only, 720 in all: the blocks at 1 and 2 s fall inside the 3 s ICD, and

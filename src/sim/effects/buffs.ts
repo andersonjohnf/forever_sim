@@ -610,7 +610,9 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_nature_windfury',
     category: 'raidBuff',
     group: 'Shaman totems',
-    summary: '20% chance on a main-hand hit for an extra attack with +246 attack power',
+    // The attack power's 1 s in a phrase; only the first auto attack after the extra one takes its second
+    // charge (buffs doc, Windfury Totem).
+    summary: '20% chance on a main-hand hit for an extra attack; it, and whatever you swing or cast in the next 1 s, gets +246 attack power',
     providedBy: 'shaman',
     exclusiveGroup: 'totem:air',
     forSpecs: 'melee',
@@ -884,6 +886,25 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#41-armor-reduction`,
     effects: (p) => [{ kind: 'targetArmor', value: 3 * p.values.armorShatterPerStack }],
     classicEra: { summary: '−600 armor (Armor Shatter from a raid member’s Annihilator)' },
+    presets: { max: 'all' },
+  },
+  // Gift of Arthas on the boss (buffs doc §4.2, D36): a tank drinks the potion (11371), and a boss
+  // that strikes it has a 30% chance of 11374, +8 physical damage taken for 3 min (aura 14, school
+  // mask 1) [F] [client] (SpellEffect, SpellAuraOptions, 1.60.1.70009; Classic Era's the same 8).
+  // It changes only attacks, so it's the melee's, and a caster whose pet swings keeps it (presets.ts
+  // `forSpecClass`). Max consumables only: a typical raid's tank doesn't drink it (§6.2, §6.3).
+  {
+    id: 'giftOfArthas',
+    name: 'Gift of Arthas',
+    icon: 'inv_potion_28',
+    category: 'targetDebuff',
+    // "taken", so it doesn't read as the boss's own attacks beside Boss damage. The Buffs tab says whose
+    // hits for a spec with a pet (sim/index.ts `buffSummaryFor`).
+    group: 'Physical damage taken',
+    summary: '+8 damage taken from each physical hit (the boss’s debuff from a tank who drank Gift of Arthas)',
+    forSpecs: 'melee',
+    docRef: `${DOC}#42-other-debuffs`,
+    effects: [{ kind: 'physicalTaken', value: 8 }],
     presets: { max: 'all' },
   },
   // The caster core's (docs/mechanics/spells.md §9): Curse of the Elements, the casters' only.

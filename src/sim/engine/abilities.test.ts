@@ -10,11 +10,16 @@
 import { describe, expect, it } from 'vitest'
 import { decodeTalentCode, encodeTalentCode } from '@/data/talents/types'
 import { addSample, emptyMoments, stdev } from '../core/welford'
-import { defaultConfig, TALENT_DATA } from '../defaults'
+import { defaultConfig as todaysDefaultConfig, TALENT_DATA } from '../defaults'
+import { withPopularTalents } from '../classes/warrior/popular-builds'
 import { buildPlan } from '../plan/build'
 import { ACTION, type Plan, STANCE, TRIGGER, TRIGGER_COUNT, type WeaponPlan } from '../plan/types'
 import type { SimConfig } from '../types'
 import { FIELD, FIELD_COUNT, SOURCE_MAIN_HAND, SOURCE_OFF_HAND, Sim } from './sim'
+
+/** Today's default setup with the popular warrior builds, the defaults until W4, which these tests were written
+ * for (popular-builds.ts; warrior.md §6.1). */
+const defaultConfig = (...args: Parameters<typeof todaysDefaultConfig>) => withPopularTalents(todaysDefaultConfig(...args))
 
 /** The pre-pull, Battle Shout, the cooldowns and consumables (warrior.md §5.2 rows 0–5, 13, 16 and 17) off. */
 const NO_COOLDOWNS: SimConfig['rotation'] = {
@@ -34,6 +39,7 @@ const OFF: SimConfig['rotation'] = {
   'warrior.fury.bloodthirst.enabled': false,
   'warrior.fury.whirlwind.enabled': false,
   'warrior.fury.overpower.enabled': false,
+  'warrior.fury.rend.enabled': false,
   'warrior.fury.heroicStrike.enabled': false,
   'warrior.fury.hamstring.enabled': false,
   'warrior.fury.execute.enabled': false,

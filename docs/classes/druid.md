@@ -2010,7 +2010,7 @@ and `balance.ts`.
 SpellCastTimes, SpellLevels, SpellDuration, SpellAuraOptions, CurvePoint, 1.60.1.69913), against
 Classic Era's [C] [client] (1.15.9.69722)):
 
-- The nukes are far weaker at base and keep their coefficients: Starfire r6 314–369 at 60 (Classic Era
+- The nukes are far weaker at base and keep their coefficients: Starfire r6 313–369 at 60 (Classic Era
   451–531; the Ahn'Qiraj book's r7 350–412 and 496–584), Wrath r8 92–102 at 60 (236–264), and Wrath costs 120 mana (180). Wrath's base damage
   rose about 50% on every rank in 1.60.1.70009 (rank 8 was 62–69; [development notes][dev-70009])
   [F] [client] (SpellEffect, 1.60.1.70009).
@@ -2043,14 +2043,15 @@ indices and results are unchanged.
 
 ### 11.2 Spells
 
-Level-60 values, before talents. A rank learned below 60 grows by its per-level points; a range is
-base × (1 ± variance / 2) plus that growth (paladin.md#conventions-used-below).
+Level-60 values, before talents. A rank learned below 60 grows by its per-level points, truncated to a whole number
+([per-level values](../data/items.md#per-level-values)); a range is base × (1 ± variance / 2) plus
+that growth (paladin.md#conventions-used-below).
 
 | Spell (id) | Damage at 60 | Coefficient | Cast, cost | Other | Tag |
 | --- | --- | --- | --- | --- | --- |
-| **Starfire** r6 (9876), the trainer's: r7 (25298, 349.96–412.04, 340 mana) is an Ahn'Qiraj book, Book of Starfire VII ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)) | 337 base, variance 0.16494845, +2.3 a level 58–64: **313.81–369.39** | 1.0 | 3.5 s, 315 mana | Arcane; its stun (Improved Starfire) does nothing to a boss | [F] [client] |
+| **Starfire** r6 (9876), the trainer's: r7 (25298, 349.96–412.04, 340 mana) is an Ahn'Qiraj book, Book of Starfire VII ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)) | 337 base, variance 0.16494845, +2.3 a level 58–64, truncated to +4 ([per-level values](../data/items.md#per-level-values)): **313.21–368.79** | 1.0 | 3.5 s, 315 mana | Arcane; its stun (Improved Starfire) does nothing to a boss | [F] [client] |
 | **Wrath** r8 (9912) | 91 base, variance 0.112, +1 a level 54–60: **91.90–102.10** (61.78–68.62 until 1.60.1.70009) | 0.571 | 2.0 s, 120 mana | Nature; speed 20 (travel time not simulated, spells.md §4) | [F] [client] (1.60.1.70009) |
-| **Moonfire** r10 (9835) | hit 135, variance 0.15609756, +2.3 a level 58–63: **129.06–150.14**; DoT **60 every 3 s, 12 s** | 0.15; **0.13 a tick** | instant, 375 mana | Arcane; one hit roll for both parts; not binary; ticks flagged 0x200 | [F] [client] |
+| **Moonfire** r10 (9835) | hit 135, variance 0.15609756, +2.3 a level 58–63, truncated to +4: **128.46–149.54**; DoT **60 every 3 s, 12 s** | 0.15; **0.13 a tick** | instant, 375 mana | Arcane; one hit roll for both parts; not binary; ticks flagged 0x200 | [F] [client] |
 | **Insect Swarm** r5 (24977) | DoT **31 every 2 s, 12 s** | **0.158 a tick** | instant, 160 mana | Nature; −2% hit on the target (#1, aura 54) makes it **binary** (spells.md §3); ticks flagged 0x200 | [F] [client] |
 | **Faerie Fire** r4 (9907) | −505 armor, 40 s | — | instant, 115 mana | Nature, rolls spell hit; only attacks feel the armor | [F] [client] |
 | **Innervate** (29166) | +400% Spirit regeneration (aura 110) and 100% of it while casting (aura 134), 20 s | — | instant, 5% of base mana (62, rounded down [?]), 6 min cooldown | castable in Moonkin Form (its shapeshift mask has form 31) | [F] [client] |
@@ -2223,11 +2224,11 @@ Common setup: level 60 against 63, 500 spell damage (Arcane and Nature), the bos
 resist of 24 (6% on average), averages of uniform rolls. Unit tests in
 `src/sim/classes/druid/balance.test.ts`.
 
-- **B1. Starfire** (rank 6, 341.6 at the middle of its range). (341.6 + 1.0 × 500) × Moonfury 1.10 ×
-  0.94 = **870.21**; a crit with Vengeance 5/5 (×2.0): **1,740.43**.
+- **B1. Starfire** (rank 6, 341 at the middle of its range: 337 + 4). (341 + 1.0 × 500) × Moonfury 1.10 ×
+  0.94 = **869.59**; a crit with Vengeance 5/5 (×2.0): **1,739.19**.
 - **B2. Wrath.** (97 + 0.571 × 500) × 1.10 × 0.94 = **395.51**; a crit: **791.01**.
 - **B3. Moonfire** with Improved Moonfire 2/2, Genesis 5/5, Nature's Splendor and Moonfury. Hit:
-  (139.6 + 0.15 × 500) × 1.10 × 1.10 × 0.94 = **244.09**. Each tick: (60 × 1.05 + 0.13 × 1.05 × 500)
+  (139 + 0.15 × 500) × 1.10 × 1.10 × 0.94 = **243.40**. Each tick: (60 × 1.05 + 0.13 × 1.05 × 500)
   × 1.10 × 1.10 × 0.94 = **149.29**, over 5 ticks **746.42**.
 - **B4. Insect Swarm** with Genesis 5/5 and Moonfury. Each tick: (31 × 1.05 + 0.158 × 1.05 × 500) ×
   1.10 = **127.05** (binary: no partial resist), over 7 ticks **889.35**. Resisted whole with no hit:
@@ -2242,8 +2243,8 @@ resist of 24 (6% on average), averages of uniform rolls. Unit tests in
 - **B8. Innervate.** 200 Spirit: 15 + 40 = 55 a tick, ×5 = **275** a tick while casting, **2,750**
   over its 10 ticks.
 - **B9. Eclipse's cycle.** Wrath (1.5 s) then two Starfires at 2.5 s: **6.5 s** for one Wrath and two
-  Starfires, where two Starfires alone take 6.0 s. At B1 and B2's numbers that's 2,135.94 in 6.5 s
-  (328.6 a second) against 1,740.43 in 6.0 s (290.1), before crits and Nature's Grace.
+  Starfires, where two Starfires alone take 6.0 s. At B1 and B2's numbers that's 2,134.69 in 6.5 s
+  (328.4 a second) against 1,739.19 in 6.0 s (289.9), before crits and Nature's Grace.
 
 ### 11.8 Open questions
 

@@ -279,7 +279,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
     help: 'Use Hamstring to fish for procs, such as Weaponmaster’s extra attacks with a sword or Windfury, while the rest of the rotation is cooling down.',
     default: true,
   },
-  rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 40, ID.hamEnabled, 'Fillers'),
+  rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 30, ID.hamEnabled, 'Fillers'),
   ...consumableOptions(
     ID,
     'Drink it once: 45–75 rage and +60 Strength for 20 s. Early in the execute phase; without a phase, or with Execute off, in the last 20 s, and from Battle Stance after Recklessness’s swap, which caps your rage.',
@@ -340,6 +340,14 @@ export const ARMS_APL: AplDefinition = {
       enabledId: ID.bsEnabled,
       optionIds: [ID.bsRefresh],
       summary: [{ option: ID.bsRefresh, text: 'again with {}', zeroText: 'again once it runs out' }],
+    },
+    {
+      id: 'overpower',
+      label: 'Overpower',
+      icon: OVERPOWER.icon,
+      enabledId: ID.opEnabled,
+      optionIds: [],
+      summary: [{ text: 'after a dodge or Bloodthrill' }],
     },
     {
       id: 'rend',
@@ -425,14 +433,6 @@ export const ARMS_APL: AplDefinition = {
       optionIds: [],
       // Outside the execute phase: row 7 has it in the phase.
       summary: [{ text: 'on cooldown' }, NOT_IN_PHASE],
-    },
-    {
-      id: 'overpower',
-      label: 'Overpower',
-      icon: OVERPOWER.icon,
-      enabledId: ID.opEnabled,
-      optionIds: [],
-      summary: [{ text: 'after a dodge or Bloodthrill' }],
     },
     {
       id: 'slam',

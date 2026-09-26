@@ -58,6 +58,7 @@ const MELEE_ONLY = [
   'Faerie Fire',
   'Curse of Recklessness',
   'Annihilator ×3',
+  'Gift of Arthas',
   'Elixir of Greater Strength',
   'Juju Power',
   'Winterfall Firewater',
@@ -113,4 +114,18 @@ test('a warlock’s Buffs tab lists nothing that changes only attacks, in any pr
     await expect(buffs.getByRole('switch', { name: 'Moonkin Aura' })).toBeChecked()
     await expect(buffs.getByRole('switch', { name: 'Elixir of Shadow Power' })).toBeChecked()
   }
+})
+
+// buffs doc §4.2, §6.2: a tank's Gift of Arthas on the boss, the melee's physical debuff, in Max
+// consumables only.
+test('Gift of Arthas is a boss debuff for physical hits: off in the Standard raid, on in Max consumables', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+  const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+  await expect(buffs.getByText('Physical damage taken', { exact: true })).toBeVisible()
+  const gift = buffs.getByRole('switch', { name: 'Gift of Arthas' })
+  await expect(gift).toHaveAccessibleDescription('+8 damage taken from each physical hit (the boss’s debuff from a tank who drank Gift of Arthas)')
+  await expect(gift).not.toBeChecked()
+  await buffs.getByRole('radio', { name: 'Max consumables' }).click()
+  await expect(gift).toBeChecked()
 })

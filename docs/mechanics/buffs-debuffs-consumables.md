@@ -165,6 +165,12 @@ librams' values, and whether a trainer teaches it before a paladin has learned t
 isn't in any allowed source; the sim takes it to come with the libram, so the raid's blessings are
 rank 6 and Greater rank 1 [?] ([OQ 22](#open-questions)). Books that drop outside Ahn'Qiraj (the
 Arcane Brilliance, Gift of the Wild and Prayer of Fortitude books, from content open at launch) stay.
+The results say so (the `preAqRanks` assumption) for every setup that uses one of these buffs,
+Deadly Poison or an ability whose next rank is a book's (Heroic Strike, Revenge, Backstab,
+Frostbolt, Fireball, Arcane Missiles, Shadow Bolt, Immolate, Corruption, Starfire, Multi-Shot,
+Serpent Sting): "Abilities and buffs use the ranks trainable before Ahn'Qiraj, not the higher ones
+its books teach", adding "and the Greater Blessings' rank 2 is taken to need Ahn'Qiraj too" when a
+Blessing of Might or Wisdom is on.
 
 | Name | ID | Effect (the rank at 60) | Duration | Stacking / exclusivity | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -312,6 +318,9 @@ which doesn't matter inside one fight [F] [[fc-camping]].
   (1.5 s in Classic Era, DurationIndex 65 in 1.15.9), and each auto attack while it's up gets the
   +246 and uses a charge: the extra attack, then the next auto attack of either hand within the
   second. Abilities in that second get it and use none (its proc mask is auto attacks, 0x4) [?].
+  The Buffs entry says it in a phrase: "20% chance on a main-hand hit for an extra attack; it,
+  and whatever you swing or cast in the next 1 s, gets +246 attack power", where "whatever you
+  swing" is the one auto attack the second charge covers.
   [warrior.md §2.7](../classes/warrior.md#27-weaponmaster-extra-attacks-and-windfury) owns the
   details.
 - **Consequence [?]:** in Forever, a main-hand sharpening stone or weightstone should
@@ -402,7 +411,7 @@ in the tooltips; category 79 [F] [client] (ItemEffect, 1.60.1.69913)).
 | Greater Arcane Elixir | 13454 → 17539 | +35 spell damage (all schools, so Holy too) | 1 h | — | Alchemy (Same). Paladins only | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 | Elixir of Shadow Power | 9264 → 11474 | +40 Shadow spell damage | 30 min | — | Alchemy (Same). Warlocks and priests only among the classes in scope ([warlock](../classes/warlock.md#74-enchants-and-consumables), [priest](../classes/priest.md#74-enchants-and-consumables)) | [F] [C] | [client] (SpellEffect, SpellDuration, 1.60.1.69913 and 1.15.9.69722) |
 | Elixir of Holy Power *(Classic: Elixir of Greater Firepower)* | 21546 → 1310077 | **+40 Holy spell damage** (C: +40 Fire) | 30 min | — | Alchemy. Renamed and re-schooled, so it is now a paladin elixir | [F] | [fc/21546](https://foreverchanges.pro/item/21546) |
-| Gift of Arthas | 9088 → 11371 | +10 Shadow resistance. When the drinker is struck, it may put a debuff on the attacker: +8 physical damage taken for 3 min (11374) | 30 min | — | Alchemy (Same) | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
+| Gift of Arthas | 9088 → 11371 | +10 Shadow resistance. When the drinker is struck, the attacker has a 30% chance of 11374: +8 physical damage taken for 3 min. A tank drinks it, so in a raid it's a **boss debuff** that raises everyone's physical hits: the Buffs entry is [§4.2](#42-other-debuffs)'s | 30 min | — | Alchemy (Same) | [F] | [fc-items] · [client] (SpellEffect, SpellAuraOptions, 1.60.1.70009) |
 
 ### 3.3 Juju, Firewater, Blasted Lands and other buffs
 
@@ -635,7 +644,7 @@ matters for armor, only for who spends the GCDs. Armor math itself is in
 | Curse of Weakness (r6) | 11708 | Target's **physical** damage done −37 (C: −31, all damage) | 2 min | One curse per warlock. Improved Curse of Weakness removed | Warlock | [F] | [fc-sb-warlock] |
 | Stormstrike | 17364 | Forever: **self only**, +20% to the shaman's own next Lightning Bolt, Chain Lightning or Earth Shock (C: target takes +20% from the next 2 Nature damage sources, 12 s) | 12 s | — | Shaman talent. No longer a raid debuff | [F] | [fc-changes] |
 | Nightfall: Spell Vulnerability | item 19169 → 23605 | +15% spell damage taken (paladin Holy damage included) | 5 s | Proc rate is server-side [?] | Same | [F] effect | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
-| Gift of Arthas (proc) | 11374 | +8 physical damage taken | 3 min | Applied to whoever strikes the drinker | See [§3.2](#32-elixirs) | [F] | [client] (SpellEffect, 1.60.1.69913) |
+| Gift of Arthas (proc) (`giftOfArthas`) | 11374 | **+8 physical damage taken** (aura 14, school mask 1; Classic Era's the same 8). The sim adds it to each direct physical hit, yours and your pet's, after the damage multipliers and before the crit's and the boss's armor, so the hit's own crit multiplier applies to it too (a white crit's ×2 makes it +16, an ability's ×2.2 with Impale 2/2 +17.6); a bleed's ticks get none [?] ([damage-and-timing §2.4](damage-and-timing.md#24-damage-modifier-stacking), [B70](../open-questions.md#b70-classic-rules-that-only-a-post-sod-sim-encodes)). The Buffs entry is on the boss all fight, from the pull [?]: a tank's first few hits taken put it up, 30% each, and every one refreshes its 3 min | 3 min | A tank that drank the potion puts it on the boss; one debuff whoever applies it | Any tank (the potion, [§3.2](#32-elixirs)). Max consumables ([§6.2](#62-buffs-and-debuffs-by-preset)) | [F] value · [?] application | [client] (SpellEffect, SpellAuraOptions, 1.60.1.70009 and 1.15.9.69722) |
 
 Improved Scorch, Winter's Chill and Improved Shadow Bolt don't affect melee. Shadow
 Weaving is now a debuff on the boss that counts only the priest's own Shadow damage [F]
@@ -865,6 +874,7 @@ Mana Spring.
 | Power Infusion | — | — | — (an option for a Mage) | — |
 | Judgement of Wisdom | — | — | Pal | Pal |
 | Armor Shatter ×3 (Annihilator) † | — | — | — | all |
+| Gift of Arthas (a tank's, on the boss) † | — | — | — | all (see below) |
 | Demoralizing Shout / Thunder Clap | — | — | — (a warrior tank's own: see below) | — |
 | Demoralizing Roar | — | — | — (the Feral bear's own duty: see below) | — |
 | Trueshot Aura, Hunter's Mark | never (no melee effect in Forever) | — | — | — |
@@ -883,6 +893,23 @@ another player's, on only if you turn it on ([ux.md](../ux.md) "Buffs"). Thunder
 Demoralizing Shout are in no preset for any spec: they're a warrior tank's, so a bear's or a
 Protection paladin's raid has them only if you add them there, as another warrior's (D26's
 amendment). The roar is a duty only a bear keeps, so it's in no preset either.
+
+**Gift of Arthas** ([§4.2](#42-other-debuffs)) is in Max consumables only. It's a tank's
+consumable that helps the raid, not the tank, and the Standard raid is what a typical guild raider
+brings ([§6.3](#63-consumables-by-spec-and-preset)): no tank's Standard consumables include it. At
+Max consumables, everything that stacks, one tank's Gift of
+Arthas is on the boss for every spec it helps, the tanks included (its +8 adds threat as damage). It
+changes only physical hits, so it's the melee's (†), and the Demonology warlock keeps it for its
+demon's swings, as it keeps the armor debuffs ([Class-only entries](#class-only-entries)).
+At Max consumables it adds (seed 12345, 20,000 paired fights, each ± under 0.02) Fury 911.9 →
+928.9 DPS (+1.87%), Arms 893.8 → 903.1 (+1.04%), Combat 660.8 → 675.1 (+2.16%), Assassination
++3.20%, Subtlety +3.08%, a Feral cat +2.57%, Enhancement +1.01%, Retribution 726.5 → 730.1 (+0.49%:
+most of its damage is Holy), Marksmanship 530.0 → 535.8 (+1.09%), Beast Mastery 603.5 → 617.3
+(+2.28%, its pet's swings and Bite and Claw too) and Survival +2.30%; TPS for a Protection warrior
++1.29%, a bear +1.37% and a Protection paladin +0.60%. Many small hits gain most: a rogue's
+daggers more than a two-hander. A Demonology warlock's default Imp doesn't swing, so it gains
+nothing unless its Succubus or Felhunter is out. The Standard raid's gain would be much the same
+(Fury +1.87%, Combat +2.26%) if you turn it on there.
 
 No preset gives the Enhancement shaman Windfury Totem: its own Windfury Weapon "disables any
 benefit you personally receive from Windfury Totem" [F] (the imbue's Forever tooltip), so its air
@@ -1239,7 +1266,13 @@ fight.
   change DPS.
 - **Hyjal flasks** are enabled only if the encounter zone is Mount Hyjal, Hyjal Summit or
   the Barrow Deeps.
-- **Skipped (< 0.5% of DPS/TPS)**: Blood Pact, Gift of Arthas, Battle Squawk, healer-proc armor
+- **Gift of Arthas** is a boss debuff ([§4.2](#42-other-debuffs), D36), not the drinker's own
+  effect: each direct physical hit on the boss deals +8, yours and your pet's, white or special,
+  melee or ranged. It's added after your damage multipliers and before the outcome's and the
+  boss's armor, so a crit gets +16 and a glancing blow its share [?]; a bleed's or other periodic
+  tick gets none [?] ([damage-and-timing §2.4](damage-and-timing.md#24-damage-modifier-stacking)).
+  An attack that deals no damage (Sunder Armor) gets none. Worked example 13.
+- **Skipped (< 0.5% of DPS/TPS)**: Blood Pact, Battle Squawk, healer-proc armor
   buffs (Inspiration / Ancestral Fortitude), and debuff-slot pressure. Retribution Aura (the
   Protection paladin's) and Thorns on the tank are modelled: a tank breaks the 0.5% bar
   ([§1.2](#12-threat-defense-and-mana)); on anyone else they do nothing, since only the tank is hit.
@@ -1277,7 +1310,7 @@ sets `caster` (the mage's three since K2 and the warlock's two since K3,
   Greater Strength, Juju Power, R.O.I.D.S., Ground Scorpok Assay, Smoked Desert Dumplings, Flank au
   Poivre), attacks and weapons (Windfury Totem, Juju Flurry, the Dense and Elemental Sharpening
   Stones, the Mighty Rage Potion), the boss's armor (Sunder Armor, Expose Armor, Faerie Fire, Curse
-  of Recklessness, Armor Shatter), and Leader of the Pack, the melee's party crit aura as Moonkin
+  of Recklessness, Armor Shatter), Gift of Arthas' +8 on each physical hit, and Leader of the Pack, the melee's party crit aura as Moonkin
   Aura is the casters' ([§6.2](#62-buffs-and-debuffs-by-preset)). `effects/spec-kind.test.ts` checks
   each entry's effects against the mark, so a new entry that changes only attacks can't go unmarked.
   An entry whose Forever item reaches spells too stays for everyone: Elixir of the Mongoose, Grilled
@@ -1286,9 +1319,13 @@ sets `caster` (the mage's three since K2 and the warlock's two since K3,
   aren't marked: they're a tank's, and every DPS spec, a caster too, sees them with the note that
   they change nothing for it ([ux.md](../ux.md) "Buffs"). **A caster whose pet swings**
   (`SpecMeta.petMelee`: the Demonology warlock, whose Succubus or Felhunter attacks, H3) keeps the
-  boss's armor entries, in its Buffs tab and presets alike: its pet's swings meet the boss's armor
+  boss's armor entries and Gift of Arthas, in its Buffs tab and presets alike: its pet's swings meet the boss's armor
+  and get the +8
   ([ranged-and-pets §8](ranged-and-pets.md#8-how-owner-buffs-reach-the-pet),
-  [warlock §11.2](../classes/warlock.md#112-your-demon)).
+  [warlock §11.2](../classes/warlock.md#112-your-demon)). With the Imp or no demon out (its Rotation
+  setting), nothing of its meets them: one rule (`buffUnusedReason` in `effects/presets.ts`, from the
+  resolved Rotation settings) locks them off in the Buffs tab, saying why, and leaves them out of the
+  plan, so the results list no assumption about them either.
 - **The casters'** (`forSpecs: 'caster'`): the caster core's ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)),
   Moonkin Aura, Power Infusion and Curse of the Elements; and Elixir of Shadow Power, which is the
   warlock's and the priest's by class too (`forClasses`).
@@ -1367,7 +1404,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Leader of the Pack (`leaderOfThePack`) | +3% crit, spells too (aura 290) | **+3% melee and ranged crit** | 24932 #0 (aura 52): 2 + 1; Forever's is aura 290, all crit | [C] |
 | Moonkin Aura (`moonkinAura`), the casters' | +3% crit, spells too (aura 290) | **+3% spell crit** | 24907 #0 (aura 57): 2 + 1; Forever's is aura 290, all crit | [C] |
 | Power Infusion (`powerInfusion`), the casters' | +20% spell damage for 15 s, 3 min cooldown | same | 10060 #1 (aura 79, every magic school): 19 + 1 | [C] |
-| Windfury Totem r3 (`windfuryTotem`) | 20% for an extra attack with +246 AP; a party aura | **+315 AP; a main-hand enchant that replaces a stone** | 10610 #0: 314 + 1; 10612 → 10611 → enchant 564 (20%, casts 10610) | [C] |
+| Windfury Totem r3 (`windfuryTotem`) | 20% for an extra attack; +246 AP for 1 s, 2 charges (the extra attack and your next auto attack; abilities in that second use none); a party aura | **+315 AP; a main-hand enchant that replaces a stone** | 10610 #0: 314 + 1; 10612 → 10611 → enchant 564 (20%, casts 10610) | [C] |
 | Grace of Air Totem r2 (`graceOfAir`) | +77 Agi | **+67 Agi** | 10626 #0 (the totem's aura): 66 + 1 | [C] |
 | Strength of Earth Totem r4 (`strengthOfEarth`) | +42 Str | **+61 Str** | 10441 #0 (the totem's aura): 60 + 1 | [C] |
 | Blessing of Salvation (`blessingOfSalvation`) | −30% threat | same | 1038 #0: −31 + 1 | [C] |
@@ -1515,6 +1552,12 @@ These become unit tests. Boss armor 3731 is an *input* here; its value is owned 
     **21.98%** of its throws (miss, or resisted whole at 24 Fire resistance); a landed one deals
     225–675, 450 on average, ×1.5 on a crit. At 5% spell crit a throw averages 0.7802 × 450 ×
     1.025 = **359.87**.
+
+13. **Gift of Arthas' +8** ([§4.2](#42-other-debuffs); [damage-and-timing §2.4](damage-and-timing.md#24-damage-modifier-stacking)).
+    A white hit of 500 after your damage multipliers deals 500 + 8 = **508** against no armor, and a
+    crit (500 + 8) × 2 = **1,016**: the crit doubles the +8. Against the Standard raid's 471 armor
+    (example 1) a level-60 attacker's hit keeps 5500 / 5971 of it, so **467.93** and **935.86**. A
+    Rend tick is the same with it or without, and Sunder Armor still deals nothing.
 
 ---
 

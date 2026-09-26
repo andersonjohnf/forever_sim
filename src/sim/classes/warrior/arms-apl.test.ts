@@ -14,9 +14,11 @@ import { emptyAggregate, mergeChunk } from '../../run/aggregate'
 import { activeAplPreset, DEFAULT_APL_PRESET, defaultAplOrder, moveAplRow, normalizeAplOrder, storedAplOrder } from '../apl'
 import { ARMS_APL, ARMS_OPTIONS, armsRotation } from './arms'
 import { armsCases, fingerprint } from './arms-apl-cases'
+import { POPULAR_WARRIOR_TALENTS } from './popular-builds'
 import { planJson } from './fury-apl-cases'
 
-const TALENTS = talentRanksByName(TALENT_DATA.warrior, defaultConfig('warrior-arms').talents)
+/** The popular build, the default until W4 (popular-builds.ts): these tests of the list were written for it, Spearing Strike and all. */
+const TALENTS = talentRanksByName(TALENT_DATA.warrior, POPULAR_WARRIOR_TALENTS['warrior-arms'])
 const CONTEXT = { consumables: [MIGHTY_RAGE_POTION] }
 const noAura = () => -1
 type Rot = ReturnType<typeof armsRotation>
@@ -58,7 +60,9 @@ describe('Arms’ priority list (D31)', () => {
 
   it('gives 200 random setups the plan they had before the list, in the default order', () => {
     // The snapshot is of the plans before the priority list (A2), whole, taken on the code before
-    // it: a change to it is a change to what Arms plays.
+    // it: a change to it is a change to what Arms plays. The cases keep the order, the Hamstring
+    // threshold and the talents the defaults had until W4 (arms-apl-cases.ts), which are what they
+    // played then.
     const cases = armsCases(ARMS_OPTIONS, 200)
     const plans = cases.map((config) => buildPlan(config).plan)
     const hashes = plans.map((plan) => fingerprint(planJson(plan)))
@@ -72,18 +76,24 @@ describe('Arms’ priority list (D31)', () => {
     expect(hashes).toMatchSnapshot()
     // The default order stored gives the same plans as none.
     for (const config of cases.slice(0, 40)) {
-      expect(fingerprint(planJson(buildPlan({ ...config, rotationOrder: defaultAplOrder(ARMS_APL) }).plan))).toBe(fingerprint(planJson(buildPlan(config).plan)))
+      expect(fingerprint(planJson(buildPlan({ ...config, rotationOrder: defaultAplOrder(ARMS_APL) }).plan))).toBe(
+        fingerprint(planJson(buildPlan({ ...config, rotationOrder: undefined }).plan)),
+      )
     }
   })
 
   it('gives the same list in the default order as with none, in warrior.md §5.3’s order', () => {
     const none = armsRotation({}, TALENTS, noAura, CONTEXT)
     expect(armsRotation({}, TALENTS, noAura, CONTEXT, defaultAplOrder(ARMS_APL))).toEqual(none)
-    // Rows 1, 2, 3 (a Human has no racial, and no trinket is worn), 4 (two lines), 5, 6, 7, 8, 9
-    // (both phases, two lines each), 10, 11, 14, then the potion (17: in the phase, and its last chance). Death Wish,
+    // Rows 1, 9 (first since W4: both phases, two lines each), 2, 3 (a Human has no racial, and no trinket is worn),
+    // 4 (two lines), 5, 6, 7, 8, 10, 11, 14, then the potion (17: in the phase, and its last chance). Death Wish,
     // Whirlwind and Heroic Strike are off by default.
     expect(ids(none)).toEqual([
       'battleShout',
+      'overpower',
+      'overpower',
+      'overpower',
+      'overpower',
       'rend',
       'recklessness',
       'recklessness',
@@ -92,10 +102,6 @@ describe('Arms’ priority list (D31)', () => {
       'mortalStrike',
       'execute',
       'mortalStrike',
-      'overpower',
-      'overpower',
-      'overpower',
-      'overpower',
       'slam',
       'spearingStrike',
       'hamstring',
@@ -110,7 +116,19 @@ describe('Arms’ priority list (D31)', () => {
     order = moved('slam', 'mortalStrike', order)
     const none = armsRotation({}, TALENTS, noAura, CONTEXT)
     const r = armsRotation({}, TALENTS, noAura, CONTEXT, order)
-    expect(ids(r).slice(0, 10)).toEqual(['battleShout', 'rend', 'recklessness', 'recklessness', 'bloodrage', 'execute', 'slam', 'mortalStrike', 'slam', 'mortalStrike'])
+    expect(ids(r).slice(0, 14)).toEqual([
+      'battleShout',
+      ...['overpower', 'overpower', 'overpower', 'overpower'],
+      'rend',
+      'recklessness',
+      'recklessness',
+      'bloodrage',
+      'execute',
+      'slam',
+      'mortalStrike',
+      'slam',
+      'mortalStrike',
+    ])
     expect(ids(r).slice(-2)).toEqual(['mightyRagePotion', 'mightyRagePotion'])
     expect(r.prepull).toEqual({ ...none.prepull, casts: none.prepull.casts.map((c) => ({ ...c, ability: r.abilities.findIndex((a) => a.id === none.abilities[c.ability].id) })) })
     // The pinned pre-pull can't move, and no row crosses it.
@@ -160,8 +178,8 @@ describe('Arms’ priority list (D31)', () => {
     expect(normalizeAplOrder(ARMS_APL, order.filter((id) => id !== 'spearingStrike'))).toEqual(order)
     // A hand-written order: the rows it doesn't name follow the nearest one before them that it does.
     const partial = normalizeAplOrder(ARMS_APL, ['whirlwind', 'mortalStrike'])
-    expect(partial.slice(0, 12)).toEqual(order.slice(0, 11).concat('whirlwind'))
-    expect(partial.slice(12)).toEqual(['mortalStrike', 'overpower', 'slam', 'spearingStrike', 'heroicStrike', 'hamstring'])
+    expect(partial.slice(0, 13)).toEqual(order.slice(0, 12).concat('whirlwind'))
+    expect(partial.slice(13)).toEqual(['mortalStrike', 'slam', 'spearingStrike', 'heroicStrike', 'hamstring'])
     // Unknown ids go, and the pre-pull stays first.
     expect(normalizeAplOrder(ARMS_APL, ['sweepingStrikes', ...order.slice(1), 'prepull'])).toEqual(order)
     // The app stores nothing for the default order.

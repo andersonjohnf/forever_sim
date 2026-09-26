@@ -40,13 +40,13 @@ const config = (rotation: SimConfig['rotation'] = {}, talents = BRAND_BUILD): Si
 })
 
 describe('Searing Pain r6 (17923) against the Forever client (warlock.md §3.1)', () => {
-  it('114 ± 8.1%, +1.2 a level from 58: 107.16–125.64 at 60, coefficient 0.429, Fire, 168 mana, a 1.5 s cast', () => {
+  it('114 ± 8.1%, + trunc(1.2 a level from 58) = 2: 106.76–125.24 at 60, coefficient 0.429, Fire, 168 mana, a 1.5 s cast', () => {
     const e = spell(17923).effects.find((x) => x.effectIndex === 0)!
-    const grow = e.effectRealPointsPerLevel! * (60 - spell(17923).levels!.baseLevel!)
+    const grow = Math.trunc(e.effectRealPointsPerLevel! * (60 - spell(17923).levels!.baseLevel!))
     const s = SEARING_PAIN.spellDef!
     expect(s.min).toBeCloseTo(e.effectBasePointsF! * (1 - e.variance! / 2) + grow, 9)
     expect(s.max).toBeCloseTo(e.effectBasePointsF! * (1 + e.variance! / 2) + grow, 9)
-    expect([s.min, s.max]).toEqual([expect.closeTo(107.16, 2), expect.closeTo(125.64, 2)])
+    expect([s.min, s.max]).toEqual([expect.closeTo(106.76, 2), expect.closeTo(125.24, 2)])
     expect(s.spCoefficient).toBe(e.effectBonusCoefficient)
     expect(s.school).toBe('fire')
     expect(spell(17923).misc!.schoolMask).toBe(4)
@@ -101,14 +101,14 @@ describe('Demonic Brand (1293695; warlock.md §11.3)', () => {
     expect(demonicBrandProc('imp', talentRanksByName(TALENT_DATA.warlock, DEFAULT.talents))).toBeNull()
   })
 
-  it('worked example 10 (warlock.md §11.8): with 600 Fire spell damage and the Imp’s Master Demonologist 5/5, 124.63 a hit on average; 141.21 with Unholy Power and Soul Link; Searing Pain 411.18', () => {
+  it('worked example 10 (warlock.md §11.8): with 600 Fire spell damage and the Imp’s Master Demonologist 5/5, 124.63 a hit on average; 141.21 with Unholy Power and Soul Link; Searing Pain 410.74', () => {
     const a = demonicBrandProc('imp', BRAND)!.action as { min: number; max: number; spCoefficient: number }
     const avg = (a.min + a.max) / 2 + a.spCoefficient * 600
     expect(avg).toBeCloseTo(124.63, 9)
     expect(avg * 1.1 * 1.03).toBeCloseTo(141.2058, 4)
-    // Searing Pain with Agonizing Flames 3/3: (116.4 + 0.429 × 600) × 1.1 = 411.18.
+    // Searing Pain with Agonizing Flames 3/3: (116 + 0.429 × 600) × 1.1 = 410.74.
     const sp = withTalents(SEARING_PAIN, talentRanksByName(TALENT_DATA.warlock, DEFAULT.talents)).spellDef!
-    expect(((sp.min + sp.max) / 2 + sp.spCoefficient * 600) * sp.damageMult).toBeCloseTo(411.18, 9)
+    expect(((sp.min + sp.max) / 2 + sp.spCoefficient * 600) * sp.damageMult).toBeCloseTo(410.74, 9)
   })
 })
 

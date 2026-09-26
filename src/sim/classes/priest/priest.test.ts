@@ -22,7 +22,7 @@ const RESIST = 1 - averageResist(levelResistance(63, 60), 60)
 const round = (x: number) => Math.round(x * 1e6) / 1e6
 const counter = (sim: Sim, r: number, field: number) => sim.counters[r * Object.keys(FIELD).length + field]
 const near = (x: number, p: number, n: number) => expect(Math.abs(x - p)).toBeLessThanOrEqual(4 * Math.sqrt((p * (1 - p)) / n) + 1e-12)
-const MB_AVG = (477.06653804499996 + 503.333461955) / 2
+const MB_AVG = (476.866538045 + 503.133461955) / 2
 
 describe('worked examples (docs/classes/priest.md#worked-examples)', () => {
   it('1. Shadow Word: Pain: (127 + 0.2 × 500) × 0.94 = 213.38 a tick, 6 ticks; 8 with Improved Shadow Word: Pain 2/2', () => {
@@ -49,16 +49,16 @@ describe('worked examples (docs/classes/priest.md#worked-examples)', () => {
     expect(round(tick * 1.1)).toBe(round(298.209219))
   })
 
-  it('3. Mind Blast: (477.07 to 503.33 + 214.5) × 0.94, 662.42 on average; a 5.5 s cooldown with Improved Mind Blast 5/5, from the cast’s end', () => {
+  it('3. Mind Blast: (476.87 to 503.13 + 214.5) × 0.94, 662.23 on average; a 5.5 s cooldown with Improved Mind Blast 5/5, from the cast’s end', () => {
     const plan = examplePlan({ talents: { 'Improved Mind Blast': 5 }, rotation: { [ID.blast]: true }, durationMs: 30000 })
     const hits = damagesOf(plan, 'mindBlast', 40)
     for (const d of hits) {
-      expect(d).toBeGreaterThanOrEqual((477.06653804499996 + 214.5) * RESIST - 1e-9)
-      expect(d).toBeLessThanOrEqual((503.333461955 + 214.5) * RESIST + 1e-9)
+      expect(d).toBeGreaterThanOrEqual((476.866538045 + 214.5) * RESIST - 1e-9)
+      expect(d).toBeLessThanOrEqual((503.133461955 + 214.5) * RESIST + 1e-9)
     }
     const mean = hits.reduce((a, b) => a + b, 0) / hits.length
-    expect(Math.abs(mean - 662.418)).toBeLessThan(2)
-    expect(round((MB_AVG + 214.5) * RESIST)).toBe(round(662.418))
+    expect(Math.abs(mean - 662.23)).toBeLessThan(2)
+    expect(round((MB_AVG + 214.5) * RESIST)).toBe(round(662.23))
     const uses = events(plan).list.filter((e) => e.kind === 'use').map((e) => e.t)
     // The cooldown starts as the 1.5 s cast lands (spells.md §4): one every 7 s.
     expect(uses.slice(0, 4)).toEqual([0, 7000, 14000, 21000])
@@ -101,15 +101,15 @@ describe('worked examples (docs/classes/priest.md#worked-examples)', () => {
     expect(priestManaPlan({ mana: 5000, spirit: 200 }, 0, new Map()).inFsrShare).toBeUndefined()
   })
 
-  it('7. Shadow Weaving: each landed Shadow spell adds a stack, to 5; Mind Blast at 5 stacks is 728.66 on average', () => {
+  it('7. Shadow Weaving: each landed Shadow spell adds a stack, to 5; Mind Blast at 5 stacks is 728.45 on average', () => {
     const plan = examplePlan({ talents: { 'Shadow Weaving': 3, 'Improved Mind Blast': 5 }, rotation: { [ID.blast]: true }, durationMs: 60000 })
     const hits = damagesOf(plan, 'mindBlast', 60)
     // Nine a fight, 7 s apart: the first five meet 0–4 stacks; from the sixth on, 5.
     expect(hits).toHaveLength(9 * 60)
     const late = hits.filter((_, i) => i % 9 >= 5)
     const mean = late.reduce((a, b) => a + b, 0) / late.length
-    expect(Math.abs(mean - 728.66)).toBeLessThan(2.5)
-    expect(round(662.418 * 1.1)).toBe(round(728.6598))
+    expect(Math.abs(mean - 728.45)).toBeLessThan(2.5)
+    expect(round(662.23 * 1.1)).toBe(round(728.453))
   })
 
   it('8. Inner Focus: the Mind Blast after it costs nothing and crits at the sheet’s crit + 25%', () => {

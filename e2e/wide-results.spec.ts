@@ -93,7 +93,7 @@ test.describe('the wide right panel, 1440 px', () => {
     // Your setup, under the sheet: a line a section, in the Fury warrior's defaults, and Simulate with them.
     const setup = setupOf(panel)
     expect((await box(setup)).y).toBeGreaterThan((await box(sheet)).y + (await box(sheet)).height - 1)
-    for (const name of ['Character Human', 'Talents 17/34/0', 'Gear Pre-raid best in slot', 'Buffs Standard raid', 'Rotation Default', 'Fight 3:00']) {
+    for (const name of ['Character Human', 'Talents 13/38/0', 'Gear Pre-raid best in slot', 'Buffs Standard raid', 'Rotation Default', 'Fight 3:00']) {
       await expect(setup.getByRole('button', { name, exact: true })).toBeVisible()
     }
     // Simulate sits in the card's action row under the lines, on the right, with the status on its left.
@@ -284,12 +284,15 @@ test.describe('the wide right panel, 1440 px', () => {
     await seed(page, { spec: 'hunter-marksmanship', gear: {} })
     await page.goto('./')
     const panel = results(page)
-    // The sheet is the setup's, whatever a run makes of it: it says there's nothing to shoot.
-    await expect(sheetOf(panel)).toContainText('No ranged weapon')
+    // The sheet is the setup's, whatever a run makes of it: nothing to shoot, so no shot speed (DU-10).
+    await expect(stat(panel, 'Shot speed')).toHaveText('None')
     await setupOf(panel).getByRole('button', { name: 'Simulate' }).click()
     const alert = panel.getByRole('alert')
     await expect(alert).toContainText('This setup can’t be simulated')
     await expect(alert).toContainText('Add a ranged weapon')
+    // It never ran, so Your setup doesn't say the run didn't finish (DU-9).
+    await expect(setupOf(panel)).toContainText('This setup can’t be simulated. See why below.')
+    await expect(setupOf(panel)).not.toContainText('didn’t finish')
     expect((await box(alert)).y).toBeGreaterThan((await box(setupOf(panel))).y)
     // No headline for a run with no result.
     await expect(panel.getByRole('group', { name: 'DPS' })).toHaveCount(0)

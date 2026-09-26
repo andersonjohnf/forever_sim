@@ -21,7 +21,7 @@ exports[`golden run (fixed config and seed) > keeps the default Shadow Priest’
     ],
     [
       "mindBlast",
-      22990384.2059694,
+      22983882.191535324,
       21877,
       17824,
       2936,
@@ -59,9 +59,9 @@ exports[`golden run (fixed config and seed) > keeps the default Shadow Priest’
     ],
   ],
   "dps": {
-    "ci95": 1.06038582969282,
-    "mean": 565.4022656531183,
-    "stdev": 17.10865325509347,
+    "ci95": 1.0602554343530892,
+    "mean": 565.366090789227,
+    "stdev": 17.106549408935717,
   },
   "durationSec": 179.690222,
   "mana": {

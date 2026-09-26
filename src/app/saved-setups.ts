@@ -9,7 +9,7 @@
 // - A small store that reads and writes localStorage, every access in try/catch, and reports what
 //   went wrong for the UI to say.
 import { create } from 'zustand'
-import { CONFIG_VERSION, normalizeConfig, SPEC_IDS, type SimConfig, type SpecId } from '@/sim'
+import { isReadableVersion, normalizeConfig, SPEC_IDS, type SimConfig, type SpecId } from '@/sim'
 import { isVisibleSpec } from './specs'
 import { isQuotaError } from './storage-errors'
 
@@ -270,8 +270,9 @@ export function serializeSavedSetups(setups: readonly StoredSetup[], unreadable:
  */
 export function isShown(setup: StoredSetup): boolean {
   const config = setup.config as Obj
-  // Versions 1 and 2 differ only in the trees the talent code is on, which loading maps (docs/data/talents.md#tree-versions).
-  if (config.version !== undefined && config.version !== 1 && config.version !== CONFIG_VERSION) return false
+  // Versions 1 to 3 differ only in the trees the talent code is on and in Hammer of the Righteous's
+  // default reading, which loading maps (docs/data/talents.md#tree-versions).
+  if (!isReadableVersion(config.version)) return false
   return SPEC_IDS.includes(config.spec as SpecId) && isVisibleSpec(config.spec as SpecId)
 }
 

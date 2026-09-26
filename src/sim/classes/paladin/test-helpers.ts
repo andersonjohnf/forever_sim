@@ -13,7 +13,6 @@ import { buildPlan } from '../../plan/build'
 import { type AbilityDef, ACTION, DEFENSE, type Plan, SCHOOL, type SpellDef, TRIGGER } from '../../plan/types'
 import type { RotationValue, SpecId } from '../../types'
 import { RETRIBUTION_IDS } from './retribution'
-import { sealOfFuryProc } from './spells'
 
 /** A build code from talent ranks by name (docs/data/talents.md). */
 export function talentCode(ranks: Record<string, number>): string {
@@ -92,16 +91,8 @@ export function examplePlan(o: ExampleOptions = {}): Plan {
     { ...plan.weapons[0]!, min: w.min, max: w.max, speedSec: w.speedSec, twoHand, normalizedSpeed: twoHand ? 3.3 : 2.4, flatDamage: 0 },
     null,
   ]
-  // The seals' procs were resolved against the real weapon: redo their PPM chances for this one, and
-  // Seal of Fury's seal value (paladin.md#seal-of-fury-sof-new-the-protection-seal).
+  // The seals' procs were resolved against the real weapon: redo their PPM chances for this one.
   for (const p of plan.procs) if (p.id === 'sealOfCommandProc') p.chance = [(7 * w.speedSec) / 60, 0]
-  for (const p of plan.procs) {
-    if (p.id !== 'sealOfFuryProc') continue
-    const s = plan.spells![p.amount]
-    const damage = sealOfFuryProc({ speedSec: w.speedSec, twoHand }).min
-    s.min = damage
-    s.max = damage
-  }
   plan.fight.targetArmor = 0
   plan.fight.durationMs = o.durationMs ?? 60000
   const s = plan.stats

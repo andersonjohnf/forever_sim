@@ -293,10 +293,13 @@ written on it decodes against that order, and loading maps it onto today's trees
   position by position.
 - **A setup's `version` says which trees its code is on** (`CONFIG_VERSION` and
   `TALENT_TREES_OF_VERSION` in [`src/sim/config/talent-trees.ts`](../../src/sim/config/talent-trees.ts)).
-  Version 1, or none, is 1.60.1.69913's; version 2 is today's, 1.60.1.70009's. The app writes
-  version 2, in share links, setup codes, saved setups and the automatic save alike, and the code
-  itself stays a plain build code, so it still pastes into any talent calculator. A version-2 code
-  reads as today's; a newer version is refused as a newer app's, as before. A build code pasted
+  Version 1, or none, is 1.60.1.69913's; versions 2 and 3 are today's, 1.60.1.70009's (3 since
+  2026-09-26 marks a setup written after Hammer of the Righteous's weapon DPS stopped counting attack
+  power by default, so a version 1 or 2 setup that uses it says the default changed when a link, a
+  code or a Load brings it in: [paladin.md OQ 11](../classes/paladin.md#open-questions)). The app writes
+  version 3, in share links, setup codes, saved setups and the automatic save alike, and the code
+  itself stays a plain build code, so it still pastes into any talent calculator. A version-2 or -3
+  code reads as today's; a newer version is refused as a newer app's, as before. A build code pasted
   into the Talents tab has no version: it's read on today's trees, and only a code that isn't a
   legal build there but is on 1.60.1.69913's trees is read on those and loaded as a version-1 code
   is (below; `readBuildCode` in [`src/features/talents/logic.ts`](../../src/features/talents/logic.ts),

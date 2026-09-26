@@ -91,8 +91,10 @@ export interface SimConfig {
   /**
    * Bump on breaking changes; normalizeConfig migrates or rejects old versions. 2 since 1.60.1.70009's
    * talent trees: version 1's talent code is on 1.60.1.69913's trees (docs/data/talents.md#tree-versions).
+   * 3 since Hammer of the Righteous's weapon DPS stopped counting attack power by default (2026-09-26):
+   * a version 1 or 2 setup that has it on says so when loaded (normalize.ts).
    */
-  version: 2
+  version: 3
   spec: SpecId
   /** A race id from src/data/races/races.json, legal for the spec's class in Forever. */
   race: string
@@ -130,17 +132,10 @@ export interface SimConfig {
      */
     damageTakenRage?: DamageTakenRageModel
     /**
-     * How much of Judgement of the Crusader's +161 Holy damage taken each Holy hit gets, a
-     * paladin's untested-mechanic switch (docs/classes/paladin.md open question 5, Character →
-     * Advanced). Omitted: `coefficient`, a share by the spell's damage coefficient; `flat`, all of
-     * it on melee-class hits (seal procs, judgements, Holy Strike). Kept for paladins only.
-     */
-    jotcBonus?: 'coefficient' | 'flat'
-    /**
      * Whether Hammer of the Righteous's "damage per second of your main hand weapon" counts attack
      * power, a Protection paladin's untested-mechanic switch (docs/classes/paladin.md open question
-     * 11, Character → Advanced). Omitted: `withAttackPower`, the weapon's DPS as the character sheet
-     * shows it, attack power included; `weaponOnly`, the weapon's own damage. Kept for paladins only.
+     * 11, Character → Advanced). Omitted: `weaponOnly`, the weapon's own DPS, as the tooltip reads;
+     * `withAttackPower`, the DPS the character sheet shows, attack power included. Kept for paladins only.
      */
     hotrWeaponDps?: 'withAttackPower' | 'weaponOnly'
   }

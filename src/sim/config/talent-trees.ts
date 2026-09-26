@@ -1,6 +1,7 @@
 // Talent codes written on older talent trees (docs/data/talents.md#tree-versions). A setup's
-// `version` says which trees its build code was written on: version 1 on 1.60.1.69913's, version 2
-// on today's. A code from older trees decodes against that build's frozen code order
+// `version` says which trees its build code was written on: version 1 on 1.60.1.69913's, versions 2
+// and 3 on today's (3 since Hammer of the Righteous's default reading changed, ./normalize.ts).
+// A code from older trees decodes against that build's frozen code order
 // (src/data/talents/frozen.json) and is mapped onto today's trees by talent name, a renamed
 // talent by its new name. Points that have no place on today's trees are refunded, and the load
 // says so: a talent the game removed, ranks past a talent's new max, and a talent that no longer
@@ -12,8 +13,16 @@ import type { ClassId, SpecId } from '../types'
 
 const frozen = frozenJson as unknown as FrozenTalentOrders
 
-/** The setup version this app writes: its talent codes are on today's trees (docs/data/talents.md#tree-versions). */
-export const CONFIG_VERSION = 2
+/**
+ * The setup version this app writes: its talent codes are on today's trees (docs/data/talents.md#tree-versions).
+ * 3 since 2026-09-26: a version-2 setup was written while Hammer of the Righteous's weapon DPS counted
+ * attack power by default, which its load says (./normalize.ts, paladin.md OQ 11).
+ */
+export const CONFIG_VERSION = 3
+
+/** Whether a setup's `version` is one this app reads: none (1), 1, 2 or this one; a newer one isn't. */
+export const isReadableVersion = (version: unknown): boolean =>
+  version === undefined || (typeof version === 'number' && Number.isInteger(version) && version >= 1 && version <= CONFIG_VERSION)
 
 /** The client build whose trees each older setup version's talent codes were written on. */
 export const TALENT_TREES_OF_VERSION: Readonly<Record<number, string>> = { 1: '1.60.1.69913' }

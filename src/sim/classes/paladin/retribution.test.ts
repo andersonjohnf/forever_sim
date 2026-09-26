@@ -33,8 +33,6 @@ function config(
     rules: { ...d.rules, ...o.rules },
   }
 }
-/** Judgement of the Crusader's bonus in full on melee-class hits (Character → Advanced; OQ 5). */
-const FLAT = { rules: { jotcBonus: 'flat' } } as const
 const planOf = (o: Parameters<typeof config>[0] = {}) => buildPlan(config(o)).plan
 
 interface Cast {
@@ -101,19 +99,15 @@ describe('the Retribution settings (paladin.md "Forever priority list (default)"
     expect(plan.procs.map((p) => p.id)).not.toContain('sealOfCommandProc')
   })
 
-  it('apply the Judgement of the Crusader rule from Character → Advanced: flat gives melee-class hits all of the +161, spells keep their coefficient (OQ 5)', () => {
-    const share = (plan: Plan, id: string) => plan.spells!.find((s) => plan.sources[s.source].id === id)!.takenScale
-    const coefficient = planOf()
-    const flat = planOf(FLAT)
-    for (const id of ['sealOfCommandProc', 'judgementOfCommand', 'holyStrike']) expect(share(flat, id), id).toBe(1)
-    expect(share(coefficient, 'sealOfCommandProc')).toBeCloseTo(0.203, 12)
-    expect(share(coefficient, 'judgementOfCommand')).toBe(0.429)
-    expect(share(coefficient, 'holyStrike')).toBe(0.429)
-    // Consecration (magic) and Hammer of Wrath (ranged) keep their coefficient under either rule.
-    for (const plan of [coefficient, flat]) {
-      expect(share(plan, 'consecration')).toBe(0.095)
-      expect(share(plan, 'hammerOfWrath')).toBe(0.429)
-    }
+  it('give each Holy hit its measured share of Judgement of the Crusader’s +161: its client coefficient, outside a weapon share (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)', () => {
+    const plan = planOf()
+    const share = (id: string) => plan.spells!.find((s) => plan.sources[s.source].id === id)!.takenScale
+    // Seal of Command's 0.29 and Holy Strike's 0.429 whole, though their spell damage is inside their 70% and 50%.
+    expect(share('sealOfCommandProc')).toBe(0.29)
+    expect(share('holyStrike')).toBe(0.429)
+    expect(share('judgementOfCommand')).toBe(0.429)
+    expect(share('consecration')).toBe(0.095)
+    expect(share('hammerOfWrath')).toBe(0.429)
   })
 })
 
@@ -239,12 +233,8 @@ describe('your own Blessing of Might (RU9): the Buffs tab’s, which a paladin c
 
 describe('the [?] assumptions the rotation rests on (paladin.md#open-questions)', () => {
   const ids = (o: Parameters<typeof config>[0] = {}) => buildPlan(config(o)).assumptions.map((a) => a.id)
-  it('lists Holy Strike’s formula, Consecration’s ticks, Hammer of Wrath’s table and the JotC rule in use', () => {
+  it('lists Holy Strike’s formula, Consecration’s ticks, Hammer of Wrath’s table and JotC’s share', () => {
     expect(ids()).toEqual(expect.arrayContaining(['jotcBonus', 'holyStrike', 'consecrationTicks', 'hammerOfWrath', 'sanctifiedJudgement']))
-    expect(ids()).not.toContain('jotcBonusFlat')
-    const flat = ids(FLAT)
-    expect(flat).toContain('jotcBonusFlat')
-    expect(flat).not.toContain('jotcBonus')
     expect(ids({ fight: { executePct: 0 } })).not.toContain('hammerOfWrath')
     expect(ids({ rotation: { [ID.crusader]: false } })).not.toContain('jotcBonus')
     // The potion is pressed, so it isn't listed as unsimulated.

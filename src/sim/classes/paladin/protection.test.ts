@@ -28,9 +28,9 @@ import {
   PROTECTION_PRIORITY,
   protectionRotation,
   RETRIBUTION_AURA_DAMAGE,
-  SEAL_OF_FURY_SHIELD_AURA,
   SWIFT_JUDGEMENT,
 } from './protection'
+import { SEAL_OF_FURY_SHIELD_AURA } from './spells'
 import { addPaladinAbility, examplePlan, setSp } from './test-helpers'
 import { hammerOfTheRighteousAbility, JUDGEMENT_OF } from './abilities'
 import { aplPresets, applyAplPreset, defaultAplOrder, moveAplRow } from '../apl'
@@ -245,7 +245,10 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
     expect(r.abilities[1].clearcastable).toBe(true)
     // Improved Judgement 2/2: an 8 s Judgement.
     expect(r.abilities[1].cooldownMs).toBe(8000)
-    expect(r.procs.map((p) => p.id)).toEqual(['sealOfFuryProc', 'sealOfFuryShield', 'holyShieldProc'])
+    // Seal of Fury's absorb, with a shield, is its proc's spell's (paladin.md#seal-of-fury-sof-new-the-protection-seal).
+    expect(r.procs.map((p) => p.id)).toEqual(['sealOfFuryProc', 'holyShieldProc'])
+    const sof = r.procs[0].action
+    expect(sof.kind === 'spell' && sof.spell.absorb).toMatchObject({ aura: { id: 'sealOfFuryShield', absorb: true }, pct: 50 })
   })
 
   it('needs the talents and a shield for Holy Shield, the talent for Swift Judgement, and Undead or Demons for Exorcism', () => {
@@ -552,8 +555,8 @@ describe('Redoubt (paladin.md#protection-tree)', () => {
 
 describe('Seal of Fury’s absorb and Improved Seal of Fury (paladin.md#protection-tree, OQ 10)', () => {
   /** A plan whose own swings always land, with a slow weapon, so two boss swings can come between them. */
-  function slowPlan(): Plan {
-    const plan = protPlan()
+  function slowPlan(patch: Partial<SimConfig> = {}): Plan {
+    const plan = protPlan(patch)
     plan.weapons = [{ ...plan.weapons[0]!, speedSec: 5 }, null]
     plan.stats.hit = 100
     plan.fight.bossCanDodge = false
@@ -565,7 +568,7 @@ describe('Seal of Fury’s absorb and Improved Seal of Fury (paladin.md#protecti
     const plan = protPlan()
     const improved = plan.procs.find((p) => p.id === 'improvedSealOfFury')!
     expect(improved).toMatchObject({ trigger: TRIGGER.damageTaken, action: ACTION.manaFlat, amount: 870, requiresAura: auraOf(plan, 'sealOfFuryShield') })
-    expect(plan.auras[auraOf(plan, 'sealOfFuryShield')]).toMatchObject({ durationMs: SEAL_OF_FURY_SHIELD_AURA.durationMs, takenCharges: 1 })
+    expect(plan.auras[auraOf(plan, 'sealOfFuryShield')]).toMatchObject({ durationMs: SEAL_OF_FURY_SHIELD_AURA.durationMs, absorb: true })
     // A level-61 boss: 15% more.
     const low = protPlan({ fight: { ...defaultConfig(PROT).fight, bossLevel: 61 } })
     expect(low.procs.find((p) => p.id === 'improvedSealOfFury')!.amount).toBe(690)
@@ -607,6 +610,149 @@ describe('Seal of Fury’s absorb and Improved Seal of Fury (paladin.md#protecti
     }
     expect(expected).toBeGreaterThan(200)
     expect(restored).toBe(expected)
+  })
+
+  it('the absorb comes off the hit: half of the last proc’s Holy damage, from the next hit that costs health', () => {
+    // No crits and no Judgement of the Crusader, so every proc deals the same: 35 + 0.1 × 300 = 65, × the
+    // build's Improved Seals.
+    const plan = slowPlan({ rotation: NO_JOTC })
+    plan.stats.crit = -100
+    plan.stats.spellCrit = -100
+    setSp(plan, 300)
+    const sim = new Sim(plan)
+    const seal = auraOf(plan, 'sealOfFury')
+    const active = (sim as unknown as { auraActive: Uint8Array }).auraActive
+    let swung = false
+    let absorbed = 0
+    let lostBefore = 0
+    let taken = 0
+    sim.trace = (_source, hand) => {
+      if (hand === 0 && active[seal]) swung = true
+    }
+    sim.swingTakenTrace = (o, lost) => {
+      if (!LANDED.has(o) || lost <= 0) return
+      lostBefore += lost
+      if (swung) absorbed++
+      swung = false
+    }
+    for (let i = 0; i < 10; i++) {
+      swung = false
+      sim.runFight(i)
+      taken += sim.fightDamageTaken
+    }
+    const procs = field(sim, plan, 'sealOfFuryProc', FIELD.hits)
+    const perProc = field(sim, plan, 'sealOfFuryProc', FIELD.damage) / procs
+    const spell = plan.spells![plan.procs.find((p) => p.id === 'sealOfFuryProc')!.amount]
+    expect(perProc).toBeCloseTo(65 * spell.damageMult, 9)
+    expect(absorbed).toBeGreaterThan(100)
+    // Every boss hit that lands is far bigger than the absorb, so each one after a proc takes all of it.
+    expect(lostBefore - taken).toBeCloseTo(absorbed * 0.5 * perProc, 6)
+  })
+
+  it('on the stand-in hits: a smaller hit leaves the rest up, with no mana; a bigger one spends it and restores mana; unspent, it ends after its 10 s', () => {
+    // A synthetic fight (DL-6): no boss, so the only hits you take are the stand-in's (encounter.md §4),
+    // `size` every 900 ms; a 15 s weapon whose swings always land, and no crits or Judgement of the
+    // Crusader, so each Seal of Fury proc deals 65 × the build's Improved Seals (74.75) and puts up an
+    // absorb of half that, 37.375, which lasts 10 s.
+    const run = (size: number) => {
+      const plan = slowPlan({ rotation: NO_JOTC })
+      plan.weapons = [{ ...plan.weapons[0]!, speedSec: 15 }, null]
+      plan.stats.crit = -100
+      plan.stats.spellCrit = -100
+      setSp(plan, 300)
+      plan.fight.bossSwing = null
+      plan.fight.damageTakenPerHit = size
+      plan.fight.damageTakenIntervalMs = 900
+      const sim = new Sim(plan)
+      const absorb = auraOf(plan, 'sealOfFuryShield')
+      const procRow = rowOf(plan, 'sealOfFuryProc')
+      const improvedRow = rowOf(plan, 'improvedSealOfFury')
+      const spy = sim as unknown as {
+        auraActive: Uint8Array
+        auraAbsorb: Float64Array
+        takeHit: (healthLost: number, pre: number) => void
+        onDamageTaken: () => void
+        gainMana: (tenths: number, source: number) => void
+      }
+      const n = { partial: 0, spent: 0, expired: 0, bare: 0, procsFired: 0, restored: 0 }
+      // What the absorb should hold: half the last proc, less what hits took since, and when it went up.
+      let model = 0
+      let putUpAt = -Infinity
+      sim.damageTrace = (source, damage) => {
+        if (source !== procRow) return
+        model = 0.5 * damage
+        putUpAt = nowOf(sim)
+      }
+      const onDamageTaken = spy.onDamageTaken.bind(sim)
+      spy.onDamageTaken = () => {
+        n.procsFired++
+        onDamageTaken()
+      }
+      const gain = spy.gainMana.bind(sim)
+      spy.gainMana = (tenths, source) => {
+        if (source === improvedRow) n.restored++
+        gain(tenths, source)
+      }
+      const takeHit = spy.takeHit.bind(sim)
+      spy.takeHit = (healthLost, pre) => {
+        expect(healthLost).toBe(size)
+        const up = spy.auraActive[absorb] === 1
+        const left = up ? spy.auraAbsorb[absorb] : 0
+        if (up) {
+          expect(left).toBeCloseTo(model, 9)
+          expect(nowOf(sim) - putUpAt).toBeLessThanOrEqual(10000)
+        } else if (model > 0) {
+          // Gone with an amount left: only its 10 s ends it.
+          expect(nowOf(sim) - putUpAt).toBeGreaterThanOrEqual(10000)
+          n.expired++
+          model = 0
+        }
+        const before = sim.fightDamageTaken
+        const fired = n.procsFired
+        takeHit(healthLost, pre)
+        expect(sim.fightDamageTaken - before).toBeCloseTo(Math.max(0, size - left), 9)
+        if (up && left > size) {
+          // A partial absorb: the rest stays up, and the hit cost nothing, so no damage-taken procs.
+          n.partial++
+          expect(spy.auraActive[absorb]).toBe(1)
+          expect(spy.auraAbsorb[absorb]).toBeCloseTo(left - size, 9)
+          expect(n.procsFired).toBe(fired)
+          model = left - size
+        } else if (up) {
+          n.spent++
+          expect(spy.auraActive[absorb]).toBe(0)
+          expect(n.procsFired).toBe(fired + 1)
+          model = 0
+        } else {
+          n.bare++
+          expect(n.procsFired).toBe(fired + 1)
+        }
+      }
+      for (let i = 0; i < 10; i++) {
+        model = 0
+        putUpAt = -Infinity
+        sim.runFight(i)
+      }
+      const perProc = field(sim, plan, 'sealOfFuryProc', FIELD.damage) / field(sim, plan, 'sealOfFuryProc', FIELD.hits)
+      const spell = plan.spells![plan.procs.find((p) => p.id === 'sealOfFuryProc')!.amount]
+      expect(perProc).toBeCloseTo(65 * spell.damageMult, 9)
+      expect(perProc / 2).toBeGreaterThan(11)
+      expect(perProc / 2).toBeLessThan(40)
+      return n
+    }
+    // 1 a hit: about 11 hits in 10 s take 11 of it, so it's never used up, and ends with the rest.
+    const small = run(1)
+    expect(small.partial).toBeGreaterThan(100)
+    expect(small.expired).toBeGreaterThan(10)
+    expect(small.spent).toBe(0)
+    expect(small.restored).toBe(0)
+    expect(small.bare).toBeGreaterThan(10)
+    // 40 a hit: the first after each proc spends it, and restores Improved Seal of Fury's mana.
+    const big = run(40)
+    expect(big.partial).toBe(0)
+    expect(big.expired).toBe(0)
+    expect(big.spent).toBeGreaterThan(10)
+    expect(big.restored).toBe(big.spent)
   })
 
   it('needs Seal of Fury and a shield', () => {
@@ -749,8 +895,8 @@ describe('what the fix round’s engine rules do in a Protection fight', () => {
   it('a damage-taken proc that puts up an aura hits use up keeps it: only one up before the hit pays (the block charges’ rule)', () => {
     const plan = protPlan()
     const absorb = auraOf(plan, 'sealOfFuryShield')
-    // A proc on each hit that costs health, putting the absorb up again.
-    const puts = plan.procs.find((p) => p.id === 'sealOfFuryShield')!
+    // A proc on each hit that costs health, putting the absorb up again (a Seal of Fury proc's).
+    const puts = plan.procs.find((p) => p.id === 'sealOfFuryProc')!
     plan.procs = [...plan.procs, { ...puts, trigger: TRIGGER.damageTaken, requiresAura: -1 }]
     plan.triggers = plan.triggers.map(() => [])
     plan.procs.forEach((p, i) => plan.triggers[p.trigger].push(i))
@@ -1027,19 +1173,14 @@ describe('Judgement of the Crusader, your own (paladin.md "the opener", worked e
     expect(buildPlan(config()).assumptions.map((a) => a.id)).not.toContain('jotcRaid')
   })
 
-  it('example 23: each landed Judgement of Fury gets 161 × 0.45 = 72.45 more (a crit twice that), a Seal of Fury proc 16.1; with the flat rule 161 each', () => {
-    for (const [rule, jof, sof] of [
-      ['coefficient', 161 * 0.45, 161 * 0.1],
-      ['flat', 161, 161],
-    ] as const) {
-      const rules = { ...defaultConfig(PROT).rules, ...(rule === 'flat' ? { jotcBonus: 'flat' as const } : {}) }
+  it('example 23: each landed Judgement of Fury gets 161 × 0.45 = 72.45 more (a crit twice that), a Seal of Fury proc 16.1', () => {
+    for (const [rule, jof, sof] of [['coefficient', 161 * 0.45, 161 * 0.1]] as const) {
       // The Buffs tab's, from the pull, against none: the same fights, so the bonus is all that differs.
-      const on = protPlan({ buffs: RAID_JOTC, rules, rotation: NO_JOTC })
-      const off = protPlan({ rules, rotation: NO_JOTC })
-      expect([spellOf(on, 'judgementOfFury').takenScale, spellOf(on, 'sealOfFuryProc').takenScale]).toEqual(rule === 'flat' ? [1, 1] : [0.45, 0.1])
-      // Your own judgement's spells take the rule too (A1b).
-      const own = protPlan({ rules })
-      expect(spellOf(own, 'judgementOfFury').takenScale).toBe(rule === 'flat' ? 1 : 0.45)
+      const on = protPlan({ buffs: RAID_JOTC, rotation: NO_JOTC })
+      const off = protPlan({ rotation: NO_JOTC })
+      expect([spellOf(on, 'judgementOfFury').takenScale, spellOf(on, 'sealOfFuryProc').takenScale]).toEqual([0.45, 0.1])
+      // Your own judgement's spells get the same share (A1b).
+      expect(spellOf(protPlan(), 'judgementOfFury').takenScale).toBe(0.45)
       const extra = (id: string) => {
         const [a, b] = [new Sim(on), new Sim(off)]
         for (let i = 0; i < 3; i++) {
@@ -1084,17 +1225,18 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
     // The client row: 6% of base mana, a 6 s cooldown in Holy Strike's category, no spell damage coefficient.
     const hammer = hammerOfTheRighteousAbility()
     expect(hammer).toMatchObject({ costTenths: 900, cooldownMs: 6000, category: 'holyStrike', gcdMs: 1500 })
-    expect(hammer.spellDef).toMatchObject({ school: 'holy', defense: 'melee', noActiveDefense: false, alwaysHit: false, spCoefficient: 0, weaponDps: 3, weaponDpsAp: true })
+    expect(hammer.spellDef).toMatchObject({ school: 'holy', defense: 'melee', noActiveDefense: false, alwaysHit: false, spCoefficient: 0, weaponDps: 3, weaponDpsAp: false })
   })
 
   it('takes Holy Strike’s place when it’s on, with a one-handed axe, mace or sword; Holy Strike otherwise', () => {
     const ctx = { hasShield: true, maxMana: 2000, executePhase: true }
     const on = { [ID.hammerOfTheRighteous]: true }
-    const strikes = (mainHand: { speedSec: number; twoHand: boolean; type?: 'axe' | 'dagger' }, rules?: 'weaponOnly') =>
+    const strikes = (mainHand: { speedSec: number; twoHand: boolean; type?: 'axe' | 'dagger' }, rules?: 'withAttackPower') =>
       protectionRotation(on, TALENTS, () => -1, { ...ctx, mainHand, hotrWeaponDps: rules }).abilities.filter((a) => a.id === 'holyStrike' || a.id === 'hammerOfTheRighteous')
     // Both, Hammer first: the shared cooldown leaves Holy Strike only when Hammer can't be paid (TI-5).
     expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }).map((a) => a.id)).toEqual(['hammerOfTheRighteous', 'holyStrike'])
-    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }, 'weaponOnly')[0].spellDef?.weaponDpsAp).toBe(false)
+    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' })[0].spellDef?.weaponDpsAp).toBe(false)
+    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }, 'withAttackPower')[0].spellDef?.weaponDpsAp).toBe(true)
     expect(strikes({ speedSec: 1.5, twoHand: false, type: 'dagger' }).map((a) => a.id)).toEqual(['holyStrike'])
     expect(strikes({ speedSec: 3.5, twoHand: true, type: 'axe' }).map((a) => a.id)).toEqual(['holyStrike'])
     // Off in every preset: Holy Strike makes more threat, and Balanced keeps its Iron Creed as active
@@ -1112,9 +1254,9 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
     expect(casts).toBeGreaterThan(0.9 * (on.plan.fight.durationMs / 6000) * 0.8)
     // Holy Strike waits under it, for when Hammer's 90 mana isn't there: in the default setup, rarely.
     expect(field(sim, on.plan, 'holyStrike', FIELD.casts) / 3).toBeLessThan(casts / 4)
-    expect(on.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteous')
-    const weaponOnly = buildPlan({ ...defaultConfig(PROT), rules: { ...defaultConfig(PROT).rules, hotrWeaponDps: 'weaponOnly' }, rotation: { [ID.hammerOfTheRighteous]: true } })
-    expect(weaponOnly.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteousWeaponOnly')
+    expect(on.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteousWeaponOnly')
+    const withAp = buildPlan({ ...defaultConfig(PROT), rules: { ...defaultConfig(PROT).rules, hotrWeaponDps: 'withAttackPower' }, rotation: { [ID.hammerOfTheRighteous]: true } })
+    expect(withAp.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteous')
   })
 })
 
@@ -1145,7 +1287,7 @@ describe('Hammer of the Righteous’s fallback, Holy Strike (TI-5)', () => {
     // With Holy Strike off, it's used wherever it sits.
     const alone = buildPlan({ ...defaultConfig(PROT), rotation: { ...on, [ID.holyStrike]: false }, rotationOrder: ['holyStrike', 'hammerOfTheRighteous'] })
     expect(alone.plan.abilities.map((a) => a.id)).toContain('hammerOfTheRighteous')
-    expect(alone.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteous')
+    expect(alone.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteousWeaponOnly')
   })
 })
 

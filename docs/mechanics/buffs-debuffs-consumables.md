@@ -1035,7 +1035,7 @@ Protection (its opener: Seal of the Crusader before the pull, judged at the pull
 (`judgementOfTheCrusader`, [§4.2](#42-other-debuffs)) is in no preset (`SpecMeta.ownBuffs`), shows as
 yours while your rotation keeps yours up, and counts once; with yours off, turning it on means
 another paladin's, on the boss from the pull. Only paladins deal Holy damage among the specs in
-scope, so no other class sees it. Each Holy hit's share of its +161 is the Character → Advanced rule
+scope, so no other class sees it. Each Holy hit gets its measured share of the +161, its coefficient's
 ([paladin](../classes/paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)).
 
 ### 6.3 Consumables by spec and preset

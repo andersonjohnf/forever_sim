@@ -10,8 +10,7 @@
 // default and not simulated yet, nor is Holy Wrath. The rows are a priority list you reorder
 // (RETRIBUTION_APL, decision D31). Setting ids are `paladin.retribution.<ability>.<param>`;
 // mana thresholds are percentages of maximum mana. Abilities are resolved with the build's talents
-// (talents.ts) and the Judgement of the Crusader rule (spells.ts; Character → Advanced, OQ 5)
-// before their costs or spells feed anything.
+// (talents.ts) before their costs or spells feed anything.
 import { type AbilityDef, COND, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { AplDefinition, CreatureType, RotationOption, RotationValue } from '../../types'
 import { compileAplRows } from '../apl'
@@ -31,7 +30,6 @@ import {
 import { consecrationUnused } from './consecration-rows'
 import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables, paladinTrinkets } from './consumables'
 import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS, SEAL_REFRESH_MS } from './setup'
-import { type JotcRule, withJotcRule } from './spells'
 import { type TalentRanks, withTalents } from './talents'
 
 const P = 'paladin.retribution'
@@ -149,7 +147,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     id: ID.holyStrike,
     group: 'Core abilities',
     label: 'Holy Strike',
-    help: 'Use Holy Strike whenever it’s ready, every 10 s: 50% of a normalized swing plus 81 to 105 and spell damage, all Holy, for 18 mana.',
+    help: 'Use Holy Strike whenever it’s ready, every 10 s: half of (a normalized swing + 81 to 105 + 0.429 × your spell damage), so 0.21 × spell damage, all Holy, for 18 mana.',
     default: true,
   },
   {
@@ -389,19 +387,14 @@ export function retributionRotation(
 ): ClassRotation {
   const ctx: PaladinContext = { ...NO_CONTEXT, ...context }
   const v = reader(RETRIBUTION_OPTIONS, values, talents)
-  const rule: JotcRule = ctx.jotcRule ?? 'coefficient'
   const abilities: AbilityDef[] = []
   const rotation: RotationEntry[] = []
-  /** The ability's index, resolved with the build's talents and the JotC rule on first use. */
+  /** The ability's index, resolved with the build's talents on first use. */
   const index = (def: AbilityDef): number => {
     const i = abilities.findIndex((a) => a.id === def.id)
     if (i >= 0) return i
     const a = withTalents(def, talents)
-    abilities.push({
-      ...a,
-      ...(a.spellDef ? { spellDef: withJotcRule(a.spellDef, rule) } : {}),
-      ...(a.tickSpellDef ? { tickSpellDef: withJotcRule(a.tickSpellDef, rule) } : {}),
-    })
+    abilities.push(a)
     return abilities.length - 1
   }
   const add = (def: AbilityDef, conditions: RotationCondition[]) => {
@@ -489,7 +482,7 @@ export function retributionRotation(
     rotation,
     prepull: { casts: [{ ability: prepullSeal, atMs: PREPULL_SEAL_MS }], chargeTenths: 0, keepTenths: -1 },
     onUse: pressed,
-    procs: paladinProcs(abilities, talents, ctx, rule),
+    procs: paladinProcs(abilities, talents, ctx),
     ...(timed ? { assumes: [{ id: 'knownFightEnd' as const, detail: KNOWN_FIGHT_END }] } : {}),
   }
 }

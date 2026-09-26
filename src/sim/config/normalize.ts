@@ -2,7 +2,7 @@
 // (docs/ux.md#persistence-and-sharing). It never throws: anything it can't use is repaired or
 // reset to the spec default, with one plain-language warning per repair.
 import itemJson from '@/data/items/pre-bis.json'
-import type { Item, ItemData } from '@/data/items/types'
+import type { Item, ItemData, WeaponType } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { ClassSlug, RaceData } from '@/data/races/types'
 import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
@@ -16,9 +16,10 @@ import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rul
 import { SPEC_IDS, SPEC_META } from '../specs'
 import { normalizeAplOrder, storedAplOrder } from '../classes/apl'
 import { renamedRotationOptions, rotationApl, rotationOptions } from '../classes/rotation'
+import { protectionUsesHammer } from '../classes/paladin/protection'
 import type { ClassId, CreatureType, FightConfig, GearSlot, SimConfig, SpecId } from '../types'
 import { migrateOlderCode } from './talent-successors'
-import { CONFIG_VERSION, migrationNotice, TALENT_TREES_OF_VERSION, type TalentMigration } from './talent-trees'
+import { CONFIG_VERSION, isReadableVersion, migrationNotice, TALENT_TREES_OF_VERSION, type TalentMigration } from './talent-trees'
 
 const items = new Map<number, Item>((itemJson as unknown as ItemData).items.map((i) => [i.id, i]))
 const raceData = raceJson as unknown as RaceData
@@ -71,6 +72,18 @@ export const RUN_LIMITS = { iterations: [100, 100000] } as const
 type Obj = Record<string, unknown>
 const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v)
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
+
+/** The load's line for a setup that had Judgement of the Crusader's "All of it" (DL-8, DU-3). */
+export const JOTC_ALL_GONE = 'Judgement of the Crusader’s “All of it” setting is gone: its share is measured now.'
+/** The load's line for a setup from before version 3 that uses Hammer of the Righteous (DL-8, DU-3). */
+export const HOTR_NOW_WEAPON_ONLY =
+  'Hammer of the Righteous now counts your weapon’s own DPS by default; choose “With attack power” in Character → Advanced for the old reading.'
+/** The main hand's hands and type, as the plan reads it for Hammer of the Righteous (plan/build.ts mainHandWeapon). */
+function mainHandWeapon(gear: SimConfig['gear']): { twoHand: boolean; type?: WeaponType } | null {
+  const mh = gear.mainHand && items.get(gear.mainHand.itemId)
+  if (!mh || mh.itemClass !== 'Weapon') return null
+  return { twoHand: isTwoHand(mh), ...(mh.weaponType ? { type: mh.weaponType } : {}) }
+}
 
 class Repairs {
   readonly warnings: string[] = []
@@ -198,9 +211,10 @@ function normalize(input: unknown): NormalizedConfig {
   }
 
   // Version (docs/data/talents.md#tree-versions): 1 (or none) and 2 differ only in the trees the
-  // talent code was written on, 1.60.1.69913's and today's. A newer one comes from a newer app.
+  // talent code was written on, 1.60.1.69913's and today's; 3 in Hammer of the Righteous's default
+  // reading (below). A newer one comes from a newer app.
   const version = input.version ?? 1
-  if (version !== 1 && version !== CONFIG_VERSION) {
+  if (!isReadableVersion(version)) {
     r.add('The setup comes from a different version of the app, so it was reset to the defaults.')
     const spec = SPEC_IDS.includes(input.spec as SpecId) ? (input.spec as SpecId) : 'warrior-fury'
     return { config: defaultConfig(spec), warnings: r.warnings }
@@ -259,13 +273,14 @@ function normalize(input: unknown): NormalizedConfig {
     if (model) rules.damageTakenRage = model
     else r.add('The damage-taken rage model wasn’t recognised, so the profile’s default is used.')
   }
-  // A paladin's Judgement of the Crusader rule (paladin.md OQ 5): kept only when it isn't the default.
-  if (rulesIn.jotcBonus !== undefined && meta.classId === 'paladin') {
-    if (oneOf(rulesIn.jotcBonus, ['coefficient', 'flat'] as const, 'coefficient', 'The Judgement of the Crusader rule', r) === 'flat') rules.jotcBonus = 'flat'
-  }
+  // A saved setup's Judgement of the Crusader rule (`jotcBonus`) is dropped: its share is measured since
+  // 2026-09-26, and the "All of it" setting is gone (user decision; paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
+  // A setup that had "All of it" (`flat`) now gets other results, so a link, a code or a Load says so
+  // (DL-8, DU-3; a visit's stored setup is read without a word, docs/ux.md#persistence-and-sharing).
+  if (rulesIn.jotcBonus === 'flat' && meta.classId === 'paladin') r.add(JOTC_ALL_GONE)
   // A paladin's Hammer of the Righteous rule (paladin.md OQ 11): kept only when it isn't the default.
   if (rulesIn.hotrWeaponDps !== undefined && meta.classId === 'paladin') {
-    if (oneOf(rulesIn.hotrWeaponDps, ['withAttackPower', 'weaponOnly'] as const, 'withAttackPower', 'The Hammer of the Righteous rule', r) === 'weaponOnly') rules.hotrWeaponDps = 'weaponOnly'
+    if (oneOf(rulesIn.hotrWeaponDps, ['withAttackPower', 'weaponOnly'] as const, 'weaponOnly', 'The Hammer of the Righteous rule', r) === 'withAttackPower') rules.hotrWeaponDps = 'withAttackPower'
   }
 
   const questRemovals: QuestRemoval[] = []
@@ -273,6 +288,13 @@ function normalize(input: unknown): NormalizedConfig {
   const buffs = normalizeBuffs(input.buffs, spec, PROFILES[rules.profile], isObj(input.run) && input.run.mode === undefined, r)
   const rotation = normalizeRotation(input.rotation, spec, r)
   const rotationOrder = normalizeRotationOrder(input.rotationOrder, spec, r)
+  // Before version 3 a Protection paladin's Hammer of the Righteous counted attack power unless the
+  // setup said otherwise; now it counts the weapon's own DPS (paladin.md OQ 11). A setup from then that
+  // casts it, and never chose, now gets other results, so a link, a code or a Load says so. One whose
+  // plan never casts it (no one-handed axe, mace or sword, or under Holy Strike) moves nothing (DV-1).
+  if (spec === 'paladin-protection' && (version as number) < 3 && rulesIn.hotrWeaponDps === undefined && protectionUsesHammer(rotation, mainHandWeapon(gear), rotationOrder)) {
+    r.add(HOTR_NOW_WEAPON_ONLY)
+  }
   const fight = normalizeFight(input.fight, d.fight, r)
 
   const runIn = isObj(input.run) ? input.run : {}

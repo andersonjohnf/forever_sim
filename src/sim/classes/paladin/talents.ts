@@ -88,7 +88,9 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
   ],
   // Protection: when Seal of Fury's absorb is used up, 60 mana (0 + 1 per level), 15% more per level
   // the boss is above you, up to 45% more: 87 against a level-63 boss (1314103, the rank text) [F].
-  // The absorb's rules are the sim's (protection.ts `SEAL_OF_FURY_SHIELD_AURA`) [?] (OQ 10)
+  // The hit that spends the absorb (spells.ts `SEAL_OF_FURY_SHIELD_AURA`) fires the proc while it's
+  // still up: the beta logs show the mana with the absorbing hit, 221 of 224 times (paladin.md
+  // #the-beta-logs-lights-fury). The amount at 60 is the rank text's [F], unmeasured (OQ 10).
   'Improved Seal of Fury': () => [
     {
       kind: 'proc',

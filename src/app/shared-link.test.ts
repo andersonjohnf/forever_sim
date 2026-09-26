@@ -39,7 +39,7 @@ describe('a shared link’s setup', () => {
   })
 
   test('a newer version’s link says to reload, as a newer file does', () => {
-    const read = readLinkSetup({ ...fresh('warrior-arms'), version: 3 })
+    const read = readLinkSetup({ ...fresh('warrior-arms'), version: 4 })
     expect(read).toMatchObject({ ok: false, title: 'That link is from a newer version of Forever Sim' })
     expect(!read.ok && read.description).toMatch(/^Reload this page to update it, then open the link again\. Your own setup is unchanged\.$/)
   })

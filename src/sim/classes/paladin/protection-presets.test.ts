@@ -28,6 +28,7 @@ describe('the Protection presets’ help numbers (PR-5)', () => {
   const defensive = measure({ [ID.priority]: 'duties' })
   const maxTps = measure({ [ID.priority]: 'maxTps' })
   const hammer = measure({ [ID.hammerOfTheRighteous]: true })
+  const righteousness = measure({ [ID.seal]: 'righteousness' })
   const pctOf = (x: number, base: number) => (x / base - 1) * 100
 
   it('Defensive’s TPS, DPS and damage taken are within 0.5% of the measured ones', () => {
@@ -36,10 +37,11 @@ describe('the Protection presets’ help numbers (PR-5)', () => {
     expect(Math.abs(pctOf(defensive.damageTaken, M.defensive.damageTaken))).toBeLessThan(0.5)
   })
 
-  it('Max TPS and Hammer of the Righteous against Defensive are within 0.3 points of the measured ones', () => {
+  it('Max TPS, Hammer of the Righteous and Seal of Righteousness against Defensive are within 0.3 points of the measured ones', () => {
     for (const [got, want] of [
       [maxTps, M.maxTps],
       [hammer, M.hammerOfTheRighteous],
+      [righteousness, M.sealOfRighteousness],
     ] as const) {
       expect(Math.abs(pctOf(got.tps, defensive.tps) - want.tpsPct)).toBeLessThan(0.3)
       expect(Math.abs(pctOf(got.dps, defensive.dps) - want.dpsPct)).toBeLessThan(0.3)
@@ -47,13 +49,15 @@ describe('the Protection presets’ help numbers (PR-5)', () => {
     }
   })
 
-  it('the help quotes them: Defensive’s whole numbers, Max TPS’s whole percents, Hammer of the Righteous’s to a tenth', () => {
+  it('the help quotes them: Defensive’s whole numbers, Max TPS’s whole percents, Hammer of the Righteous’s and the seal’s to a tenth', () => {
     const help = Object.fromEntries(aplPresets(PROTECTION_APL).map((p) => [p.id, `${p.summary ?? ''} ${p.help}`]))
     expect(help.defensive).toContain(`${Math.round(M.defensive.tps)} TPS, ${Math.round(M.defensive.dps)} DPS and ${Math.round(M.defensive.damageTaken)} damage taken a second`)
     expect(help.maxTps).toContain(`${M.maxTps.tpsPct.toFixed(0)}% more TPS and ${M.maxTps.dpsPct.toFixed(0)}% more DPS than Defensive, for ${M.maxTps.damageTakenPct.toFixed(0)}% more damage taken`)
     // Since the trainers' ranks (D36) Hammer of the Righteous costs a little DPS too: each change says its direction.
-    expect(help.default).toContain('about 0.1% less DPS and 2.0% less TPS')
+    expect(help.default).toContain('about 3.7% less DPS and 5.2% less TPS')
     const option = PROTECTION_OPTIONS.find((o) => o.id === ID.hammerOfTheRighteous)!
-    expect(option.help).toContain('about 0.1% less DPS and 2.0% less TPS in the default setup')
+    expect(option.help).toContain('about 3.7% less DPS and 5.2% less TPS in the default setup')
+    const seal = PROTECTION_OPTIONS.find((o) => o.id === ID.seal)!
+    expect(seal.help).toContain('about 7.6% less TPS in the default setup, for 2.1% more damage taken')
   })
 })

@@ -199,12 +199,6 @@ export interface SpellDef {
    */
   cannotCrit?: boolean
   /**
-   * A weapon-damage spell whose flat `min`–`max` is added after its weapon share, not inside it: Holy
-   * Strike's tooltip, "40% weapon damage plus an additional 81 to 105" (paladin.md#other-abilities,
-   * OQ 6). Absent: the flat part is inside the share, as a warrior's specials have it.
-   */
-  flatApart?: boolean
-  /**
    * Damage from the main hand's weapon DPS, not a swing: `weaponDps` × (its average damage, its flat
    * weapon damage and, with `weaponDpsAp`, attack power ÷ 14 × its speed) ÷ its base speed, no roll
    * (Hammer of the Righteous's "3 times the damage per second of your main hand weapon",
@@ -221,6 +215,12 @@ export interface SpellDef {
    * Shock is on the target (docs/classes/shaman.md#elemental-abilities).
    */
   boost?: { aura: string; pct: number; keep?: boolean }
+  /**
+   * When it lands, puts up an absorb aura (`AuraSpec.absorb`) worth `pct`% of the damage it dealt,
+   * replacing what's left of the last one: Seal of Fury's proc with a shield, 50%
+   * (paladin.md#seal-of-fury-sof-new-the-protection-seal). Absent: none.
+   */
+  absorb?: { aura: AuraSpec; pct: number }
   // --- The caster core (docs/mechanics/spells.md). All optional: absent, a spell behaves as before. ---
   /**
    * A binary spell (docs/mechanics/spells.md §3): one with an effect besides damage (a slow, a debuff)
@@ -287,7 +287,10 @@ export interface SpellDef {
   othersSpell?: boolean
 }
 
-export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura'> {
+export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura' | 'absorb'> {
+  /** `SpellDef.absorb` resolved: the plan aura it puts up and its share of the damage, % (paladin.md). Absent: none. */
+  absorbAura?: number
+  absorbPct?: number
   /** `SpellDef.critAura` resolved: the plan aura and its crit % a stack (docs/classes/mage.md#winters-chill). Absent: none. */
   critAura?: number
   critAuraPct?: number
@@ -419,8 +422,8 @@ export interface AuraPlan {
   damageTaken?: number
   /** Blocks that end it early (Holy Shield 4, Redoubt 5; absent or 0 = none). */
   blockCharges?: number
-  /** Hits taken that cost health and end it (Seal of Fury's absorb, 1; paladin.md#protection-tree); absent or 0 = none. */
-  takenCharges?: number
+  /** An absorb shield that hits taken spend and that ends when spent (`AuraSpec.absorb`: Seal of Fury's, paladin.md); absent: none. */
+  absorb?: boolean
   /** Your pet's landed attacks that end it, after their procs (Demonic Brand, docs/classes/warlock.md §11.3); absent or 0 = none. */
   petLandedCharges?: number
   /** Holy damage done %, multiplicative (Vengeance, paladin.md#retribution-tree). */

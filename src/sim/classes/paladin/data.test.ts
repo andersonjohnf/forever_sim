@@ -37,14 +37,14 @@ import {
   JUDGEMENT_OF_FURY,
   JUDGEMENT_OF_RIGHTEOUSNESS,
   SEAL_OF_COMMAND_PROC,
+  SEAL_OF_FURY_ABSORB_PCT,
   SEAL_OF_FURY_BASE,
-  SEAL_PROC_BASE,
-  SEAL_OF_FURY_VALUE,
+  SEAL_OF_FURY_SHIELD_AURA,
+  SEAL_OF_RIGHTEOUSNESS_SP,
   sealOfFuryProc,
   SEAL_OF_RIGHTEOUSNESS_VALUE,
   sealOfRighteousnessProc,
   spread,
-  withJotcRule,
 } from './spells'
 import {
   IMPROVED_SEALS,
@@ -81,7 +81,9 @@ function matches(def: SpellDef, id: number, coefficientEffect = 0) {
   expect(s.categories?.defenseType ?? 0, def.id).toBe(DEFENSE_TYPE[def.defense])
   expect(attrs(id), def.id).toEqual({ noActiveDefense: def.noActiveDefense, alwaysHit: def.alwaysHit })
   const e = effect(id, coefficientEffect)
-  expect(e.effectBonusCoefficient ?? 0, def.id).toBeCloseTo(def.weaponPercent > 0 && def.id !== 'holyStrike' ? def.spCoefficient / def.weaponPercent : def.spCoefficient, 12)
+  // A weapon share's coefficient is inside it (Seal of Command's 0.29, Holy Strike's 0.429).
+  const coefficient = def.weaponPercent > 0 ? def.spCoefficient / def.weaponPercent : def.spCoefficient
+  expect(e.effectBonusCoefficient ?? 0, def.id).toBeCloseTo(coefficient, 12)
 }
 
 describe('paladin spells against the client (paladin.md#seals, #judgement, #other-abilities)', () => {
@@ -91,13 +93,17 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     matches(SEAL_OF_COMMAND_PROC, 20424)
   })
 
-  it('the judgements: JoC 356 ± 4.78% halved, 0.429, Always Hit; JoR 170 + 4.1/level from 58, 0.5; JoF 153 + 3.69/level, 0.45', () => {
+  it('the judgements: JoC 356 ± 4.78% halved, 0.429, its dummy’s miss roll; JoR 170 + 4.1/level from 58, 0.5; JoF 153 + 3.69/level, 0.45', () => {
     const joc = effect(20966, 0)
     const [lo, hi] = spread(joc.effectBasePointsF!, joc.variance!)
     expect([JUDGEMENT_OF_COMMAND.min, JUDGEMENT_OF_COMMAND.max]).toEqual([lo / 2, hi / 2])
     expect(lo).toBeCloseTo(339, 3)
     expect(hi).toBeCloseTo(373, 3)
-    matches(JUDGEMENT_OF_COMMAND, 20966)
+    // The damage spell 20966 is Always Hit, but the dummy 20968 that casts it isn't, and the beta logs
+    // show it missing (OQ 23): the judgement takes the dummy's attributes.
+    expect(attrs(20966)).toEqual({ noActiveDefense: true, alwaysHit: true })
+    expect(attrs(20968)).toEqual({ noActiveDefense: true, alwaysHit: false })
+    expect(JUDGEMENT_OF_COMMAND).toMatchObject({ noActiveDefense: true, alwaysHit: false, spCoefficient: effect(20966, 0).effectBonusCoefficient })
     for (const [def, id] of [
       [JUDGEMENT_OF_RIGHTEOUSNESS, 20286],
       [JUDGEMENT_OF_FURY, 20414],
@@ -116,28 +122,36 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     expect(JUDGEMENT_OF_RIGHTEOUSNESS.max).toBeCloseTo(186, 5)
   })
 
-  it('Seal of Righteousness and Seal of Fury procs: Always Hit, No Active Defense, 0.1; the seal values 1786 + 47/level and 1607 + 42/level from 58', () => {
+  it('Seal of Righteousness and Seal of Fury procs: Always Hit, No Active Defense, 0.1 in the client; Seal of Fury flat, with its 50% absorb; Seal of Righteousness’s seal value 1786 + 47/level from 58 at 0.1 × SP (its rank-8 dummy has none)', () => {
     matches(sealOfRighteousnessProc(3.5, true), 25713)
-    matches(sealOfFuryProc(null), 20418)
-    // Seal of Fury: the proc's flat 35, plus the aura's seal value by Seal of Righteousness's rule [?] (OQ 10).
+    matches(sealOfFuryProc(), 20418)
+    // Seal of Fury: the proc's flat 35 + 0.1 × SP, whatever the weapon (the beta logs); the aura's
+    // weapon-speed dummy (20423 effect 0) is undescribed, so it models as zero.
     expect(effect(20418, 0).effectBasePointsF).toBe(SEAL_OF_FURY_BASE)
-    expect(sealOfFuryProc(null).min).toBe(SEAL_OF_FURY_BASE)
-    const f = effect(20423, 0)
-    expect(SEAL_OF_FURY_VALUE).toBeCloseTo(atLevel60(f.effectBasePointsF!, f.effectRealPointsPerLevel!, 58, 64) / 100, 12)
-    expect(SEAL_OF_FURY_VALUE).toBeCloseTo(16.91, 12)
-    // The default 1.5 s axe: 35 + 0.85 × 16.91 × 1.5 = 56.56; a 3.5 s two-hander 35 + 1.2 × 16.91 × 3.5 = 106.02.
-    expect(sealOfFuryProc({ speedSec: 1.5, twoHand: false }).min).toBeCloseTo(56.56025, 9)
-    expect(sealOfFuryProc({ speedSec: 3.5, twoHand: true }).max).toBeCloseTo(106.022, 9)
+    expect(sealOfFuryProc()).toMatchObject({ min: 35, max: 35, spCoefficient: 0.1, takenScale: 0.1 })
+    expect(sealOfFuryProc().absorb).toBeUndefined()
+    // Its absorb with a shield: 50% of the Holy damage dealt (20423 effect 1).
+    expect(effect(20423, 1).effectBasePointsF).toBe(SEAL_OF_FURY_ABSORB_PCT)
+    expect(sealOfFuryProc(true).absorb).toEqual({ aura: SEAL_OF_FURY_SHIELD_AURA, pct: 50 })
+    // The absorb is Light's Fury (1310927, in the dataset since paladin.md cites it): an all-schools
+    // absorb (aura 69, misc 127) of 10 s.
+    expect(spell(1310927)).toMatchObject({ name: "Light's Fury", duration: { duration: 10000 } })
+    expect(effect(1310927, 0)).toMatchObject({ effectAura: 69, effectMiscValue: [127, 0] })
+    expect(SEAL_OF_FURY_SHIELD_AURA).toMatchObject({ name: 'Light’s Fury', durationMs: 10000, absorb: true })
     const v = effect(20293, 0)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(atLevel60(v.effectBasePointsF!, v.effectRealPointsPerLevel!, 58, 64) / 100, 12)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(18.8, 12)
-    // Seal of Righteousness: Forever's proc carries the same 35 as Seal of Fury's, read the same way,
-    // on top of the seal value [?] (OQ 4, OQ 10). Worked example 6: 35 + 1.2 × 18.80 × 3.5 = 113.96 before
-    // spell damage; the same weapon one-handed (0.85) 90.93.
-    expect(effect(25713, 0).effectBasePointsF).toBe(SEAL_PROC_BASE)
-    expect(SEAL_OF_FURY_BASE).toBe(SEAL_PROC_BASE)
-    expect(sealOfRighteousnessProc(3.5, true).min).toBeCloseTo(113.96, 9)
-    expect(sealOfRighteousnessProc(3.5, false).max).toBeCloseTo(90.93, 9)
+    // Seal of Righteousness: the seal value alone, not the proc's base points (35 at rank 8) [?], + the
+    // proc's 0.1 × SP and the aura dummy's: 0.1 at ranks 1–7 (the beta logs' 0.2 at ranks 1–4), none at
+    // rank 8. Its JotC share is the proc's 0.1 (the beta logs). Worked example 6: 1.2 × 18.80 × 3.5 =
+    // 78.96 before spell damage; the same weapon one-handed (0.85) 55.93.
+    expect(effect(25713, 0)).toMatchObject({ effectBasePointsF: 35, effectBonusCoefficient: 0.1 })
+    for (const id of [20154, 20287, 20288, 20289, 20290, 20291, 20292]) expect(effect(id, 0).effectBonusCoefficient, String(id)).toBe(0.1)
+    expect(effect(20293, 0).effectBonusCoefficient ?? 0).toBe(0)
+    expect(SEAL_OF_RIGHTEOUSNESS_SP).toBe(effect(25713, 0).effectBonusCoefficient! + (effect(20293, 0).effectBonusCoefficient ?? 0))
+    expect(sealOfRighteousnessProc(3.5, true)).toMatchObject({ spCoefficient: 0.1, takenScale: 0.1 })
+    expect(sealOfRighteousnessProc(3.5, true).min).toBeCloseTo(78.96, 9)
+    expect(sealOfRighteousnessProc(3.5, false).max).toBeCloseTo(55.93, 9)
   })
 
   it('Holy Strike: normalized weapon + 93 ± 12.5% (effect 121), then 50% (effect 31; 40% before 1.60.1.70009), 0.429; category 2404 with Hammer of the Righteous', () => {
@@ -261,7 +275,7 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
   }
   const isSpell = (x: unknown): x is SpellDef => typeof x === 'object' && x !== null && 'triggersProcs' in x
   /** Every spell spells.ts defines. */
-  const allSpells = () => [...Object.values(SPELLS).filter(isSpell), sealOfRighteousnessProc(3.5, true), sealOfFuryProc(null)]
+  const allSpells = () => [...Object.values(SPELLS).filter(isSpell), sealOfRighteousnessProc(3.5, true), sealOfFuryProc()]
 
   it('which spells trigger procs: every one you cast, and a triggered one only with NOT_A_PROC (Attr3 0x200)', () => {
     const defs = allSpells()
@@ -286,11 +300,13 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     }
   })
 
-  it('the default JotC rule scales the bonus by each spell’s coefficient; the flat rule gives melee-class spells all of it', () => {
-    expect(withJotcRule(JUDGEMENT_OF_COMMAND, 'coefficient').takenScale).toBe(0.429)
-    expect(withJotcRule(JUDGEMENT_OF_COMMAND, 'flat').takenScale).toBe(1)
-    expect(withJotcRule(EXORCISM, 'flat').takenScale).toBe(0.429)
-    expect(SEAL_OF_COMMAND_PROC.takenScale).toBeCloseTo(0.203, 12)
+  it('JotC’s share is each spell’s client coefficient, whole, outside a weapon share (the beta logs, paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)', () => {
+    for (const def of allSpells()) {
+      const e = spell(CLIENT[def.id][0]).effects.find((x) => (x.effectBonusCoefficient ?? 0) > 0)
+      expect(def.takenScale, def.id).toBeCloseTo(e?.effectBonusCoefficient ?? 0, 12)
+    }
+    expect(SEAL_OF_COMMAND_PROC.takenScale).toBe(0.29)
+    expect(EXORCISM.takenScale).toBe(0.429)
   })
 })
 
@@ -343,7 +359,7 @@ describe('paladin talents (paladin.md#talents)', () => {
 
   it('Improved Seals covers the seals’ procs and the damage judgements, not Holy Strike or Consecration', () => {
     const t = new Map([['Improved Seals', 3]])
-    for (const def of [SEAL_OF_COMMAND_PROC, sealOfFuryProc(null), sealOfRighteousnessProc(3.5, true), JUDGEMENT_OF_COMMAND, JUDGEMENT_OF_RIGHTEOUSNESS, JUDGEMENT_OF_FURY]) {
+    for (const def of [SEAL_OF_COMMAND_PROC, sealOfFuryProc(), sealOfRighteousnessProc(3.5, true), JUDGEMENT_OF_COMMAND, JUDGEMENT_OF_RIGHTEOUSNESS, JUDGEMENT_OF_FURY]) {
       expect(IMPROVED_SEALS.has(def.id), def.id).toBe(true)
       expect(withSpellTalents(def, t).damageMult).toBeCloseTo(1.15, 12)
     }
@@ -354,7 +370,7 @@ describe('paladin talents (paladin.md#talents)', () => {
     expect(withSpellTalents(HOLY_STRIKE, new Map([['Sacred Arbiter', 1]])).damageMult).toBeCloseTo(1.2, 12)
     const power = new Map([['Holy Power', 5]])
     expect(withSpellTalents(HOLY_STRIKE, power).bonusCrit).toBe(15)
-    for (const def of [SEAL_OF_COMMAND_PROC, sealOfFuryProc(null), JUDGEMENT_OF_COMMAND, JUDGEMENT_OF_RIGHTEOUSNESS]) expect(withSpellTalents(def, power).bonusCrit, def.id).toBe(5)
+    for (const def of [SEAL_OF_COMMAND_PROC, sealOfFuryProc(), JUDGEMENT_OF_COMMAND, JUDGEMENT_OF_RIGHTEOUSNESS]) expect(withSpellTalents(def, power).bonusCrit, def.id).toBe(5)
     // Exorcism and Consecration are magic class: Holy Power's +5% is their spell crit (TALENT_EFFECTS).
     for (const def of [EXORCISM, CONSECRATION_TICK]) expect(withSpellTalents(def, power).bonusCrit, def.id).toBe(0)
     expect(TALENT_EFFECTS['Holy Power'](5)).toEqual([{ kind: 'stat', stat: 'spellCrit', value: 5 }])

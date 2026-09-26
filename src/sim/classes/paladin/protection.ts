@@ -44,7 +44,6 @@ import { consecrationUnused } from './consecration-rows'
 import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables, paladinTrinkets } from './consumables'
 import { EXORCISM_TARGETS, manaOption } from './retribution'
 import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS } from './setup'
-import { type JotcRule, withJotcRule } from './spells'
 import { type TalentRanks, withTalents } from './talents'
 
 const DOC = 'docs/classes/paladin.md'
@@ -172,35 +171,6 @@ export const HOLY_SHIELD_PROC: ProcSpec = {
   requiresAura: HOLY_SHIELD_AURA.id,
   counts: 'blocks',
   docRef: `${DOC}#other-abilities`,
-}
-
-/**
- * Seal of Fury's absorb (20423 effect 1, 50; paladin.md#seal-of-fury-sof-new-the-protection-seal):
- * with a shield equipped, each landed Seal of Fury proc shields you for half its Holy damage [F].
- * How it stacks and how long it lasts are the server's: the sim keeps one, which each proc replaces
- * and the next hit you take that costs health uses up, and which ends with the seal's 30 s [?]
- * (OQ 10). A boss's hit is thousands, so it always takes all of it, which is when Improved Seal of
- * Fury restores mana (talents.ts). The absorb itself isn't taken off the hit: about 20 damage.
- */
-export const SEAL_OF_FURY_SHIELD_AURA: AuraSpec = {
-  id: 'sealOfFuryShield',
-  name: 'Seal of Fury’s absorb',
-  durationMs: 30000,
-  takenCharges: 1,
-  mods: {},
-}
-
-/** Each landed Seal of Fury proc puts its absorb up, with a shield equipped (the rotation adds it only then). */
-export const SEAL_OF_FURY_SHIELD_PROC: ProcSpec = {
-  id: 'sealOfFuryShield',
-  name: 'Seal of Fury’s absorb',
-  icon: 'spell_holy_retributionaura',
-  trigger: 'whiteResolved',
-  from: 'mainHand',
-  chance: { pct: 100 },
-  action: { kind: 'aura', aura: SEAL_OF_FURY_SHIELD_AURA },
-  requiresAura: SEAL_OF_FURY.id,
-  docRef: `${DOC}#seal-of-fury-sof-new-the-protection-seal`,
 }
 
 /**
@@ -345,18 +315,19 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
 // --- Settings (paladin.md "Forever priority list (default)") -------------------------------------
 
 /**
- * What the presets' help and Hammer of the Righteous's say, measured in the default setup (paladin.md
- * "Priority: Defensive, Balanced or Max TPS"; seed 31101, 100,000 fights, 2026-09-24, re-measured
- * 2026-09-26 with a raid druid's Thorns at 22 + 0.08 × its pre-raid gear's 313 spell damage, buffs doc
- * §1.2): Defensive's
- * TPS, DPS and damage taken a second, and Max TPS and Hammer of the Righteous turned on against it, in
- * percent. protection-presets.test.ts measures them again, so a change that moves them fails until
+ * What the presets' help, Hammer of the Righteous's and the seal's say, measured in the default setup
+ * (paladin.md "Priority: Defensive, Balanced or Max TPS"; seed 31101, 100,000 fights, re-measured
+ * 2026-09-26 for the beta-log check, paladin.md#the-beta-log-check-2026-09-26, and again with a raid
+ * druid's Thorns at 22 + 0.08 × its pre-raid gear's 313 spell damage, buffs doc §1.2): Defensive's
+ * TPS, DPS and damage taken a second, and Max TPS, Hammer of the Righteous turned on and Seal of
+ * Righteousness in Seal of Fury's place against it, in percent. protection-presets.test.ts measures them again, so a change that moves them fails until
  * they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 750.61, dps: 465.12, damageTaken: 918.9 },
-  maxTps: { tpsPct: 6.78, dpsPct: 6.7, damageTakenPct: 5.72 },
-  hammerOfTheRighteous: { tpsPct: -1.99, dpsPct: -0.12, damageTakenPct: 4.92 },
+  defensive: { tps: 701.2, dps: 437.41, damageTaken: 900.4 },
+  maxTps: { tpsPct: 7.25, dpsPct: 7.12, damageTakenPct: 5.83 },
+  hammerOfTheRighteous: { tpsPct: -5.2, dpsPct: -3.69, damageTakenPct: 5.01 },
+  sealOfRighteousness: { tpsPct: -7.59, dpsPct: -5.41, damageTakenPct: 2.13 },
 } as const
 
 const M = PROTECTION_PRESET_MEASURES
@@ -438,7 +409,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.seal,
     group: 'Core abilities',
     label: 'Seal',
-    help: 'Seal of Fury adds 35 Holy damage to each of your auto attacks, plus more the slower your weapon (untested: 21.6 more with a 1.5 s one-hander). With a shield, each also shields you from a little damage, and when a hit uses that up, Improved Seal of Fury restores mana (87 against a raid boss). Its judgement taunts. Seal of Righteousness adds the same 35 and more by weapon speed (untested: 24 with a 1.5 s one-hander), but no shield or mana, so it makes about 4% less threat with a one-hander; it does better only with a two-hander, and so without a shield.',
+    help: `Seal of Fury adds 35 Holy damage plus a tenth of your spell damage to each of your auto attacks, whatever the weapon. With a shield, each also shields you for half that damage from the next hit you take, and when a hit uses it up, Improved Seal of Fury restores mana (87 against a raid boss). Its judgement taunts. Seal of Righteousness adds more the slower your weapon (24 with a 1.5 s one-hander) plus a tenth of your spell damage, but no shield or mana: about ${helpPct(M.sealOfRighteousness.tpsPct, 1)} less TPS in the default setup, for ${helpPct(M.sealOfRighteousness.damageTakenPct, 1)} more damage taken; it does better only with a two-hander, and so without a shield.`,
     choices: [
       { value: 'fury', label: 'Fury' },
       { value: 'righteousness', label: 'Righteousness' },
@@ -493,7 +464,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.holyStrike,
     group: 'Core abilities',
     label: 'Holy Strike',
-    help: 'Use Holy Strike whenever it’s ready, every 10 s: 50% of a normalized swing plus 81 to 105 and spell damage, all Holy, with 25% more threat from Iron Creed 5/5. 20 mana.',
+    help: 'Use Holy Strike whenever it’s ready, every 10 s: half of (a normalized swing + 81 to 105 + 0.429 × your spell damage), so 0.21 × spell damage, all Holy, with 25% more threat from Iron Creed 5/5. 20 mana.',
     default: true,
   },
   {
@@ -651,6 +622,21 @@ export const hammerFits = (mainHand: { twoHand: boolean; type?: WeaponType } | n
 const hammerAbove = (order: readonly string[] | undefined): boolean => {
   const current = normalizeAplOrder(PROTECTION_APL, order)
   return current.indexOf('hammerOfTheRighteous') < current.indexOf('holyStrike')
+}
+
+/**
+ * Whether the plan casts Hammer of the Righteous (row 5b): it's on, the main hand takes it, and it
+ * sits above Holy Strike or Holy Strike is off. Below Holy Strike (on), which costs less, it's never
+ * cast. The load's notice that its reading changed asks the same (config/normalize.ts, DV-1).
+ */
+export function protectionUsesHammer(
+  values: Record<string, RotationValue>,
+  mainHand: { twoHand: boolean; type?: WeaponType } | null | undefined,
+  order: readonly string[] | undefined,
+  talents?: TalentRanks,
+): boolean {
+  const v = reader(PROTECTION_OPTIONS, values, talents)
+  return v.on(ID.hammerOfTheRighteous) && hammerFits(mainHand) && (hammerAbove(order) || !v.on(ID.holyStrike))
 }
 
 /** The two Consecration rows, rank 5 and rank 1 (paladin.md rows 7 and 7b), which share one cooldown. */
@@ -832,21 +818,14 @@ export function protectionRotation(
 ): ClassRotation {
   const ctx: PaladinContext = { ...NO_CONTEXT, ...context }
   const v = reader(PROTECTION_OPTIONS, values, talents)
-  // The Judgement of the Crusader rule (Character → Advanced), for another paladin's judgement on the
-  // boss: each Holy hit's share of its +161, as Retribution's (paladin.md, OQ 5).
-  const rule: JotcRule = ctx.jotcRule ?? 'coefficient'
   const abilities: AbilityDef[] = []
   const rotation: RotationEntry[] = []
-  /** The ability's index, resolved with the build's talents and the JotC rule on first use. */
+  /** The ability's index, resolved with the build's talents on first use. */
   const index = (def: AbilityDef): number => {
     const i = abilities.findIndex((a) => a.id === def.id)
     if (i >= 0) return i
     const a = withTalents(def, talents)
-    abilities.push({
-      ...a,
-      ...(a.spellDef ? { spellDef: withJotcRule(a.spellDef, rule) } : {}),
-      ...(a.tickSpellDef ? { tickSpellDef: withJotcRule(a.tickSpellDef, rule) } : {}),
-    })
+    abilities.push(a)
     return abilities.length - 1
   }
   const add = (def: AbilityDef, conditions: RotationCondition[]) => {
@@ -864,11 +843,10 @@ export function protectionRotation(
   const auraDown = (a: number): RotationCondition => ({ code: COND.abilityAuraDown, a, b: 0 })
   const procs: ProcSpec[] = []
 
-  // Abilities 0 and 1: the seal and its judgement. Seal of Fury's absorb needs a shield.
+  // Abilities 0 and 1: the seal and its judgement. Seal of Fury's absorb, with a shield, is its proc's (paladinProcs).
   const sealDef = protectionSeal(values)
   const seal = index(sealDef)
   const judge = index(JUDGEMENT_OF[sealDef.id])
-  if (sealDef.id === SEAL_OF_FURY.id && ctx.hasShield) procs.push(SEAL_OF_FURY_SHIELD_PROC)
   const refresh: RotationCondition = { code: COND.abilityAuraRefresh, a: seal, b: seconds(v, ID.sealRefresh) }
   // Row 0c's seal and judgement (paladin.md "the opener"), indexed after the seal's, as before the list.
   const crusader = v.on(ID.crusader)
@@ -880,7 +858,7 @@ export function protectionRotation(
   // higher row is used whenever it can be, and the lower when it can't (Holy Strike when Hammer's 90
   // mana isn't there). Below Holy Strike (on), which costs less, it's never cast, so it's left out
   // of the plan, and with it its weapon-DPS assumption (TV-2).
-  const hammer = v.on(ID.hammerOfTheRighteous) && hammerFits(ctx.mainHand) && (hammerAbove(order) || !v.on(ID.holyStrike))
+  const hammer = protectionUsesHammer(values, ctx.mainHand, order, talents)
 
   compileAplRows(PROTECTION_APL, order, {
     // Row 0c (paladin.md "the opener"), as Retribution's: Seal of the Crusader goes up 1.5 s before
@@ -933,7 +911,7 @@ export function protectionRotation(
     // Row 5b: Hammer of the Righteous on cooldown, in Holy Strike's place: above Holy Strike, or with
     // Holy Strike off (below Holy Strike, `hammer` leaves it out).
     hammerOfTheRighteous: () => {
-      if (hammer) add(hammerOfTheRighteousAbility(ctx.hotrWeaponDps !== 'weaponOnly'), [])
+      if (hammer) add(hammerOfTheRighteousAbility(ctx.hotrWeaponDps === 'withAttackPower'), [])
     },
     // Row 6: Exorcism on cooldown against Undead and Demons, at mana ≥ x%.
     exorcism: () => {
@@ -982,7 +960,7 @@ export function protectionRotation(
       keepTenths: -1,
     },
     onUse: pressed,
-    procs: [...paladinProcs(abilities, talents, ctx, rule), ...procs],
+    procs: [...paladinProcs(abilities, talents, ctx), ...procs],
     ...(timed ? { assumes: [{ id: 'knownFightEnd' as const, detail: PROTECTION_KNOWN_FIGHT_END }] } : {}),
   }
 }

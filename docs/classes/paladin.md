@@ -3,8 +3,8 @@
 WoW Forever reworks the paladin more than any other class in scope. The biggest change is that
 **Judgement no longer consumes the Seal**, so a paladin keeps one seal up and judges it on
 cooldown. Damage judgements now roll on the **melee** table: they can't be dodged, parried or
-blocked, and they crit for double damage. Judgement of Righteousness and of Fury can miss, but
-Judgement of Command can't (its damage spell is *Always Hit*). Judgement debuffs still
+blocked, and they crit for double damage, and they can miss (Judgement of Command's damage spell
+is *Always Hit*, but the beta logs show its judgement missing). Judgement debuffs still
 always hit and now last 40 s instead of 10 s. Retribution gains a cheap 10 s strike (Holy Strike), a
 spell-damage-from-Intellect capstone line (Champion of the Light), a mana-positive judgement
 talent (Sanctified Judgement), a reworked Vengeance (up to 3 stacks, 30 s) and Twist of
@@ -31,8 +31,8 @@ Both specs need the following. Each item links to its section.
    ([Seals](#seals)).
 2. **Judgement** as an off-GCD, 10 s (8 s talented) cooldown that fires the active seal's
    judgement **without removing the seal**. Damage judgements (JoC, JoR, JoF) roll the melee
-   special-attack table with no dodge, parry or block; JoC's damage spell is *Always Hit*, so
-   only JoR and JoF can miss. Debuff judgements (JotC, JoW, JoL, JoJ) always hit
+   special-attack table with no dodge, parry or block, and can miss (JoC too, by the beta logs,
+   though its damage spell is *Always Hit*). Debuff judgements (JotC, JoW, JoL, JoJ) always hit
    ([Judgement](#judgement)).
 3. **Judgement debuffs** (Crusader, Wisdom, Light, Justice): one per paladin per target,
    40 s (Justice 10 s), refreshed by the paladin's melee strikes and by Holy Strike with
@@ -87,7 +87,7 @@ Charger is Dwarf and Human only [F].
 | Area | Classic Era | WoW Forever | Tag, source |
 | --- | --- | --- | --- |
 | **Judgement consumes seal** | yes | **no**: "Does not consume the Seal." | [F] [spellbook](https://foreverchanges.pro/spellbook/paladin), [F 20271][f20271] |
-| Judgement hit table | Magic class: damage judgements roll spell hit and spell crit | **Melee class** + *No Active Defense*: damage judgements (JoC, JoR, JoF) roll melee crit ×2 and never dodge, parry or block. **JoR and JoF roll melee miss; JoC's damage spell 20966 carries *Always Hit*, so JoC can't miss.** Debuff judgements (JotC, JoW, JoL, JoJ) carry *Always Hit* in both clients | [F] [client] (SpellCategories DefenseType 2, SpellMisc Attr0 0x200000 / Attr3 0x40000, 1.60.1.70009; [20286][f20286], [20414][f20414], [20968][f20968], [20966][f20966], [20303][f20303], [20355][f20355]) vs [C 20286][c20286], [C 20968][c20968], [C 20303][c20303]. Whether the server honours JoC's Always Hit is [?] ([open question 23](#open-questions)) |
+| Judgement hit table | Magic class: damage judgements roll spell hit and spell crit | **Melee class** + *No Active Defense*: damage judgements (JoC, JoR, JoF) roll melee crit ×2 and never dodge, parry or block. **JoR and JoF roll melee miss, and so does JoC: its damage spell 20966 carries *Always Hit*, but the dummy 20968 that casts it doesn't, and the beta logs show it missing.** Debuff judgements (JotC, JoW, JoL, JoJ) carry *Always Hit* in both clients | [F] [client] (SpellCategories DefenseType 2, SpellMisc Attr0 0x200000 / Attr3 0x40000, 1.60.1.70009; [20286][f20286], [20414][f20414], [20968][f20968], [20966][f20966], [20303][f20303], [20355][f20355]) vs [C 20286][c20286], [C 20968][c20968], [C 20303][c20303]. JoC's miss: the beta logs ([Seal of Command](#seal-of-command-soc)) |
 | Judgement debuff duration (Crusader, Wisdom, Light) | 10 s | **40 s**, still refreshed by your melee strikes | [F] [client] (SpellDuration, 1.60.1.70009; [20303][f20303], [20355][f20355]) |
 | Judgement of the Crusader (r6) | +140 Holy damage taken | **+161** (Improved SotC's 15% is now baseline) | [F] [F 20303][f20303] |
 | Improved Seals (was Improved SoR) | +15% SoR/JoR, 5 ranks | **+15% all seal procs and judgements**, 3 ranks | [F] [client] (SpellEffect spell masks, TraitDefinitionEffectPoints, 1.60.1.70009; [20224][f20224]) |
@@ -132,6 +132,8 @@ carry the new values.
 | Two-Handed Weapon Specialization (20111) | 3/6/9% | **2/4/6%** | Physical only, as before |
 | Twist of Light (1310735) | echoes only | also **−20% mana on the seals** (aura 108 on cost) | added to Benediction's cut [?] ([mana model](#mana-model)) |
 | Holy Power (5923) | +1% crit a rank on spells | also **+3% a rank on Holy Strike** (and Holy Shock) | tier 6 Holy: out of both default builds' reach |
+| Consecration's tick spells (1280345–1280349) | SpellMisc Attr3 `0x40000000` | Attr3 also `0x2000000` (Treat As Periodic) | read as periodic already: they trigger no procs, and Vengeance's mask has no periodic bit; whether they still roll hit and crit is [open question 18](#open-questions) |
+| Consecration 1280353 (a helper nothing in the client triggers: a dummy at 0.095 and aura 270 on Holy) | a single target | an area (ImplicitTarget 6 → 87/16, radius index 14) | undescribed, so no effect |
 | Retribution Aura (10301), and the druid's Thorns | flat 30 (Thorns 22) | "will now dynamically update its values based on the caster's spell power" | the client has no coefficient, so 0.08 [?], Holy Shield's ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)) |
 
 The default builds lost their Improved Holy Strike and Crusade points; the sim places them by
@@ -145,6 +147,37 @@ review's order and Holy Conduit 1 (PR-1) and a raid Restoration druid's Thorns (
 target; [milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)).
 Retribution makes **621.9 DPS** with the review's joint search (PR-2; 612.7 with the slice's
 placement, 611.0 on this data with 3 points unspent).
+
+### The beta-log check (2026-09-26)
+
+A reproducible read of the 47 public beta logs (build 1.60.1, 18–25 Sep 2026;
+[D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23),
+methods with each section) and the one guild test there is, the user's level-20 paladin (2026-09-25),
+replaced every paladin value that had been fitted to a TPS figure rather than sourced. Each step's
+headline, the default setups at 10,000 fights:
+
+| Step | What changed | Protection TPS | Protection DPS, damage taken | Retribution DPS |
+| --- | --- | --- | --- | --- |
+| Before | | 746.8 | 461.4, 918.9 | 608.6 |
+| 1 | [Seal of Fury](#the-beta-logs-seal-of-fury): a flat 35 + 0.1 × SP, its weapon-speed dummy zero; its absorb comes off the next hit | 718.3 | 443.9, 900.5 | 608.6 |
+| 2 | [Seal of Righteousness](#the-beta-logs-seal-of-righteousness): the seal value alone (no base points) + 0.1 × SP at rank 8 (the logs' 0.2 at ranks 1–4 is the proc's 0.1 and the aura dummy's 0.1, which rank 8's dummy lacks); no default uses it | 718.3 | 443.9, 900.5 | 608.6 |
+| 3 | [Holy Strike](#the-beta-logs-holy-strike): its flat part and spell damage inside the 50% | 697.3 | 433.6, 900.5 | 595.1 |
+| 4 | [Judgement of Command](#seal-of-command-soc) can miss, as the logs show (the default Retribution setup is at the special-attack hit cap, so it doesn't) | 697.3 | 433.6, 900.5 | 595.1 |
+| 5 | Retribution Aura: the logs don't settle its coefficient ([open question 32](#open-questions)); no change | 697.3 | 433.6, 900.5 | 595.1 |
+| 6 | [Judgement of the Crusader](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc): each hit's share measured; Seal of Command's 0.29, outside its 70%; the "All of it" switch gone | 697.3 | 433.6, 900.5 | 597.3 |
+| 7 | Provenance: [Hammer of the Righteous](#other-abilities) by default counts the weapon's own DPS, as its tooltip reads (it's in no default); Judgement of Fury's dummy stays zero (+383 TPS as flat threat) | 697.3 | 433.6, 900.5 | 597.3 |
+
+The defaults hold after it (first pass, CLAUDE.md step 7; `scripts/tune/rotation.mjs`, seed 778, 20,000
+paired fights): for Protection, Consecration from 10% or rank 1 from 0% gain under 0.02% TPS, and
+every other candidate (Holy Strike or Hammer of Wrath off, other thresholds) loses; for Retribution,
+Holy Strike off, Consecration from 10% or 30%, or Consecration above Holy Strike all lose. The gap to
+the other tanks widens (Protection 697.3 TPS); it's the cited mechanics' result, with no threat
+modifier to close it, and the unmeasured parts are the open questions below. The table's steps ran with a raid
+druid's Thorns at 38; merged with its 47.04 (22 + 0.08 × a pre-raid Restoration druid's 313 spell
+damage, [buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)), step 7's
+default Protection setup makes 701.2 TPS and 437.4 DPS on seed 31101 over 100,000 fights, against
+the warrior's 914.4 and the bear's 1,088.8
+([D28](../decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24)).
 
 ### Forever system rules that matter here (owned elsewhere)
 
@@ -182,8 +215,8 @@ and the docs it links; this list only summarizes them, with the same tags.
   categories) come from the raw Forever client files, build 1.60.1.70009, read through the
   wago.tools API and parsed by `scripts/scrape/client.mjs`. Values tagged `[F] [client]` were
   confirmed by the [claims check][client], which covered every value this doc had marked for a
-  browser check, with one correction: Judgement of Command can't miss
-  ([Seal of Command](#seal-of-command-soc)). Raw files lack server hotfixes and server
+  browser check, with one correction: Judgement of Command's damage spell is Always Hit (its
+  dummy isn't, and in the beta logs the judgement misses: [Seal of Command](#seal-of-command-soc)). Raw files lack server hotfixes and server
   scripts, so dummy values such as Judgement of Fury's scripted 1607 + 42.3/level and all PPM
   rates are server-side ([hotfix caveat](../data/client.md#hotfix-caveat)).
 - **Rank at level 60.** Every table uses the max rank a level-60 paladin has. Where
@@ -212,9 +245,9 @@ and the docs it links; this list only summarizes them, with the same tags.
   block first, then crit on anything that landed, like the warrior's Bloodthirst. That's
   [combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks)'s "melee spells"
   split by effect type, applied to the paladin by inference [?]. It matters only for spells that
-  can miss or be avoided and have no weapon share, JoR and JoF: their crits come from the landed
-  ones (with 5% miss and 25% crit, 23.75% of casts rather than 25%). JoC and SoR's and SoF's
-  procs have nothing to roll first (Always Hit and No Active Defense), so the two models agree.
+  can miss or be avoided and have no weapon share, JoC, JoR and JoF: their crits come from the landed
+  ones (with 5% miss and 25% crit, 23.75% of casts rather than 25%). SoR's and SoF's procs have
+  nothing to roll first (Always Hit and No Active Defense), so the two models agree.
 - **Which spells trigger procs.** A spell you cast (Holy Strike, Exorcism, Hammer of Wrath)
   triggers procs as any attack or spell does. A spell that another spell or an aura
   triggers (a seal's proc, a judgement's damage spell, Consecration's ticks) triggers them only if
@@ -286,12 +319,18 @@ have the talent ([Twist of Light](#retribution-tree)).
 **Judgement of Command** (JoC, r5): dummy 20968 → damage spell 20966. Base **339–373 Holy,
 halved unless the target is stunned or incapacitated** (tooltip "169.5 to 186.5 … 339 to 373
 if stunned"), plus **0.429 × SP**, ×1.15 Improved Seals. Assume the coefficient is **not**
-halved [?]. Both spells are melee class with No Active Defense, and the damage spell 20966
-also carries **Always Hit** (Attr3 `0x40000`), so JoC **can't miss, be dodged, parried or
-blocked, and crits ×2** [F] [client] (SpellMisc, SpellCategories, SpellEffect, 1.60.1.70009;
-[20968][f20968], [20966][f20966]). Unlike JoR and JoF, it has no miss chance in the sim. The
-dummy 20968 lacks Always Hit; whether the server rolls a miss on it anyway is untested, and the
-sim assumes it doesn't [?] ([open question 23](#open-questions)). In Classic JoC was magic
+halved [?]. Both spells are melee class with No Active Defense, so JoC **can't be dodged, parried
+or blocked, and crits ×2** [F] [client] (SpellMisc, SpellCategories, SpellEffect, 1.60.1.70009;
+[20968][f20968], [20966][f20966]). The damage spell 20966 also carries **Always Hit** (Attr3
+`0x40000`), but the dummy 20968 that casts it doesn't, and **the dummy misses**: in the beta logs
+([method](#the-beta-logs-seal-of-fury)), 10 of the 43 Judgements of Command at ranks 1–2 were a
+`SPELL_MISSED` MISS of the rank-1 dummy 20425, from 5 of the 10 characters who judged it, and the other
+33 dealt damage. So the sim rolls JoC's miss, as JoR's and JoF's, then its crit on a landed one [?]
+([open question 23](#open-questions)). Which table the miss comes from isn't settled: for the 10
+characters who judged Command, their judgements (Command and Fury) missed **17 of 56 (30%)**, while their
+Holy Strikes missed 7 of 64 (11%) and their white swings 26 of 412 (6%), against mobs of every level.
+Judgements missing that much more than the melee specials fits a spell-like table better; the sim
+keeps the melee special table's miss for now [?]. In Classic JoC was magic
 class, rolling spell hit ([C 20968][c20968]) [C]. Raid bosses are stun-immune, so the sim
 always uses the halved value.
 
@@ -302,11 +341,58 @@ always uses the halved value.
 | Spell (r8) | 20293, trained at 58; proc 25713 | [F] [F 20293][f20293], [F 25713][f25713] |
 | Cost | 200 mana | [F] |
 | Seal value `v` | dummy points 1786 + 47/level from 58 to 60 → **v = 18.80** per second of weapon speed at 60 | [F] data (same as [C]) |
-| Damage per landed white hit | **35 +** **2H: `1.20 × v × speed`; 1H: `0.85 × v × speed`**, + **0.1 × SP**. So 35 + 18.8 × 1.2 × 3.5 = 114.0 before SP. The flat 35 is Forever's: proc 25713 carries base 35 on effect 0, where Classic Era's had 0 (and rank 1's proc 25742 went from 0 to 4), the same 35 as Seal of Fury's 20418 [F] [client] (SpellEffect, 1.60.1.70009 and 1.15.9.69722; [25713][f25713], [C 25713][c25713]). Adding it to the seal value, rather than in its place, is [?]: the same reading as Seal of Fury's ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24), [open question 10](#open-questions), guild test T1). Tooltip: "Slower weapons cause more Holy damage per swing", which normalizes to roughly constant DPS | Shape [C]/[?]: the server-side script isn't in the client. The tooltip's level-58 range 20.5–71.4 is `v × 1.1475 … v × 4.0` (0.85 × 1.35 to 1.2 × 3.33), consistent with those factors. The extra `+0.03 × avg weapon damage ± 1` in wiki formulas is from TBC-era text and **not adopted** [?] |
-| SP coefficient | 0.1 per proc on the proc spell (Classic r8 also 0.1). Forever gives ranks 1–3 the full 0.1 too | [F] [client] (SpellEffect, 1.60.1.70009; [25713][f25713]), [C 25713][c25713] |
+| Damage per landed white hit | **2H: `1.20 × v × speed`; 1H: `0.85 × v × speed`**, + **0.1 × SP**. So 18.8 × 1.2 × 3.5 = 78.96 before SP. The proc's own base points (35 at rank 8, where Classic Era's 25713 had 0; rank 1's proc 25742 went from 0 to 4) aren't added: at ranks 1–4 the beta logs fit the seal value alone ([below](#the-beta-logs-seal-of-righteousness)). Tooltip: "Slower weapons cause more Holy damage per swing", which normalizes to roughly constant DPS | Shape [C], and what the beta logs show at ranks 1–4 [?]: the server-side script isn't in the client. The tooltip's level-58 range 20.5–71.4 is `v × 1.1475 … v × 4.0` (0.85 × 1.35 to 1.2 × 3.33), consistent with those factors. The extra `+0.03 × avg weapon damage ± 1` in wiki formulas is from TBC-era text and **not adopted** [?]. The base points: [F] [client] (SpellEffect, 1.60.1.70009 and 1.15.9.69722; [25713][f25713], [C 25713][c25713]) |
+| SP coefficient | **0.1 per proc at rank 8**: the proc's 0.1 plus the aura's weapon-speed dummy's, which is **0 at rank 8** (20293 effect 0) and **0.1 at ranks 1–7** (20154, 20287–20292 effect 0). At ranks 1–4 the beta logs fit 0.2, that sum ([below](#the-beta-logs-seal-of-righteousness)); Classic Era's data has the same pattern (the dummy carries the proc's coefficient at the low ranks, and none at rank 8). The proc's 0.1 is also its share of Judgement of the Crusader's bonus, as measured ([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)) | The coefficients: [F] [client] (SpellEffect, 1.60.1.70009; [25713][f25713], [20293][f20293]), [C 25713][c25713]; that the server adds the dummy's to the proc's: the beta logs at ranks 1–4 [?] ([open question 4](#open-questions)) |
 | Hit table | Melee class, **No Active Defense + Always Hit**: rides on the white hit that triggered it, can't miss, dodge, parry or block. **Can crit** (melee crit ×2; no "can't crit" attribute) [?] | [F] [client] (SpellMisc Attr0 0x240000, Attr3 0x40000; SpellCategories, 1.60.1.70009; 25713) |
 | Modifiers | Improved Seals ×1.15, Vengeance, JotC | [F] |
 | Triggers | **Nothing**: the proc triggers no Windfury, Crusader, Hand of Justice, Vengeance or Vindication, even when it crits. The white hit that carries it still does [?] | 25713's Attr3 is `0x40000` (Always Hit) only, without NOT_A_PROC `0x200` [F] [client] (SpellMisc, 1.60.1.70009); the server's use of it [?] ([conventions](#conventions-used-below), [open question 22](#open-questions)) |
+
+##### The beta logs: Holy Strike
+
+The same logs ([method](#the-beta-logs-seal-of-fury)): 356 non-crit Holy Strikes (ranks 1–3,
+at 25, 29 and 32% weapon damage, base points 12, 17 and 19) from 44 characters. For each character
+and log, the weapon's damage is the mean of its non-glancing, non-crit white hits (a swing's, not
+normalized: close for the weapons the logs show), and each Holy Strike is compared with two readings:
+
+| Reading | Mean residual per hit (Holy Strike − the reading) | Characters nearer it |
+| --- | --- | --- |
+| Inside: `pct × (white + flat + 0.429 × SP)` | **−1.87 ± 0.32** | **44 of 44** |
+| After: `pct × white + flat + 0.429 × SP` (the tooltip's order) | −15.13 ± 0.64 | 0 |
+
+The small residual inside is the white hits' own swing speed against Holy Strike's normalized one. The
+spell damage is inside too: the characters with 25 to 83 spell damage sit at −1 to −4 inside and −24 to
+−41 after. The sim applies the same order at rank 8 [?].
+
+##### The beta logs: Seal of Righteousness
+
+The same logs as Seal of Fury's ([method](#the-beta-logs-seal-of-fury)): 1,130 Seal of Righteousness
+procs from 62 characters, all ranks 1–4 (25742, 25741, 25740, 25739; base points 4, 4, 6 and 9, each
+with 0.1; seal values 108 + 18/level, 216 + 17/level and 352 + 23/level). The weapon's speed is the
+time between the two swings before the proc, ±0.05 s; the character's level isn't in the log, so a
+reading fits a proc when some level in the rank's range and either hand's factor (0.85 or 1.2) gives
+`floor(base + factor × v × speed + c × SP)` exactly.
+
+| Reading | Fits (727 non-crit procs with a swing time, 52 characters) |
+| --- | --- |
+| The seal value alone, + 0.1 or 0.2 × SP | 680 (0.1), 692 (0.2) |
+| The base points + the seal value | 128 (0.1), 116 (0.2) |
+| Only one of the two fits | the seal value alone **587**, the base points + seal value 23 |
+
+**The seal value alone**, as in Classic Era: the proc's base points aren't added, so rank 8's 35
+isn't either. That's the rule the sim applies at rank 8 [?] (the logs stop at rank 4).
+
+**0.2 × SP at ranks 1–4, so 0.1 at rank 8.** Only 16 procs from 4 characters have 10 or more spell
+damage. 0.2 fits all 16; the proc's 0.1 alone fits 5; the base points + seal value at 0.1 fits 11. Two
+characters decide it: one at level 20 (its Judgement of Righteousness pins the level), SP 84, a 2.6 s
+one-hander, hits 25 (seal value 8.8 + 0.2 × 84 = 25.6; 0.1 gives 17, the base points + 0.1 give 26); the
+other, SP 48 with a two-hander, fits 0.2 at levels 19–20 and 0.1 at no level. In the client each rank's
+aura carries its seal value on a weapon-speed dummy, and that dummy has a coefficient of its own: **0.1
+at ranks 1–7, none at rank 8** [F] [client] (SpellEffect, 1.60.1.70009; [20293][f20293]). So the logs'
+0.2 is the proc's 0.1 plus the dummy's 0.1, and the same sum at rank 8 is **0.1**, the proc's alone;
+Classic Era's data has the same shape (the dummy carries the proc's coefficient at the low ranks, and
+none at rank 8). That the server adds the two is what the logs show at ranks 1–4; it's thin, from few
+characters, and nothing at rank 8 is measured, so it stays [?] ([open question 4](#open-questions));
+no default setup uses Seal of Righteousness.
 
 **Judgement of Righteousness** (r8, 20286): **162–178 + 8 = 170–186 at level 60**,
 plus **0.5 × SP**, ×1.15 Improved Seals. Melee class, No Active Defense, no Always Hit: melee
@@ -335,28 +421,45 @@ It corroborates the client data above but isn't a guild measurement.
   paladin per target [F]/[C]. Direct damage judgements (JoC, JoR, JoF) are **not** debuffs
   and don't replace it [C] (Classic practice: apply JotC, then SoC and judge SoC,
   [Warcraft Tavern Classic](https://www.warcrafttavern.com/wow-classic/guides/pve-retribution-paladin-rotations-cooldowns/)).
-- **How much of the +161 each hit gets** is a server rule [?]. Default: add
-  `161 × c`, where `c` is that hit's effective SP coefficient (SoC proc 0.203, JoC 0.429,
-  JoR 0.5, SoR proc 0.1, Holy Strike 0.429, Exorcism/HoW 0.429, Consecration 0.095 per tick).
-  JotC benefits **every** paladin's and every player's Holy damage, not only yours. The main
-  alternative, a flat +161 on each melee-class Holy hit, would roughly double JotC's value.
-  Expose it as an engine switch until measured ([open questions](#open-questions)): the spell
-  builder takes the rule (`coefficient`, the default, or `flat`), set as `rules.jotcBonus` under
-  **Character → Advanced**, beside the other untested switch, "Count untested ratings" ("A share"
-  or "All of it"). It's not a rotation choice, so the Rotation tab doesn't show it.
+- **How much of the +161 each hit gets: its share, the spell's client coefficient × the bonus**,
+  measured. Seal of Command's proc 0.29 (outside its 70%: `161 × 0.29 = 46.69`), JoC 0.429, JoR 0.5,
+  SoR's and SoF's procs 0.1, Holy Strike 0.429 (outside its 50%), JoF 0.45, Exorcism and Hammer of
+  Wrath 0.429, Consecration 0.095 a tick, Holy Shield 0.08, Hammer of the Righteous 0 (no
+  coefficient). JotC benefits **every** paladin's and every player's Holy damage, not only yours.
+  - *The beta logs* ([method](#the-beta-logs-seal-of-fury)): 23 non-crit hits under a JotC of +35 or
+    +23 (Seal of Fury, Seal of Righteousness, Holy Strike, Judgement of Fury and of Righteousness, from
+    6 characters), each compared with the same character's hits without it. The extra damage ÷
+    (coefficient × bonus) is **1.001 ± 0.039** (95% CI). Holy Strike's +15 on a +35 JotC is 0.429 × 35,
+    its whole coefficient, though its spell damage is inside its weapon percentage
+    ([Holy Strike](#the-beta-logs-holy-strike)); Seal of Righteousness's +3.4 and +2.4 are its client
+    0.1's, though its spell damage scales at 0.2. So the share is the client coefficient, whole, and
+    Seal of Command's is 0.29, not 0.203 [?] (no Seal of Command hit under JotC in the logs).
+  - *The user's in-game test* (2026-09-25, level 20: Seal of the Crusader rank 2, whose judgement is
+    +35; Holy Strike rank 3; Seal of Fury rank 2) [F]: Holy Strike hit 27 with no judgement on the
+    target, 36 with Judgement of the Crusader, and 43 with Seal of Fury up as well. A Holy Strike gets
+    part of the bonus and far less than all of it (27 + 35 = 62), so the "All of it" reading is ruled
+    out. It leaves two gaps the model doesn't explain ([open question 5](#open-questions)): the logs'
+    share predicts 27 + 0.429 × 35 = **42**, and the hit under the judgement was **36 (−6)**, more than
+    a rank-3 Holy Strike's roll moves it at level 20 (its 32% of the weapon spans about ±3); and Seal of
+    Fury **raised it to 43 (+7)**, which nothing in the model does (Holy Strike triggers no Seal of Fury
+    proc, and in the logs 7 characters' Holy Strikes are no bigger with Seal of Fury up, and none of
+    189 Seal of Fury procs follows a Holy Strike). They're single hits, so a repeat decides it.
+  The Character → Advanced switch that offered "All of it" is gone (user decision, 2026-09-26); a saved
+  setup that had it loads with the measured share, and a link, a code or a Load says so: "Judgement of
+  the Crusader's “All of it” setting is gone: its share is measured now." (a visit's stored setup is
+  read without a word, as [ux.md](../ux.md#persistence-and-sharing) has it).
 - **A Protection paladin judges it too** (user, 2026-09-24): it opens with Seal of the Crusader
   before the pull, judges it at the pull to place JotC, then puts Seal of Fury up and judges Fury for
   every judgement after; its landed auto attacks keep JotC up all fight
   ([the opener](#forever-priority-list-default-1)). In the T2 default setup that's **+84.7 TPS
   (+11.7%) and +41.6 DPS** against no JotC (40,000 paired fights, seed 777), for one Judgement of Fury
-  and 90 mana at the pull. The Character → Advanced rule applies to Protection's Holy hits as to
-  Retribution's (it didn't before T2). The Buffs tab's `judgementOfTheCrusader` is then yours, counted
+  and 90 mana at the pull. Protection's Holy hits get their share as Retribution's do. The Buffs tab's `judgementOfTheCrusader` is then yours, counted
   once; with your own off it's another paladin's, on the boss from the pull
   ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)).
 - **Where the bonus goes** [?]: as a flat bonus on the *target*, it's added after your own damage
   multipliers (Improved Seals, Vengeance), which don't raise it, and before the crit
   multiplier, which does. That follows the Classic engine's order for flat damage taken; it's
-  untested in Forever ([open question 5](#open-questions)).
+  untested in Forever (the logs' hits were non-crits; [open question 5](#open-questions)).
 
 ### Seal of Fury (SoF), new: the Protection seal
 
@@ -364,35 +467,61 @@ It corroborates the client data above but isn't a guild measurement.
 | --- | --- | --- |
 | Spell (r7) | 20423, trained at 58; ranks from level 10 | [F] [F 20423][f20423] |
 | Cost | 200 mana | [F] |
-| Per landed white hit | **+35 Holy** (proc 20418), **plus the seal value** by Seal of Righteousness's rule (below): `0.85 × 16.91 × speed` with a one-hander, `1.2 × 16.91 × speed` with a two-hander, and **0.1 × SP**. The default 1.5 s axe: 35 + 21.56 | 35 and 0.1: [F] [client] (SpellEffect, 1.60.1.70009; [20418][f20418]); the seal value's use [?] ([open question 10](#open-questions), guild test T1) |
-| Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt** | [F] (effect 1 = 50). Stacking or refresh rules [?]: the sim keeps **one** absorb, which each proc replaces and the next hit that costs you health uses up, lasting at most the seal's 30 s. A boss's hit is thousands, so it always takes all of it, which is what [Improved Seal of Fury](#protection-tree)'s mana needs. The absorb itself isn't taken off that hit (about 20 damage, under 1% of damage taken) ([open question 10](#open-questions)) |
+| Per landed white hit | **35 Holy + 0.1 × SP**, whatever the weapon (proc 20418) | [F] [client] (SpellEffect, 1.60.1.70009; [20418][f20418]), and measured: the beta logs ([below](#the-beta-logs-seal-of-fury)) |
+| Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt**, Light's Fury (1310927): every school, **10 s**. Hits you take spend it before they cost health; it ends when spent or after its 10 s. **Each proc replaces it** (what's left of the last one is lost; it never adds up), and **Improved Seal of Fury's mana comes with the hit that uses it up**. A boss's hit is thousands, so the next one takes all of it, which is when [Improved Seal of Fury](#protection-tree) pays. It takes 2.0% off the default Protection setup's damage taken (918.9 → 900.5 a second) | The 50%: [F] (20423 effect 1 = 50). The aura: [F] [client] (SpellEffect aura 69, misc 127; SpellMisc DurationIndex 1 = 10 s; 1.60.1.70009; [1310927][f1310927]). Replacing, the 50% and the mana's timing: measured, the beta logs ([below](#the-beta-logs-lights-fury)) |
 | Hit table | Proc 20418: melee class, No Active Defense + Always Hit, like SoR | [F] [client] (SpellMisc, SpellCategories, 1.60.1.70009) |
 | Triggers | **Nothing**, like SoR's proc: no Windfury, Crusader, Hand of Justice, Vengeance or Vindication from it [?] | 20418's Attr3 is `0x40000` only, without NOT_A_PROC [F] [client] (SpellMisc, 1.60.1.70009); the server's use of it [?] ([open question 22](#open-questions)) |
 | Judgement of Fury (r7) | 20414: **146.3–159.7 + 7 = 153.3–166.7 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense, no Always Hit (can miss; then crit on a landed one, two rolls [?]). **Taunts for 4 s** | [F] [client] (SpellEffect, SpellMisc, 1.60.1.70009; [20414][f20414]); taunt: tooltip |
 | Improved Seals | applies to the proc and the judgement | [F] [client] (SpellEffect spell mask includes 20418 and 20414, 1.60.1.70009) |
 
-**The seal value** [?]. The SoF aura carries the same weapon-speed "seal value" dummy as SoR,
-1607 + 42/level from 58, so **16.91** per second of weapon speed at 60 [F] [client] (SpellEffect,
-1.60.1.70009; [20423][f20423]). SoR's is its whole damage in Classic Era (1786 + 47/level, 18.80, by the one- and
-two-hander factors 0.85 and 1.2, [Seal of Righteousness](#seal-of-righteousness-sor)), and Forever
-gives SoR's proc 25713 the same base 35 as SoF's 20418, where Classic Era's had 0. The two procs carry
-identical client data, so the sim reads them the same way: the 35 plus the seal value, for both
-([Seal of Righteousness](#seal-of-righteousness-sor)). For Seal of Fury that's the seal value on top
-of the tooltip's flat 35: `35 + 0.85 × 16.91 × speed` a landed swing with a one-hander (with the default
-1.5 s Flurry Axe, 56.56), `35 + 1.2 × 16.91 × speed` with a two-hander [?]. That's
-[D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24):
-the aura carries the value, so it gets a default from its closest analog, and of the two readings
-(the value on top of the 35, or in its place as Classic Era's SoR formula has it) the one that fits the guild's
-benchmark. The tooltip's flat 35 is the other reading, and the one guild test T1 would confirm
-([open question 10](#open-questions)). It's +27.2 TPS in the default setup (T2's measurement).
-Per second it hardly depends on the weapon's speed: a slower weapon hits for more, less often.
+##### The beta logs: Seal of Fury
+
+**The proc is flat: 35 + 0.1 × SP a landed swing, whatever the weapon** [F] [client], measured. The
+SoF aura (20423) also carries a weapon-speed dummy, 1607 + 42/level from 58 (16.91 per second of
+weapon speed at 60), shaped like Seal of Righteousness's seal value [F] [client] (SpellEffect,
+1.60.1.70009; [20423][f20423]). Nothing describes it: the tooltip says only "an additional 35 Holy
+damage", and the logs show no weapon-speed part. So it models as zero (an undescribed dummy is zero).
+Until 2026-09-26 the sim added it by Seal of Righteousness's rule, a reading chosen because it fit a
+TPS figure that was never a measurement (since withdrawn); it's gone, with 3.8% of the
+default Protection setup's TPS (746.8 → 718.3 in the 10,000-fight headline run).
+
+*Method* ([D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23)):
+the 47 public beta logs of 18–25 Sep 2026 (build 1.60.1: [tzcnt/forever-data][fd-logs], the logs attached
+to [magey/forever-warrior][fw-issues] and [ClassicWoWCommunity/forever-bugs][fb-issues], and
+[1337LutZ's gist][lutz-gist]), read with advanced combat logging. For each Seal of Fury proc (ranks 1–3:
+1311647, 1311654, 20231, base points 6, 9 and 14, each with 0.1) the event's unmitigated amount is compared
+with `floor(base points + c × SP)`, SP from the caster's latest advanced-log snapshot, and with the time
+between the two swings before it.
+
+| What | Result |
+| --- | --- |
+| Non-crit procs | 179 from 24 characters, after swings of 1.1 to 4.5 s |
+| `floor(base points + 0.1 × SP)` | **179 of 179** exact (with 0.2: 77; with no SP: 90) |
+| At SP 0 | 69 procs from 11 characters, every one exactly its base points: rank 1 hits 6 every time, whatever the weapon |
+| With SP | 15 characters, SP 1 to 79: rank 1 at SP 29 hits 8 (6 + 2.9), rank 2 at SP 79 hits 16 (9 + 7.9) |
 
 Judgement of Fury has a scripted dummy too, 1607 + 42.3/level at a 0.18 coefficient [F] [client]
 (SpellEffect, 1.60.1.70009; [20414][f20414]). It's the analog of Judgement of Righteousness's, whose
 Classic Era client has the identical structure (a dummy of the seal value beside its damage effect),
-and whose Classic Era damage is only its own 170–186 + 0.5 × SP [C]: an allowed source that gives the
-dummy no effect, so the sim gives Judgement of Fury's none either (D29's one exception). As flat threat
-it would add about 454 TPS, which no tank measurement supports. Guild test T5 checks it.
+and whose Classic Era damage is only its own 170–186 + 0.5 × SP [C]. Nothing describes Judgement of
+Fury's (its tooltip names only its damage and taunt), and an undescribed dummy models as zero, so the
+sim gives it no damage and no threat. As flat threat, 1,691.6 × 1.6 a landed judgement, it would add
+**383 TPS** (+55%) to the default Protection setup (697.3 → 1,080.2, 10,000 fights, 2026-09-26; the
++454 quoted before was at Righteous Fury's old +90%). No measurement supports it; guild test T5 would
+check it ([open question 28](#open-questions)).
+
+##### The beta logs: Light's Fury
+
+The same logs ([method](#the-beta-logs-seal-of-fury)): 224 `SPELL_ABSORBED` events of Light's Fury
+(1310927, Seal of Fury's absorb), each compared with the same paladin's Seal of Fury procs before it.
+**214 equal half of the last proc** (7 of them after a crit proc, so the crit's damage counts), and
+**none fits half the sum** of the procs since the last absorb, so each proc **replaces** the absorb; the
+other 10 are what was left of one after an earlier hit took part of it. **Improved Seal of Fury's mana
+(1314104) lands with the hit that spends the absorb 221 of 224 times.** The aura lasts 10 s in the client
+(DurationIndex 1) [F] [client]; the sim ends it then, or when spent. The sim does exactly this, as
+measured ([D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23));
+the 10 s, in place of the seal's 30 s it had before, moves nothing, since a proc refreshes it every swing. How much mana Improved Seal of Fury
+restores at level 60 is the rank text's, unmeasured ([open question 10](#open-questions)).
 
 ### Utility seals (not in default rotations)
 
@@ -416,7 +545,7 @@ These judgements are debuffs: taking one replaces your JotC.
 | GCD | **none** (`StartRecoveryTime 0`) | [F]/[C] [f-SpellCooldowns] |
 | Range | 10 yd | [F] |
 | Requirement | an active seal. **The seal stays up** (Forever) | [F] |
-| Outcome | the active seal's judgement spell: see each seal. Every Forever judgement is melee class + No Active Defense. JoR and JoF can miss (melee special miss chance); **JoC can't** (its damage spell 20966 is Always Hit). Damage judgements crit ×2. Debuff judgements always hit. The damage spells (20966, 20286, 20414) carry NOT_A_PROC, so a damage judgement triggers on-hit and crit procs [?] ([conventions](#conventions-used-below)) | [F] [client] (SpellMisc, SpellCategories, 1.60.1.70009); JoC in game [?] ([open question 23](#open-questions)) |
+| Outcome | the active seal's judgement spell: see each seal. Every Forever judgement is melee class + No Active Defense. JoC, JoR and JoF can miss (melee special miss chance; JoC's damage spell 20966 is Always Hit, but its dummy misses in the beta logs). Damage judgements crit ×2. Debuff judgements always hit. The damage spells (20966, 20286, 20414) carry NOT_A_PROC, so a damage judgement triggers on-hit and crit procs [?] ([conventions](#conventions-used-below)) | [F] [client] (SpellMisc, SpellCategories, 1.60.1.70009); JoC in game [?] ([open question 23](#open-questions)) |
 | Sanctified Judgement | 3/3: **100% chance to return 60% of the judged seal's mana cost** (SoC → 126). Base vs modified cost [?]: use the base cost | [F] [F 1311074][f1311074] |
 
 ---
@@ -425,18 +554,18 @@ These judgements are debuffs: taking one replaces your JotC.
 
 | Ability (max rank) | Numbers at 60 | Cost / CD / GCD | Class, hit table | Tag, source |
 | --- | --- | --- | --- | --- |
-| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) and `WEAPON_PERCENT_DAMAGE` **50%** (40% before 1.60.1.70009), read as the tooltip prints them, "50% weapon damage plus an additional 81 to 105" ⇒ **0.50 × normalized MH damage + 81..105**, plus **0.429 × SP**. **All Holy**, so no armor. Its third effect, 77 (a script), is Sacred Arbiter's "refresh all Judgement effects": the same effect is on Judgement 20271, and Sacred Arbiter's own aura (1311087) holds only its +20% damage. No threat wording, so no threat of its own (D29) | 20 mana; **10 s** (category 2404, shared with HotR; 12 s before 1.60.1.70009, which removed Improved Holy Strike and made its −2 s baseline); GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.70009; [10333][f10333]). The flat part outside the 50% is the tooltip's reading [?] (rank 8 prints "81 to 105", rank 1 "25% … plus 11 to 14", both the raw base points; the BlizzCon build printed "36 to 46", i.e. 40% of them, the other reading); how the 0.429 applies is [?] too ([open question 6](#open-questions), guild test T2) |
+| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) and `WEAPON_PERCENT_DAMAGE` **50%** (40% before 1.60.1.70009), with the flat part and the spell damage **inside** the 50%, as the beta logs show ([below](#the-beta-logs-holy-strike)): **0.50 × (normalized MH damage + 81..105 + 0.429 × SP)**, so 0.2145 × SP. The tooltip prints the flat part's raw base points ("50% weapon damage plus an additional 81 to 105"). Its share of Judgement of the Crusader's bonus is the full 0.429, as measured ([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)). **All Holy**, so no armor. Its third effect, 77 (a script), is Sacred Arbiter's "refresh all Judgement effects": the same effect is on Judgement 20271, and Sacred Arbiter's own aura (1311087) holds only its +20% damage. No threat wording, so no threat of its own (D29) | 20 mana; **10 s** (category 2404, shared with HotR; 12 s before 1.60.1.70009, which removed Improved Holy Strike and made its −2 s baseline); GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.70009; [10333][f10333]). The flat part and the 0.429 inside the 50%: measured, the beta logs [?] ([open question 6](#open-questions)); the BlizzCon build's tooltip printed "36 to 46", 40% of the base points, the same reading |
 | **Consecration** r5 (20924), baseline from 20 | Per 1 s tick for 8 s (spell 1280349): **12 Holy to every enemy** (no coefficient) **+ 27 Holy + 0.095 × SP to the first 4 enemies**. Single target: **312 + 0.76 × SP** per cast | 565 mana; 8 s; GCD 1.5 s | Magic class; each tick is a separate direct-damage spell (spell hit roll per tick [?]; crit [?]). The ticks lack NOT_A_PROC, so they trigger no procs [?] ([conventions](#conventions-used-below)) | [F] [F 20924][f20924]; tick split and 0.095: [client] (SpellEffect, 1.60.1.70009; [1280349][f1280349]). Classic: 48/tick, 0.042 ([C 20924][c20924]) |
 | Consecration ranks 1–4 | per tick all + first-4: r1 2 + 4, r2 3 + 7, r3 6 + 11, r4 8 + 20; **every rank has the full 0.095** | 135 / 235 / 320 / 435 mana | as above | [F] tick spells 1280345–1280348, [F 26573][f26573]. Downranking is mana-efficient: r1 is `48 + 0.76 × SP` for 135 mana |
 | **Exorcism** r6 (10314) | **475–529 + 0.429 × SP** Holy; **Undead or Demon only** | 345 mana; 15 s; GCD 1.5 s | Magic: spell hit, crit ×1.5 | [F] [F 10314][f10314] |
 | **Hammer of Wrath** r3 (24239) | **474–522 + 0.429 × SP** Holy; target **≤ 20% health** | 425 mana; 6 s; 1.0 s cast (Instrument of Law −0.5/−1.0 s → instant); **GCD 1.0 s**. The cast stops your auto attacks, which start again from a full swing when it ends, as [damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules) has every cast do, and holds everything else until it ends, the off-GCD Judgement too: in game you can't cast one spell during another [?]. It pays its mana and starts its cooldown when the cast ends. The default Retribution build's Instrument of Law 2/2 makes it instant; the default Protection build casts it in 1 s (row 8), where the cast costs 1.8% of TPS against letting swings and Judgement go on | **Ranged** class (DefenseType 3): ranged hit/crit table, see combat-tables | [F] [F 24239][f24239]; the cast's effect on swings and Judgement [?] ([open question 22](#open-questions)) |
-| **Hammer of the Righteous** (407632), trained at 40 | **3 × MH weapon DPS** as Holy to the target and up to 3 more (the tooltip's "up to 3 additional"; the client's chain-target fields are 4 on effect 0, 3 on effect 1 and 4 on effect 2 [F] [client] (SpellEffect, 1.60.1.70009), so 4 targets in all with the first); no SP coefficient in data | 6% base mana (90); **6 s**, category 2404: **shares its cooldown with Holy Strike** (casting it holds Holy Strike 6 s; Holy Strike holds it for its own 10 s); GCD 1.5 s; needs a 1H axe, mace or sword (subclass mask 145) | Melee class, neither No Active Defense nor Always Hit: the full special table, crit ×2; no weapon share, so it rolls to hit and then to crit, as the judgements do [?] ([one roll or two](#conventions-used-below)). A cast spell: it triggers procs, not the seals' | [F] [F 407632][f407632]; category 2404 with 6 s, cost 6%, subclass mask 145: [client] (SpellCategories, SpellCooldowns, SpellPower, SpellEquippedItems, 1.60.1.70009). It's SoD's spell id, but Forever changed its level, cooldown category and target count, so it's a deliberate Forever spell. The damage is effect 0 (a script) at effect 2's 3 × weapon DPS; effect 1 (120, 3 chain targets) is read as the extra targets' part, left out on one target ([M6](../milestones.md#m6-multi-target-)). **Whether "weapon DPS" counts attack power** is [?] ([open question 11](#open-questions), guild test T3): the sim counts it by default, the weapon DPS a character sheet shows, since that reading fits the guild's benchmark ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)); **Character → Advanced** switches to the weapon's own (`rules.hotrWeaponDps`). Worked example 24 |
+| **Hammer of the Righteous** (407632), trained at 40 | **3 × MH weapon DPS** as Holy to the target and up to 3 more (the tooltip's "up to 3 additional"; the client's chain-target fields are 4 on effect 0, 3 on effect 1 and 4 on effect 2 [F] [client] (SpellEffect, 1.60.1.70009), so 4 targets in all with the first); no SP coefficient in data | 6% base mana (90); **6 s**, category 2404: **shares its cooldown with Holy Strike** (casting it holds Holy Strike 6 s; Holy Strike holds it for its own 10 s); GCD 1.5 s; needs a 1H axe, mace or sword (subclass mask 145) | Melee class, neither No Active Defense nor Always Hit: the full special table, crit ×2; no weapon share, so it rolls to hit and then to crit, as the judgements do [?] ([one roll or two](#conventions-used-below)). A cast spell: it triggers procs, not the seals' | [F] [F 407632][f407632]; category 2404 with 6 s, cost 6%, subclass mask 145: [client] (SpellCategories, SpellCooldowns, SpellPower, SpellEquippedItems, 1.60.1.70009). It's SoD's spell id, but Forever changed its level, cooldown category and target count, so it's a deliberate Forever spell. The damage is effect 0 (school damage, 1 base point, which a script sets) at effect 2's 3 × weapon DPS; effect 1 (120, 3 chain targets) is read as the extra targets' part, left out on one target ([M6](../milestones.md#m6-multi-target-)). **Whether "weapon DPS" counts attack power** is [?] ([open question 11](#open-questions), guild test T3): by default it doesn't, the tooltip's reading, "the damage per second of your main hand weapon", the weapon's own; **Character → Advanced** switches to the DPS a character sheet shows, attack power included (`rules.hotrWeaponDps`). Until 2026-09-26 the default counted attack power, a reading chosen because it fit a TPS figure that was never a measurement; no log (the beta's stop below level 40, where it's trained) or allowed source says which. A setup from before then (version 1 or 2) that has it on and never chose loads on the new default, and a link, a code or a Load says so: "Hammer of the Righteous now counts your weapon's own DPS by default; choose “With attack power” in Character → Advanced for the old reading." Worked example 24 |
 | **Holy Shield** r3 (20928), tier-7 (31-point) Prot talent | **+20% block** for 10 s, **4 charges**; each block deals **221 + 0.08 × SP** Holy; the damage has **+20% threat** | 240 mana; 10 s (category); GCD 1.5 s | Block damage is the buff's own effect (aura 43, `PROC_TRIGGER_DAMAGE`), with no damage spell of its own. The client marks spell 20928 **magic** (DefenseType 1), which would give the damage the spell table: a miss roll (14% for the default build against a level-63 boss) and spell crit. The sim overrides it and has the damage always land and never crit [?]: 20928's table is the one its cast rolls, on yourself, and nothing in the client says the damage its aura deals rolls one again. Untested ([open question 16](#open-questions)). Needs a shield | [F] [client] (SpellEffect, SpellAuraOptions, SpellCategories, 1.60.1.70009; [20928][f20928]) |
 | **Righteous Fury** (25780) | **+60% threat from Holy damage** (+90% until 1.60.1.70009); Improved RF adds −2/4/6% damage taken | 30% base mana (453); 30 min | — | [F] [client] (SpellEffect, TraitDefinitionEffectPoints, 1.60.1.70009; [25780][f25780]) |
 | **Holy Wrath** r2 (10318) | 490–576 Holy, AoE 20 yd, Undead/Demon only, now also stuns 2 s | 805 mana; 60 s; 2 s cast | Magic | [F]. Off by default |
 | Templar's Bulwark (1311015), new Prot talent | absorb = 100% max health for 8 s; Forbearance | 110 mana; 5 min (−60 s Sacred Duty); off GCD | — | [F] [F 1311015][f1311015]. No TPS effect; not modelled by default |
 | Swift Judgement (1310994), new Prot talent | finishes Judgement's cooldown; next Judgement free | 1 min; off GCD | — | [F] [F 1310994][f1310994] |
-| Retribution Aura r5 (10301) | **30 Holy + 0.08 × SP** to each attacker that hits a party member. Since 1.60.1.70009 it "will now dynamically update its values based on the caster's spell power" (the dev notes) [F]; the client carries no coefficient (0 on its aura), so the server holds it, and the sim takes Holy Shield's 0.08, the client's closest analog: a damage shield that deals its damage on each attack it meets [?] ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana), D29). Its share of JotC's bonus is its coefficient's | — | damage shield: the sim has it land on each of the boss's swings that lands on you, a blocked one too, and never crit [?] | [F] [F 10301][f10301]; 30 and the missing coefficient: [client] (SpellEffect, 1.60.1.70009) |
+| Retribution Aura r5 (10301) | **30 Holy + 0.08 × SP** to each attacker that hits a party member. Since 1.60.1.70009 it "will now dynamically update its values based on the caster's spell power" (the dev notes) [F]; the client carries no coefficient (0 on its aura), so the server holds it, and the sim takes Holy Shield's 0.08, the client's closest analog: a damage shield that deals its damage on each attack it meets [?] ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana), D29). The beta logs don't settle it ([open question 32](#open-questions)). Its share of JotC's bonus is its coefficient's | — | damage shield: the sim has it land on each of the boss's swings that lands on you, a blocked one too, and never crit [?] | [F] [F 10301][f10301]; 30 and the missing coefficient: [client] (SpellEffect, 1.60.1.70009) |
 | Devotion Aura r7 (10293) | +735 armor (party) | — | — | [F] [F 10293][f10293]. A Protection paladin's own is its duty (D26): the rotation puts it up before the pull ([Priority](#priority-defensive-balanced-or-max-tps)) |
 
 ### Blessings (for the buffs doc)
@@ -495,7 +624,7 @@ Improved Seal of the Crusader [F].
 | Precision (3) | "Improves your chance to hit by 3%." ([F 20189][f20189]) | melee only | **+3% melee and +3% spell hit** (two auras) |
 | Guardian's Favor (2) | BoP/BoF cooldowns | same | not modelled |
 | Anticipation (5) | "Increases your Defense Skill by 20." | +10 | +20 defense skill |
-| Improved Seal of Fury (1), new | "When Seal of Fury's shield is fully absorbed, restore 60 Mana, increased by 15% per level the attacker is above you, up to 45%." ([F 1314103][f1314103]; the rank text in [`src/data/talents/paladin.json`](../../src/data/talents/paladin.json)) | — | foreverchanges printed "0"; the client's rank text reads 60 (0 + 1 a level) [F]. When a hit that costs you health uses up Seal of Fury's absorb: 60 mana, 15% more a level the boss is above you, up to 45% more: **87** against a level-63 boss, 0.5 threat a mana. The absorb's rules are the sim's [?] ([Seal of Fury](#seal-of-fury-sof-new-the-protection-seal), [open question 10](#open-questions)). Without it the default Protection setup makes 16.5% less TPS: it's short of mana ([mana model](#mana-model)) |
+| Improved Seal of Fury (1), new | "When Seal of Fury's shield is fully absorbed, restore 60 Mana, increased by 15% per level the attacker is above you, up to 45%." ([F 1314103][f1314103]; the rank text in [`src/data/talents/paladin.json`](../../src/data/talents/paladin.json)) | — | foreverchanges printed "0"; the client's rank text reads 60 (0 + 1 a level) [F]. When a hit uses up Seal of Fury's absorb (the tooltip's "fully absorbed"): 60 mana, 15% more a level the boss is above you, up to 45% more: **87** against a level-63 boss, 0.5 threat a mana. The absorb's rules and the mana's timing are measured ([the beta logs](#the-beta-logs-lights-fury)); the amount at 60 is the rank text's [F], unmeasured ([open question 10](#open-questions)). Without it the default Protection setup makes 16.5% less TPS: it's short of mana ([mana model](#mana-model)) |
 | Improved Righteous Fury (3) | "While Righteous Fury is active, all damage taken is reduced by 6%." ([F 20468][f20468]) | +50% RF threat | −6% damage taken (curve −2/−4/−6, [client] (TraitDefinitionEffectPoints, 1.60.1.70009)); **no threat effect** |
 | Shield Specialization (3) | "Increases the amount of damage absorbed by your shield by 30%, and gives your blocks a 100% chance to restore 6% of your maximum Mana. May only occur once every 3 sec." ([F 1310925][f1310925]) | block value only | block value ×1.30; on block, +6% max mana (33/66/100%), 3 s ICD |
 | Sacred Duty (2), new | "Increases your total Stamina by 4% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 60 sec." ([F 1224697][f1224697]) | — | Stamina ×1.04 |
@@ -542,9 +671,9 @@ and aren't modelled.
 | Spirit regen | the class formula with the five-second rule; any mana spent starts a 5 s window with no spirit regen (Reverence lets some continue) | [C] → [character-stats.md](../mechanics/character-stats.md) |
 | mp5 | gear mp5 and Blessing of Wisdom (36 mp5) tick through the five-second rule | [F]/[C] |
 | The sim's ticks | every 2 s from a random phase in the first 2 s (the one power tick, which the druid's Energy and mana share), each `mp5 × 2/5` plus, 5 s or more after the last mana spent, `15 + Spirit / 5` from the sheet's Spirit, rounded down to a tenth (Reverence: 10% per rank of it inside the rule). The fight starts with full mana, and a seal cast before the pull costs nothing and starts no five-second rule | [?] engine choices (the tick's phase and the pre-pull) |
-| Mana from a spell effect | Sanctified Judgement, Shield Specialization, Improved Seal of Fury: 0.5 threat per mana gained ([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)) | [?] |
+| Mana from a spell effect | Sanctified Judgement, Shield Specialization, Improved Seal of Fury: 0.5 threat per mana gained, a Classic Era threat library's (LibThreatClassic2's) value, borrowed and unmeasured ([open question 31](#open-questions); [threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)) | [?] |
 | Shield Specialization (Prot 3/3) | **+6% max mana per block**, at most every 3 s | [F] |
-| Improved Seal of Fury (Prot) | **87 mana** (against a level-63 boss) each time a hit that costs you health uses up Seal of Fury's absorb | [F] rank text; the absorb's rules [?] ([Protection tree](#protection-tree)) |
+| Improved Seal of Fury (Prot) | **87 mana** (against a level-63 boss) each time a hit uses up Seal of Fury's absorb | [F] rank text; the absorb's rules and the timing measured ([the beta logs](#the-beta-logs-lights-fury)) |
 | Judgement of Wisdom (another paladin's) | chance on each of your hits to restore 59 mana (Classic 50% [?]) | [F]/[?] |
 | Consumables | Major Mana Potion (1350–2250, 2 min, potion cooldown); Demonic Rune / Dark Rune (900–1500, 2 min, shared rune cooldown, separate from potions). Mageblood Potion and Brilliant Mana Oil for mp5 (Nightfin Soup was mp5 in Classic Era; Forever's is +22 spell damage). **Values and cooldowns are owned by** [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) | [C] |
 
@@ -632,9 +761,8 @@ priority list you reorder ([The priority list (A2)](#the-priority-list-a2) below
 | — | Demonic Rune (a Dark Rune is the same) | selected in Buffs, `rune.enabled`; the same pair: `rune.earlyMissingMana` (0, never early) and `rune.missingMana` (1,500, its most); its own cooldown, apart from the potion's | on (Max consumables) |
 | — | Holy Wrath | Undead/Demon AoE | off; not simulated |
 
-Judgement of the Crusader's rule (A share, the default, or All of it) isn't a rotation setting:
-it's the engine switch of [open question 5](#open-questions), how much of the +161 each Holy hit
-gets, under Character → Advanced (`rules.jotcBonus`). Tuning leaves it at the documented default.
+How much of Judgement of the Crusader's +161 each Holy hit gets is measured, not a setting
+([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)).
 
 The fight's end is known exactly: the early potion line's "another will be ready" needs it, where a
 player has to judge it. The results list it (`knownFightEnd`) with what misjudging it costs
@@ -1085,9 +1213,17 @@ one makes it "Custom" (D31). A setup that kept the old default gets Balanced.
       druid's Thorns at 22 + 0.08 × its pre-raid gear's 313 spell damage (47 a swing, buffs doc
       §1.2): **750.61 TPS, 465.12 DPS and 918.9 damage taken a second**; Max TPS +6.78% TPS, +6.70%
       DPS and +5.72% damage taken; Hammer of the Righteous −1.99% TPS (−15.08 to −14.73), −0.12% DPS
-      and +4.92% damage taken. The presets' help quotes these
-      (`PROTECTION_PRESET_MEASURES`, which `protection-presets.test.ts` measures again), each change
-      with its direction.
+      and +4.92% damage taken.
+    - **Re-measured for the beta-log check** ([2026-09-26](#the-beta-log-check-2026-09-26), after step 7; seed 31101,
+      100,000 fights), with a raid druid's Thorns still at 38: **697.48 TPS, 433.76 DPS and 900.4
+      damage taken a second** for Balanced and Defensive; Max TPS against it +7.29% TPS, +7.18% DPS
+      and +5.83% damage taken; Hammer of the Righteous turned on −5.2% TPS, −3.72% DPS and +5.01%
+      damage taken.
+    - **Re-measured with both** (the beta-log check and a raid druid's Thorns at 47.04, 2026-09-26;
+      seed 31101, 100,000 fights): **701.20 TPS, 437.41 DPS and 900.4 damage taken a second** for Balanced and Defensive; Max TPS against it +7.25% TPS, +7.12% DPS and +5.83% damage taken;
+      Hammer of the Righteous turned on −5.2% TPS, −3.69% DPS and +5.01% damage taken; Seal of Righteousness in Seal of Fury's place −7.59% TPS, −5.41% DPS and +2.13% damage taken.
+      The presets' help quotes these (`PROTECTION_PRESET_MEASURES`, which
+      `protection-presets.test.ts` measures again), each change with its direction.
 
 - **The duty: Devotion Aura**, the paladin's own aura, +735 armor. It's survival with a measured
   cost. In the default setup it saves 38 damage taken a second (5.3% of the 719 you'd take without
@@ -1114,8 +1250,9 @@ one makes it "Custom" (D31). A setup that kept the old default gets Balanced.
   its judgement's taunt) and Holy Strike (Iron Creed's −10% damage taken) help you survive too,
   but each also makes more threat than what would replace it, so no preset gives them up. In
   the default setup after T2's fix round (40,000 paired fights, seed 777): Holy Shield off loses
-  14.4% of TPS (and takes 0.4% more damage), Seal of Righteousness 3.9% with the default 1.5 s axe,
-  Holy Strike 9.2% (and takes 3.1% more damage). Nothing is dropped for an untested threat value,
+  14.4% of TPS (and takes 0.4% more damage), Holy Strike 9.2% (and takes 3.1% more damage); Seal
+  of Righteousness in Seal of Fury's place loses 7.6% with the default 1.5 s axe (and takes 2.1% more
+  damage; re-measured for the beta-log check, seed 31101, 100,000 fights, `PROTECTION_PRESET_MEASURES`). Nothing is dropped for an untested threat value,
   and every threshold's best value is the same for all three. The seal is up from before the
   pull: with the opener it's Seal of the Crusader, judged at the pull, so the first global cooldown
   at the pull puts Seal of Fury up and Holy Shield follows at 1.5 s
@@ -1132,7 +1269,7 @@ from 20% −0.07%, and the early potion at 1,250 missing −0.08% and at 1,750 �
 
 | Setting | Default | Why / source |
 | --- | --- | --- |
-| Talents | **`50003-0530213321301551-5021`** (Holy 8 / Prot 35 / Ret 8): **the guild's lead theorycrafter's build on 1.60.1.70009's trees**, talent by talent: that build removed Improved Holy Strike ([data/talents.md](../data/talents.md#tree-versions)), and its 2 points go by measured Balanced value (D28's objective, Δ TPS % + Δ DPS %; D30's newest rule prefers no talent by name): one to Divine Strength's fifth rank, since Improved Seals' row needs 5 points above it and Divine Strength held 4 (Divine Intellect 1 in its place: −0.06% TPS and −0.15% DPS), and one to **Holy Conduit 1**, searched together with the row order and the thresholds (the paladin review's PR-1, [above](#priority-defensive-balanced-or-max-tps)): with Consecration above Holy Strike it's +0.26% TPS and +0.31% DPS over Conviction 1, and the whole change +1.67% TPS and +1.63% DPS. The 1.60.1.70009 slice first put it in **Conviction 1** on the old order, +4.90 TPS (+0.66%, 95% CI +4.77 to +5.04) and +3.54 DPS (+0.76%) against the migration's Anticipation 3 (seed 20260927, 100,000 paired fights; the search, seed 777, 40,000 fights: Holy Conduit 1 +0.07% and +0.32%, Benediction 1 +0.05% and +0.09%, Divine Intellect 1 +0.06% and +0.03%, Toughness 1 level); that build, `50003-0530213321301551-50201`, and the migration's interim `50003-0530313321301551-502` (Anticipation 3) stay decodable for saved setups. On 1.60.1.69913's trees it was **`240003-0530213321301551-502`** (Holy 9 / Prot 35 / Ret 7), **the guild's lead theorycrafter's build** (the guild's lead theorycrafter, 2026-09-24; user decision; the optimizer's result replaces it, [D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)): Improved Holy Strike 2, Divine Strength 4, Improved Seals 3; Redoubt 5, Precision 3, Anticipation 2, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2. Against T2's fix-round build, the default before it (`-0530513321301551-50215`, [below](#the-interim-talents-t2s-fix-round)): **+8.27 TPS (+1.00%, 95% CI +8.05 to +8.48)**, +0.97 DPS (+0.22%) and 13.0 more damage taken a second (+1.4%) over 100,000 paired fights on seed 20260926 (the theorycrafter's own measurement: +8.19 TPS, +0.85 DPS, +12.8 taken, seed 777, 20,000 fights). Improved Seals' +15% to every seal proc and judgement and Divine Strength's Strength are worth more than Anticipation's last three ranks, Holy Conduit and Conviction. The rotation's thresholds hold on it (seed 777, 20,000 fights: Consecration from 10, 30 or 40% −0.02% to −0.15% of TPS, rank 1 from 0% +0.02%, the seal from 2 or 3 s, Swift Judgement from 4 or 5 s and Hammer of Wrath from 10% level or worse). T2's fix-round build stays decodable for saved setups, and so do the ones before it. The popular build stays a preset: `2-4530513321301551-502`, Improved Holy Strike 2 (on 1.60.1.70009's trees the same digits are Divine Strength 2, where the preset now puts those points); Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2, the most popular Forever Prot build on 2026-09-22 [F] | the guild's lead theorycrafter, measured; [D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24), D30 |
+| Talents | **`50003-0530213321301551-5021`** (Holy 8 / Prot 35 / Ret 8): **the guild's lead theorycrafter's build on 1.60.1.70009's trees**, talent by talent: that build removed Improved Holy Strike ([data/talents.md](../data/talents.md#tree-versions)), and its 2 points go by measured Balanced value (D28's objective, Δ TPS % + Δ DPS %; D30's newest rule prefers no talent by name): one to Divine Strength's fifth rank, since Improved Seals' row needs 5 points above it and Divine Strength held 4 (Divine Intellect 1 in its place: −0.06% TPS and −0.15% DPS), and one to **Holy Conduit 1**, searched together with the row order and the thresholds (the paladin review's PR-1, [above](#priority-defensive-balanced-or-max-tps)): with Consecration above Holy Strike it's +0.26% TPS and +0.31% DPS over Conviction 1, and the whole change +1.67% TPS and +1.63% DPS. The 1.60.1.70009 slice first put it in **Conviction 1** on the old order, +4.90 TPS (+0.66%, 95% CI +4.77 to +5.04) and +3.54 DPS (+0.76%) against the migration's Anticipation 3 (seed 20260927, 100,000 paired fights; the search, seed 777, 40,000 fights: Holy Conduit 1 +0.07% and +0.32%, Benediction 1 +0.05% and +0.09%, Divine Intellect 1 +0.06% and +0.03%, Toughness 1 level); that build, `50003-0530213321301551-50201`, and the migration's interim `50003-0530313321301551-502` (Anticipation 3) stay decodable for saved setups. On 1.60.1.69913's trees it was **`240003-0530213321301551-502`** (Holy 9 / Prot 35 / Ret 7), **the guild's lead theorycrafter's build** (the guild's lead theorycrafter, 2026-09-24; user decision; the optimizer's result replaces it, [D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)): Improved Holy Strike 2, Divine Strength 4, Improved Seals 3; Redoubt 5, Precision 3, Anticipation 2, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2. Against T2's fix-round build, the default before it (`-0530513321301551-50215`, [below](#the-interim-talents-t2s-fix-round)): **+8.27 TPS (+1.00%, 95% CI +8.05 to +8.48)**, +0.97 DPS (+0.22%) and 13.0 more damage taken a second (+1.4%) over 100,000 paired fights on seed 20260926 (the theorycrafter's own run of this sim, not an in-game measurement: +8.19 TPS, +0.85 DPS, +12.8 taken, seed 777, 20,000 fights). Improved Seals' +15% to every seal proc and judgement and Divine Strength's Strength are worth more than Anticipation's last three ranks, Holy Conduit and Conviction. The rotation's thresholds hold on it (seed 777, 20,000 fights: Consecration from 10, 30 or 40% −0.02% to −0.15% of TPS, rank 1 from 0% +0.02%, the seal from 2 or 3 s, Swift Judgement from 4 or 5 s and Hammer of Wrath from 10% level or worse). T2's fix-round build stays decodable for saved setups, and so do the ones before it. The popular build stays a preset: `2-4530513321301551-502`, Improved Holy Strike 2 (on 1.60.1.70009's trees the same digits are Divine Strength 2, where the preset now puts those points); Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2, the most popular Forever Prot build on 2026-09-22 [F] | the guild's lead theorycrafter, measured; [D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24), D30 |
 | Effective-health floor | The default gear keeps an **effective-health floor** (user decision): health ÷ (1 − armor's reduction against a level-63 boss) at least 90% of v1's preset with the same talents and race, for either faction's races (a unit test holds it, `defaults.test.ts`). It reads the character sheet; no talent is kept by its name ([below](#no-talent-kept-by-name)) | user, D30 |
 | Race | Human / Undead (Horde) | The default weapon is an axe (below), so Human's Sword Specialization (+2% crit, with a sword) doesn't apply, nor Dwarf's Mace Specialization; the race changes only base stats until you pick a sword or mace. Dwarf is a close choice for Stoneform |
 | Weapon | **Flurry Axe** (1.5 s, the weapon's +30 spell damage) and **Draconian Aegis of the Legion** (+20 spell damage). Of the pool's spell damage one-handers, Simone's Cultivating Hammer (the gear search's pick, 46 spell damage, 1.8 s) makes 8.7 TPS and 8.1 DPS less after T2's model fixes, and the Elderwild Construction Hammer (68, 2.4 s) 22.6 TPS less: a fast weapon's swings carry Seal of Fury's flat 35 and Windfury's chances. A 1H axe, mace or sword keeps Hammer of the Righteous usable | measured (20,000 fights, seed 12345) |
@@ -1316,13 +1453,15 @@ over 400,000 paired fights on seed 4481, which no search used.
   before the fight ends, which the sim knows exactly and a player has to judge; the results list
   it (`knownFightEnd`). With the default setup (seed 7374, 100,000 paired fights), judging its two
   minutes 10 or 20 s off costs up to 0.51% (140 s judged: −0.51%; 100 s: −0.09%).
-- **Not adopted.** Seal of Righteousness (35 + 0.85 × 18.80 × speed a swing, read as Seal of Fury's
-  is, [above](#seal-of-righteousness-sor)) loses 5.0% of TPS with the default 1.5 s axe on T2's talents (−40.4 TPS,
-  −12.6 DPS; 3.9% on the fix round's, −32.0 TPS) and 4.4% with a 2.8 s one-hander (the Ravenholdt Slicer), where it has no absorb and so
-  no Improved Seal of Fury mana: it wins only with a two-hander (+3.1% against Seal of Fury with the
-  Retribution default's), which leaves no hand for a shield, so no Holy Shield, and far less threat
-  (587 TPS against the default's 811). T2's setup, 20,000 fights on seed 777; before its proc had
-  Forever's flat 35 it lost 11.2% with the axe.
+- **Not adopted.** Seal of Righteousness (0.85 × 18.80 × speed + 0.1 × SP a swing with a
+  one-hander, [above](#seal-of-righteousness-sor)) loses 7.6% of TPS with the default 1.5 s axe (697.5 →
+  644.2, −5.5% DPS, +2.1% damage taken: it has no absorb, and so no Improved Seal of Fury mana) and 4.2%
+  with a 2.8 s one-hander, the Ravenholdt Slicer (668.8 → 640.7). It wins only with a two-hander
+  (+7.6% against Seal of Fury with the Retribution default's, 476.8 → 513.2), which leaves no hand for
+  a shield, so no Holy Shield, and far less threat than the default's 697.5. Re-measured for the
+  beta-log check (2026-09-26; seed 31101, 20,000 fights, the axe 100,000). Before it, when its proc
+  was read with Forever's flat 35 on top, it lost 5.0% with the axe on T2's talents (3.9% on the fix
+  round's), and before that 11.2%.
 
 ##### First round (C3)
 
@@ -1355,10 +1494,9 @@ its Consecration and seal values; Swift Judgement's held.
 - **Holy Strike/HotR shared cooldown**: model as a category timer set to the cast spell's
   cooldown after talents.
 - **Sanctified Judgement**: grant mana when the Judgement lands [?] (on a missed JoR or JoF,
-  assume no refund; JoC can't miss). Use the seal's base cost.
-- **Judgement miss rolls**: JoR and JoF roll the melee special miss chance, then crit on a
-  landed one (two rolls, no weapon damage); JoC and the debuff judgements skip the miss roll
-  (Always Hit).
+  assume no refund). Use the seal's base cost.
+- **Judgement miss rolls**: JoC, JoR and JoF roll the melee special miss chance, then crit on a
+  landed one (two rolls, no weapon damage); the debuff judgements skip the miss roll (Always Hit).
 - **Level scaling**: store per-rank `base`, `variance`, `perLevel`, `baseLevel`,
   `maxLevel` from the spell data, so the numbers at 60 follow the formula in
   [Conventions](#conventions-used-below).
@@ -1369,8 +1507,7 @@ its Consecration and seal values; Swift Judgement's held.
   as Undead
   ([character-stats](../mechanics/character-stats.md#touch-of-the-grave)).
 - Skipped (under 0.5%): SotC's own
-  attack-speed swap during the 1.5 s pre-pull, Eye for an Eye, the damage the Seal of Fury absorb
-  takes off a hit (tank survival only; its mana is modelled), JoW/JoL healing and mana to others.
+  attack-speed swap during the 1.5 s pre-pull, Eye for an Eye, JoW/JoL healing and mana to others.
 
 ### How the engine does it
 
@@ -1465,12 +1602,14 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
     cooldown, the category's too, and whose buff is the plan's free-cast aura, Clearcasting's
     path ([druid.md §2.7](druid.md#27-omen-of-clarity-and-clearcasting)), so the judgement it
     frees costs nothing and uses it up.
-  - **Seal of Fury's absorb** is an aura a proc on each landed white swing puts up, with a shield,
-    while Seal of Fury is up. A hit that costs health uses it up (`takenCharges`), after the
-    damage-taken procs, one of which is **Improved Seal of Fury**'s mana: a flat 60 raised by the
-    boss's level (`manaFlat`, 87 against level 63). As with block charges, only an absorb up before
-    the hit's procs pays; one they put up keeps its charge. A breakdown row counts the mana its
-    effects gave (Improved Seal of Fury, Shield Specialization), which the results show a fight.
+  - **Seal of Fury's absorb** is an absorb aura (`absorb`) that Seal of Fury's proc puts up when it
+    lands, with a shield (its spell's `absorb`, 50%), worth half the damage the proc dealt; each proc
+    replaces what's left. A hit you take spends it before it costs health (`takeHit`), the stand-in
+    damage too; one that spends it ends it, after the hit's damage-taken procs, one of which is
+    **Improved Seal of Fury**'s mana: a flat 60 raised by the boss's level (`manaFlat`, 87 against
+    level 63). As with block charges, only an absorb up before the hit's procs ends; one they put up
+    stays. A breakdown row counts the mana its effects gave (Improved Seal of Fury, Shield
+    Specialization), which the results show a fight.
   - **Swift Judgement**'s `endsCooldownOf` never readies an ability that can't be used again (one
     used up, or needing a weapon the setup lacks, ready at Infinity).
   - **Reckoning** is two procs on the boss's swings, 8% a rank on a block and 20% a rank on a crit
@@ -1492,8 +1631,7 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   Judgement of the Crusader up), the utility seals, another paladin's Judgement of Wisdom, a
   Protection paladin's judgement debuff for the raid (Wisdom or Light), a rune's health cost, and
   the T1 5-piece's −0.5 s Judgement. For a tank: Judgement of Fury's taunt (no threat while you
-  hold the boss), the damage Seal of Fury's absorb takes off a hit, Templar's Bulwark, Divine
-  Protection and Eye for an Eye. Blessing of Wisdom and Mana Spring Totem are in the buff
+  hold the boss), Templar's Bulwark, Divine Protection and Eye for an Eye. Blessing of Wisdom and Mana Spring Totem are in the buff
   catalogue, for paladins only ([buffs doc](../mechanics/buffs-debuffs-consumables.md#class-only-entries)).
 
 ---
@@ -1517,18 +1655,18 @@ default setup.
    Two-Handed Weapon Specialization must **not** change it. (The alternative with SP
    outside the 70% gives an average of 414.0 before talents.)
 3. **Judgement of Command** (`forever` profile; target not stunned): (339..373)/2 → average
-   178 + 0.429 × 100 = **220.9**; ×1.15 = **254.04**. Crit ×2. Can't miss (Always Hit on
-   20966), be dodged, parried or blocked, so its expected damage carries no miss factor, unlike
-   JoR's in example 4. (`classicEra`: magic class, spell hit and ×1.5 crit.)
+   178 + 0.429 × 100 = **220.9**; ×1.15 = **254.04**. Crit ×2. It can miss, as JoR in example 4
+   can (the beta logs), but can't be dodged, parried or blocked. (`classicEra`: magic class, spell
+   hit and ×1.5 crit.)
 4. **Judgement of Righteousness r8 at 60**: (162..178) + 8 → average 178 + 0.5 × 100 =
    **228**; ×1.15 = **262.2**.
-5. **Holy Strike r8** (1.60.1.70009's 50%), its tooltip's reading: normalized MH = 250 + 1200 ×
-   3.3 / 14 = 532.857; × 0.50 = 266.429; + 93 (average of 81.375..104.625) = 359.429; + 0.429 × 100
-   = **402.33**; Sacred Arbiter ×1.20 = **482.79**. Range with Sacred Arbiter and a 200–300 weapon:
-   **438.84–526.74**. Holy school: boss armor doesn't reduce it. (The other reading, 0.50 ×
-   (532.857 + 93) + 42.9, is 355.83: [open question 6](#open-questions).)
-6. **SoR proc, 2H, r8 at 60**: 35 + 1.2 × 18.80 × 3.5 = 113.96 + 0.1 × 100 = **123.96**; ×1.15 =
-   **142.55**. Same weapon 1H-style (0.85): 35 + 55.93 + 10 = 100.93.
+5. **Holy Strike r8** (1.60.1.70009's 50%), as the beta logs show: normalized MH = 250 + 1200 ×
+   3.3 / 14 = 532.857; + 93 (average of 81.375..104.625) + 0.429 × 100 = 668.757; × 0.50 =
+   **334.38**; Sacred Arbiter ×1.20 = **401.25**. Range with Sacred Arbiter and a 200–300 weapon:
+   **364.28–438.23**. Holy school: boss armor doesn't reduce it. (The tooltip's reading, 0.50 ×
+   532.857 + 93 + 42.9, would be 402.33.)
+6. **SoR proc, 2H, r8 at 60**: 1.2 × 18.80 × 3.5 = 78.96 + 0.1 × 100 = **88.96**; ×1.15 =
+   **102.30**. Same weapon 1H-style (0.85): 55.93 + 10 = 65.93.
 7. **Consecration r5, SP 300, one target**: per tick 12 + 27 + 0.095 × 300 = **67.5**; 8 ticks
    = **540**. A fifth enemy takes only 12 per tick = **96**. Rank 1 on one target: 8 × (2 +
    4 + 28.5) = **276** for 135 mana.
@@ -1543,15 +1681,15 @@ default setup.
    proc (Holy): 1.15 (Improved Seals) × 1.09 = **×1.2535**.
 10. **Hammer of Wrath r3, SP 300**: 498 + 128.7 = **626.7** average; with Instrument of Law
     2/2 it's instant with a 1.0 s GCD.
-11. **JotC on Exorcism (default coefficient rule)**: +161 × 0.429 = **+69.07** per Exorcism.
-    On a SoC proc: 161 × 0.203 = +32.68, added after your own damage multipliers and before a
-    crit's.
+11. **JotC on Exorcism**: +161 × 0.429 = **+69.07** per Exorcism. On a SoC proc: 161 × 0.29 =
+    **+46.69** (its whole coefficient, outside the 70%), added after your own damage multipliers and
+    before a crit's.
 12. **Protection Holy Shield, SP 300**: 221 + 0.08 × 300 = **245** damage per block; threat
     245 × 1.6 × 1.2 = **470.4** (additive-modifier alternative: 245 × 1.8 = 441). After
     4 blocks the buff ends even if 10 s haven't passed.
-13. **Seal of Fury, SP 300, a 2.7 s one-hander**: 35 + 0.85 × 16.91 × 2.7 (38.81) + 30 = **103.81**
-    Holy per landed white hit; threat × 1.6 = **166.10**; absorb 51.90 with a shield. With the default
-    1.5 s axe and no SP: 35 + 21.56 = **56.56**. Judgement of Fury at 60: average 160 +
+13. **Seal of Fury, SP 300**: 35 + 0.1 × 300 = **65** Holy per landed white hit, with any weapon
+    (a 1.5 s axe, a 2.7 s one-hander or a 3.5 s two-hander); threat × 1.6 = **104**; with a shield, an
+    absorb of 32.5 that the next hit you take loses. Judgement of Fury at 60: average 160 +
     0.45 × 300 = **295** (the default Prot build has no Improved Seals; with it,
     ×1.15 = 339.25).
 14. **Holy Strike threat (Prot)**: a 300-damage Holy Strike → 300 × 1.6 × 1.25 = **600**.
@@ -1586,7 +1724,7 @@ default setup.
 
 23. **Judgement of the Crusader on a Protection paladin's hits**: each landed Judgement of Fury gets
     161 × 0.45 = **+72.45** (a crit ×2: +144.9), each Seal of Fury proc 161 × 0.1 = **+16.1**, after
-    your own damage multipliers; with the flat rule, +161 each. Runs in `protection.test.ts`.
+    your own damage multipliers. Runs in `protection.test.ts`.
 24. **Hammer of the Righteous**, a 150-damage one-hander of 2.7 s speed and 1,200 attack power:
     3 × (150 + 1,200 / 14 × 2.7) / 2.7 = **423.81** Holy, threat ×1.6 = 678.10; weapon only,
     3 × 150 / 2.7 = **166.67**. Runs in `protection.test.ts`.
@@ -1611,22 +1749,33 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    top? *Test:* average non-crit proc with and without a +100 spell damage item.
 3. **SoC proc avoidance**: can procs be dodged or parried, and do they partially resist?
    *Test:* combat log on a mob attacked from the front.
-4. **SoR formula**: per-hit damage vs weapon speed and SP, 1H and 2H, whether Forever's flat 35
-   is added to the seal value (the sim's reading, [open question 10](#open-questions)), and whether a
-   `+0.03 × weapon average ±1` term exists (that term is from TBC-era wiki text, so it's
-   forbidden to adopt without a beta test). *Test:* two 2H weapons of different speed and
-   one 1H, with no SP; then +SP.
-5. **JotC interaction**: flat +161 per Holy hit, or scaled by each spell's coefficient? And
-   does it come after your own damage multipliers (the sim's default) or before them?
-   *Test:* JoC and SoC-proc damage with and without your JotC on a mob, then again with
-   Vengeance stacked. This is the biggest single uncertainty for Ret DPS.
-6. **Holy Strike formula**: is the flat 81–105 multiplied by 50% (40% before 1.60.1.70009), and is
-   the 0.429 SP added in full? The sim follows the tooltip: 0.5 × normalized weapon + 81–105 +
-   0.429 × SP [?]; the scaled reading, 0.4 × (weapon + 81–105) at 40%, was 10.6 TPS less in the
-   review's setup. *Test (guild
-   test T2):* 50+ non-crit Holy Strikes with no spell damage and a known attack power; compare with
-   0.5 × (normalized weapon + 93) and 0.5 × normalized weapon + 93; then again at +100 spell damage
-   (is the 0.429 full, or × 0.5?).
+4. **SoR formula**: the beta logs settle the shape at ranks 1–4, the seal value alone
+   (`1.2 × v × speed` two-handed, `0.85 ×` one-handed), not the proc's base points
+   ([the logs](#the-beta-logs-seal-of-righteousness)); the sim applies it at rank 8, whose base points
+   are 35 [?]. The spell damage coefficient: 0.2 at ranks 1–4 in 16 procs from 4 characters, the proc's
+   0.1 plus the aura dummy's 0.1; rank 8's dummy has none, so the sim uses 0.1 [?]. Open: whether rank 8
+   follows the same sum (nothing at rank 8 is measured, and the logs' 0.2 comes from few characters),
+   and whether a `+0.03 × weapon average ±1` term exists (that term is from
+   TBC-era wiki text, so it's forbidden to adopt without a beta test). *Test:* 50+ procs at level 60
+   with a known weapon, with and without +100 spell damage: 0.1 × 100 = +10 a proc.
+5. **JotC interaction.** ✅ Each Holy hit's share is its client coefficient × the bonus, measured
+   ([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc): the beta logs, 1.001 ±
+   0.039, and the user's in-game test, which rules out the flat reading). Open: Seal of Command's share
+   (0.29, by Holy Strike's, which the logs show whole outside its weapon percentage), and whether the
+   share comes after your own damage multipliers (the sim's default) or before them. Open too: the
+   user's single-hit test's two gaps ([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)):
+   Holy Strike hit 36 under the judgement where the share predicts 42 (−6), and 43 with Seal of Fury up
+   as well (+7), which nothing in the model explains. *Test:* SoC-proc damage with and without your JotC
+   on a mob, then again with Vengeance stacked; and 10+ non-crit Holy Strikes in each of three states
+   (no judgement on the mob, Judgement of the Crusader, Judgement of the Crusader with Seal of Fury
+   up), same weapon and mob level, comparing the averages. Whatever it finds, "All of it" stays ruled
+   out (it would be +35 on each).
+6. **Holy Strike formula**: the beta logs put the flat part and the 0.429 × SP inside the weapon
+   percentage, 0.5 × (normalized weapon + 81–105 + 0.429 × SP) at rank 8
+   ([the logs](#the-beta-logs-holy-strike)), not the tooltip's order (the flat part after the 50%);
+   the sim follows the logs [?]. They're low ranks (1–3) at levels up to 20. *Test:* 50+ non-crit
+   Holy Strikes at level 60 with no spell damage and a known attack power, then at +100 spell damage:
+   0.5 × (normalized weapon + 93 + 0.429 × SP).
 7. **Judgement of Command SP**: is the coefficient halved with the base when the target
    isn't stunned? *Test:* JoC on a mob with and without +SP.
 8. **Redoubt proc chance** per rank (10% flat per the tooltips vs 2%/rank per the trait
@@ -1638,29 +1787,23 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    tanking log. The sim swings each at once, so in combat no stack builds (one given during Hammer
    of Wrath's cast swings when the cast ends); without Reckoning the default Protection setup makes
    2.8% less TPS.
-10. **Seal of Fury**: flat 35 or weapon-speed scaled (the aura holds an SoR-style value)? The sim
-    adds the seal value by SoR's rule to the 35 [?] (`35 + 0.85 × 16.91 × speed` one-handed,
-    [Seal of Fury](#seal-of-fury-sof-new-the-protection-seal)): +27.2 TPS in the default setup
-    against the flat 35. *Test (guild test T1):* 200+ auto hits with Seal of Fury and no spell damage
-    with a 1.5 s one-hander, then a 2.6–2.8 s one: about 35 both times means flat; more on the slow
-    weapon, the seal value applies (by how much says whether it's on top of the 35 or in its place).
-    Seal of Righteousness's proc 25713 carries the same base 35 in Forever (Classic Era's had 0), so the
-    sim reads it the same way, 35 plus its seal value (`35 + 0.85 × 18.80 × speed` one-handed): T1 on
-    Seal of Righteousness settles that too.
-    Absorb stacking? Improved Seal of Fury's actual mana return ("restore 0 Mana")? The client's
-    rank text reads 60 (0 + 1 a level) [F]. The sim keeps one absorb, which each proc replaces and
-    the next hit that costs you health uses up (at most the seal's 30 s), restoring 87 mana against
-    a level-63 boss; the absorb isn't taken off the hit. Without Improved Seal of Fury the default
-    Protection setup makes 16.5% less TPS, short of mana ([mana model](#mana-model)); if every hit
-    taken while an absorb exists restored mana (the absorb never used up), it would make 2.0% more.
-    *Test:* mana per boss hit taken with Seal of Fury up, with and without Improved Seal of Fury,
-    and whether two boss hits between two of your swings both restore it.
+10. **Seal of Fury's absorb.** ✅ The proc's damage is settled: a flat 35 + 0.1 × SP, whatever the
+    weapon, measured in the beta logs ([Seal of Fury](#the-beta-logs-seal-of-fury)); the aura's
+    weapon-speed dummy models as zero. ✅ The absorb is settled too
+    ([Light's Fury](#the-beta-logs-lights-fury)): one shield of half the last proc's damage, which each
+    proc replaces (214 of 224 absorbs; none fits a sum) and which lasts 10 s (the client's
+    1310927); Improved Seal of Fury's mana comes with the hit that uses it up (221 of 224). Still open:
+    Improved Seal of Fury's mana at level 60 ("restore 0 Mana" in foreverchanges; the client's rank text
+    reads 60, 0 + 1 a level [F]): the sim restores 87 against a level-63 boss. Without Improved Seal of
+    Fury the default Protection setup makes 16.5% less TPS, short of mana ([mana model](#mana-model)).
+    *Test:* at level 60 with Seal of Fury and a shield, the mana each Improved Seal of Fury restore
+    gives against mobs of your level and three above.
 11. **Hammer of the Righteous**: target count (3 or 4 in total?), whether "weapon DPS"
-    includes AP, avoidance, and whether its SP coefficient is really 0. The sim counts attack power
-    [?] (Character → Advanced switches it off), rolls the full table in two rolls, and gives it no
+    includes AP, avoidance, and whether its SP coefficient is really 0. The sim leaves attack power
+    out, the tooltip's reading [?] (Character → Advanced counts it), rolls the full table in two rolls, and gives it no
     spell damage; it's off by default, as Holy Strike makes more threat on one target. With the
-    default Flurry Axe and 1,034 attack power: 3 × (53 + 1,034 / 14 × 1.5) / 1.5 = 328 with it, 106
-    without. *Test (guild test T3):* 50 non-crit Hammer of the Righteous casts with Blessing of Might
+    default Flurry Axe and 1,034 attack power: 3 × 53 / 1.5 = 106 without it, 3 × (53 + 1,034 / 14 ×
+    1.5) / 1.5 = 328 with it. *Test (guild test T3):* 50 non-crit Hammer of the Righteous casts with Blessing of Might
     on and off: does the damage move with attack power?
 12. **Sanctified Judgement**: base or modified seal cost; refund on a missed JoR or JoF?
 13. **Seal of Wisdom / Judgement of Wisdom** proc rates in Forever.
@@ -1690,7 +1833,8 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     server applies the per-level term is the in-game question. *Test:* at level 60, sheet AP
     with and without SotC.
 18. **Consecration ticks**: does each tick roll spell hit and crit separately (Forever
-    periodic crits)? Which 4 targets count as "first to enter" on a multi-mob pull? *Test (guild test
+    periodic crits)? Since 1.60.1.70009 the tick spells carry Attr3 `0x2000000` (Treat As Periodic,
+    [what changed](#changes-in-160170009)), which may make them periodic damage that rolls no hit. Which 4 targets count as "first to enter" on a multi-mob pull? *Test (guild test
     T7):* count missed Consecration ticks over 300+ on a mob three levels above you.
 19. **Spell modifier stacking** (Benediction + Holy Conduit): additive or multiplicative?
 20. **Vindication proc chance** (data reads 100% on melee damage).
@@ -1703,8 +1847,8 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     with 6 s (407632); Consecration tick split 12 + 27 at 0.095 (1280349); Holy Shield 4
     charges and 0.08 (20928); Vengeance stack 5, 30 s (20050); 2HWS/1HWS Physical-only school
     mask (20111, 20196); Improved Seals spell masks (20224); seal-aura proc masks 0x4 vs 0x14.
-    **One correction:** JoC's damage spell 20966 also carries Always Hit, so JoC can't miss
-    ([Seal of Command](#seal-of-command-soc); in game: question 23). The check against
+    **One correction:** JoC's damage spell 20966 also carries Always Hit (its dummy doesn't, and
+    in the beta logs JoC misses: [Seal of Command](#seal-of-command-soc), question 23). The check against
     1.60.1.70009 found the build's changes and nothing else: Holy Strike's 50% and 10 s, Vengeance's
     3 stacks and Righteous Fury's 60 ([what changed](#changes-in-160170009)).
 22. **Which spells trigger procs, and minor mechanics.** The sim follows the client's
@@ -1714,7 +1858,7 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     Vengeance's own aura (20049) carries Attr3 `0x4000000`, Can Proc From Procs: the flag lets
     triggered spells *without* NOT_A_PROC proc it (those with it proc everything anyway), so SoR's and
     SoF's proc crits give stacks too, as SoC's do [?]. Consecration's ticks, which also lack NOT_A_PROC,
-    are a periodic aura's (20924's aura 23 triggering 1280345–1280349), so they stay out: the talent's
+    are a periodic aura's (20924's aura 226, a periodic dummy, triggering 1280345–1280349), so they stay out: the talent's
     proc mask (69972) has no periodic bit [?]. It moves no default: Retribution runs Seal of Command
     and Protection takes no Vengeance. This one isn't
     minor: if SoR's and SoF's procs did trigger them, default Protection would deal about 8% more
@@ -1737,9 +1881,16 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     The minor ones (under 0.5% each, but the defaults are guesses): SotC's per-swing damage
     reduction (÷1.4 assumed); Eye for an Eye's damage school and threat.
 23. **Judgement of Command's miss chance.** The damage spell 20966 carries Always Hit, but the
-    dummy 20968 that casts it doesn't [F] [client] (SpellMisc, 1.60.1.70009). The sim assumes
-    JoC never misses. *Test:* 200+ JoC judgements on mobs three levels above you, counting
-    misses, with JoR judgements as the control (they should miss at the melee special rate).
+    dummy 20968 that casts it doesn't [F] [client] (SpellMisc, 1.60.1.70009), and in the beta logs
+    the dummy misses (10 of 43, 5 characters; [Seal of Command](#seal-of-command-soc)). The sim rolls
+    the melee special miss chance for it [?]. Open: which table the judgement dummies roll, the melee
+    special attacks' or the spells'. In the logs the judgements of the characters who judged Command
+    missed 30% (17 of 56), their Holy Strikes 11% (7 of 64) and their white swings 6% (26 of 412). If
+    it's the spells', a level-60 paladin's judgements would miss 17% against a raid boss, less
+    spell hit, not the melee table's 8% less melee hit: about 1% of Retribution's DPS and 1–2% of
+    Protection's TPS (Judgement of Fury rolls the same way). *Test:* 200+ judgements on mobs three
+    levels above you, counting misses, with Holy Strikes as the melee control and with and without
+    +spell hit and +melee hit gear.
 
 24. **Mana regeneration's timing.** The sim ticks every 2 s from a random phase, and a seal cast
     before the pull is free and starts no five-second rule [?]. *Test:* a combat log of a
@@ -1763,8 +1914,8 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 
 28. **Judgement of Fury's scripted dummy** (1607 + 42.3/level, coefficient 0.18): the sim gives it no
     damage and no threat, as the Classic Era client's identical dummy on Judgement of Righteousness
-    has none ([Seal of Fury](#seal-of-fury-sof-new-the-protection-seal)). As flat threat it would be
-    about +454 TPS. *Test (guild test T5):* Judgement of Fury's threat against its damage × 1.6,
+    has none, and nothing describes it ([Seal of Fury](#seal-of-fury-sof-new-the-protection-seal)). As
+    flat threat it would be +383 TPS (+55%) in the default Protection setup. *Test (guild test T5):* Judgement of Fury's threat against its damage × 1.6,
     judged while you already have top threat (so the taunt does nothing).
 29. **Retribution Aura's and Thorns' spell damage coefficient** (1.60.1.70009: both "dynamically
     update" with their caster's spell power; the client carries no coefficient). The sim takes Holy
@@ -1778,6 +1929,29 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     +100 spell damage; and Thorns' from a druid with known spell damage.
 30. **Twist of Light's cost cut with Benediction**: added (210 × 0.7 = 147, the sim's) or multiplied
     (210 × 0.9 × 0.8 = 151)? The same question as 19. *Test:* Seal of Command's cost with both.
+31. **Threat from mana gained** [?]. Each mana you gain from a spell or item (Improved Seal of Fury,
+    Shield Specialization, Sanctified Judgement, a Major Mana Potion) makes 0.5 threat. That value is
+    LibThreatClassic2's alone, another tool's, kept as step 4 of
+    [doctrine §2's fallback order](../doctrine.md#2-where-numbers-come-from-non-negotiable), since no
+    earlier step gives one; Magey's Classic tests confirm mana gains make
+    threat but give no number ([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)).
+    The results label it so ("a Classic Era threat library's value"). It's about **5.7%**
+    of the default Protection paladin's TPS (Improved Seal of Fury 2.1%, Shield Specialization 2.4%,
+    the Major Mana Potion 1.1%; seed 31101, 20,000 fights, 2026-09-26). *Test:* the threat a Major Mana
+    Potion adds on a threat meter while nothing else changes the mob's threat. Forever's client blocks the
+    threat API, so it can't be measured in game for now.
+32. **Retribution Aura's spell damage coefficient in the beta logs** (2026-09-26; the logs of
+    [Seal of Fury](#the-beta-logs-seal-of-fury)): not well determined, so the sim keeps Holy Shield's
+    0.08 ([open question 29](#open-questions)). A paladin's own aura hitting what strikes it
+    (`DAMAGE_SHIELD`, rank 1, 7 base points): 166 non-crit hits at 10+ spell damage from 5 characters.
+    Their mean implied coefficient, (damage − 7) ÷ SP, is 0.131 ± 0.005, but no single coefficient
+    fits every hit, and the characters disagree: 18 at SP 79–88 (0.13) and 12 at SP 41 (0.12) for two
+    of them; 9 at SP 29 (0.07–0.10) and 7 at SP 14 (under 0.07) for two more; the fifth hit 11–12 at
+    SP 24 and at SP 0 alike. A value that updates only now and then (the dev notes' "dynamically update")
+    would explain it. 100 of its 1,467 hits in the logs were resisted (`DAMAGE_SHIELD_MISSED` RESIST);
+    the sim has it always land [?]. It's in no default setup (Devotion Aura is Protection's aura).
+    *Test:* at level 60, Retribution Aura's damage on a mob with and without +100 spell damage, recast
+    after each gear change.
 ---
 
 ## Sources
@@ -1814,6 +1988,7 @@ SpellCategories, SpellCooldowns, SpellPower and SpellLevels. Table roots:
 [f20966]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=20966
 [f25713]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=25713
 [f20293]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=20293
+[f1310927]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=1310927
 [f20286]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=20286
 [f20308]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=20308
 [f20303]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=20303
@@ -1889,3 +2064,7 @@ SpellCategories, SpellCooldowns, SpellPower and SpellLevels. Table roots:
 [f-SpellCooldowns]: https://wago.tools/db2/SpellCooldowns?build=1.60.1.70009
 [f-SpellPower]: https://wago.tools/db2/SpellPower?build=1.60.1.70009
 [client]: ../data/client.md#doc-claims-checked-against-the-raw-client
+[fd-logs]: https://github.com/tzcnt/forever-data/tree/c7d17462c50d1eb0103aa5e2aff52f77f33e3418/raw-logs
+[fw-issues]: https://github.com/magey/forever-warrior/issues
+[fb-issues]: https://github.com/ClassicWoWCommunity/forever-bugs/issues
+[lutz-gist]: https://gist.github.com/077264a1aada001889e5ce0f47674623

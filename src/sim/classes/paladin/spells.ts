@@ -9,8 +9,9 @@
 // number (docs/data/items.md#per-level-values), and a range is
 // base × (1 ± variance/2) (paladin.md#conventions-used-below). These are the base spells: talents
 // (Improved Seals, Sacred Arbiter, Iron Creed) are applied by `withSpellTalents` in talents.ts,
-// and the Judgement of the Crusader rule by `withJotcRule` below.
+// JotC's share (`takenScale`) is measured (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
 import { CRIT_MULTIPLIER } from '../../core/formulas'
+import type { AuraSpec } from '../../effects/types'
 import type { SpellDef } from '../../plan/types'
 
 /**
@@ -63,14 +64,17 @@ export const SEAL_OF_COMMAND_PROC: SpellDef = {
   icon: 'ability_warrior_innerrage',
   weaponPercent: 0.7,
   spCoefficient: 0.7 * 0.29,
-  takenScale: 0.7 * 0.29,
+  // JotC's share is the whole 0.29, outside the 70%, as Holy Strike's measured 0.429 is outside its 50%.
+  takenScale: 0.29,
 }
 
 /**
  * Judgement of Command (20968 → 20966, paladin.md#seal-of-command-soc): 356 base points, variance
  * 0.0955, so 339–373, **halved** because raid bosses can't be stunned: 169.5–186.5; the 0.429
- * coefficient isn't halved [?] (OQ 7). Melee class with No Active Defense and Always Hit on 20966:
- * it can't miss, be dodged, parried or blocked, and crits ×2 (OQ 23).
+ * coefficient isn't halved [?] (OQ 7). Melee class with No Active Defense: it can't be dodged, parried
+ * or blocked. The damage spell 20966 carries Always Hit, but the dummy 20968 that casts it doesn't, and
+ * the beta logs show the dummy missing (10 of 43, OQ 23): so it rolls the melee miss, then crit ×2 on a
+ * landed one, as Judgement of Righteousness does [?].
  */
 export const JUDGEMENT_OF_COMMAND: SpellDef = {
   ...HOLY_MELEE,
@@ -78,7 +82,6 @@ export const JUDGEMENT_OF_COMMAND: SpellDef = {
   name: 'Judgement of Command',
   icon: 'ability_warrior_innerrage',
   noActiveDefense: true,
-  alwaysHit: true,
   min: spread(356, 0.09550562)[0] / 2,
   max: spread(356, 0.09550562)[1] / 2,
   spCoefficient: 0.429,
@@ -92,23 +95,26 @@ export const JUDGEMENT_OF_COMMAND: SpellDef = {
 export const SEAL_OF_RIGHTEOUSNESS_VALUE = atLevel60(1786, 47, 58, 64) / 100
 
 /**
- * The seal procs' flat base (paladin.md#seal-of-righteousness-sor, #seal-of-fury-sof-new-the-protection-seal):
- * Forever's Seal of Righteousness proc 25713 and Seal of Fury proc 20418 both carry 35 on effect 0 [F]
- * (Classic Era's 25713 had 0, so Forever set it deliberately). The sim reads the two procs the same
- * way, the 35 plus the seal value [?] (OQ 4, OQ 10, guild test T1 on both seals; D29).
+ * Seal of Righteousness's spell damage coefficient per proc at rank 8 (paladin.md#the-beta-logs-seal-of-righteousness):
+ * 0.1, the proc's (25713) 0.1 plus the rank-8 aura's weapon-speed dummy's 0 (20293 effect 0) [F] client.
+ * The beta logs' 0.2 at ranks 1–4 is the same sum there: the proc's 0.1 plus that rank's dummy's 0.1
+ * (20154, 20287, 20288, 20289; ranks 5–7 carry it too), which rank 8's dummy doesn't have [?] (OQ 4).
+ * Its share of Judgement of the Crusader's bonus is the proc's 0.1, as measured
+ * (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
  */
-export const SEAL_PROC_BASE = 35
+export const SEAL_OF_RIGHTEOUSNESS_SP = 0.1
 
 /**
- * Seal of Righteousness's proc per landed white hit (25713, paladin.md#seal-of-righteousness-sor):
- * Forever's flat 35, plus the seal value, `1.2 × v × speed` with a two-hander and `0.85 × v × speed`
- * with a one-hander [?] (OQ 4, OQ 10, guild test T1), plus 0.1 × SP: the same reading as Seal of
- * Fury's. Melee class with No Active Defense and Always Hit: it can't be avoided, and crits ×2 [?].
- * It lacks NOT_A_PROC, so it triggers no procs, no Windfury or Crusader, but its crit gives Vengeance a
- * stack: Vengeance's aura can proc from procs (Attr3 0x4000000, paladin.md#retribution-tree) [?].
+ * Seal of Righteousness's proc per landed white hit (25713, paladin.md#seal-of-righteousness-sor): the
+ * seal value, `1.2 × v × speed` with a two-hander and `0.85 × v × speed` with a one-hander (Classic
+ * Era's rule, and what the beta logs show at ranks 1–4), + 0.1 × SP at rank 8 [?]. The proc's own base points (35
+ * at rank 8) aren't added: at ranks 1–4 their 4 to 9 fit 23 of 727 procs where the seal value alone fits
+ * 587 (the beta logs). Melee class with No Active Defense and Always Hit: it can't be avoided, and crits
+ * ×2 [?]. It lacks NOT_A_PROC, so it triggers no procs, no Windfury or Crusader, but its crit gives
+ * Vengeance a stack: Vengeance's aura can proc from procs (Attr3 0x4000000, paladin.md#retribution-tree) [?].
  */
 export function sealOfRighteousnessProc(speedSec: number, twoHand: boolean): SpellDef {
-  const damage = SEAL_PROC_BASE + (twoHand ? 1.2 : 0.85) * SEAL_OF_RIGHTEOUSNESS_VALUE * speedSec
+  const damage = (twoHand ? 1.2 : 0.85) * SEAL_OF_RIGHTEOUSNESS_VALUE * speedSec
   return {
     ...HOLY_MELEE,
     id: 'sealOfRighteousnessProc',
@@ -119,7 +125,7 @@ export function sealOfRighteousnessProc(speedSec: number, twoHand: boolean): Spe
     triggersProcs: false,
     min: damage,
     max: damage,
-    spCoefficient: 0.1,
+    spCoefficient: SEAL_OF_RIGHTEOUSNESS_SP,
     takenScale: 0.1,
   }
 }
@@ -142,27 +148,41 @@ export const JUDGEMENT_OF_RIGHTEOUSNESS: SpellDef = {
   takenScale: 0.5,
 }
 
-/** Seal of Fury's proc base (20418 effect 0, paladin.md#seal-of-fury-sof-new-the-protection-seal): the tooltip's flat 35 [F], as Seal of Righteousness's. */
-export const SEAL_OF_FURY_BASE = SEAL_PROC_BASE
+/**
+ * Seal of Fury's proc base (20418 effect 0, paladin.md#seal-of-fury-sof-new-the-protection-seal): the
+ * tooltip's flat 35 [F], all of its damage but its 0.1 × SP. Measured in the beta logs: every one of 179
+ * non-crit procs from 24 characters is floor(base points + 0.1 × SP), after swings of 1.1 to 4.5 s.
+ */
+export const SEAL_OF_FURY_BASE = 35
 
 /**
- * The seal value of Seal of Fury r7 (20423 effect 0): 1607 + 42 per level from 58, per 100 s of
- * weapon speed, so 16.91 per second at 60 [F] data; the same structure as Seal of Righteousness's
- * (paladin.md#seal-of-fury-sof-new-the-protection-seal).
+ * Seal of Fury's absorb, Light's Fury (1310927, paladin.md#the-beta-logs-lights-fury): with a shield
+ * equipped, each landed proc shields you for half the Holy damage it dealt (20423 effect 1, 50) [F], an
+ * absorb of every school (aura 69, misc 127) that lasts 10 s (DurationIndex 1) [F] client. Hits you take
+ * spend it before they cost health; it ends when spent or after its 10 s. Each proc replaces it, what's
+ * left of the last one lost, never added to: measured (the beta logs: 214 of 224 absorbs are half the
+ * last proc, crits included, and none fits a sum). Improved Seal of Fury restores mana when a hit uses
+ * it up (talents.ts), with that hit, as the logs show.
  */
-export const SEAL_OF_FURY_VALUE = atLevel60(1607, 42, 58, 64) / 100
+export const SEAL_OF_FURY_SHIELD_AURA: AuraSpec = {
+  id: 'sealOfFuryShield',
+  name: 'Light’s Fury',
+  durationMs: 10000,
+  absorb: true,
+  mods: {},
+}
+
+/** The absorb's share of the proc's Holy damage, % (20423 effect 1: 50) [F], and measured (the beta logs). */
+export const SEAL_OF_FURY_ABSORB_PCT = 50
 
 /**
  * Seal of Fury's proc per landed white hit (20418, paladin.md#seal-of-fury-sof-new-the-protection-seal):
- * the flat 35, plus its seal value by Seal of Righteousness's rule, `0.85 × 16.91 × speed` with a
- * one-hander and `1.2 × …` with a two-hander [?] (OQ 10, guild test T1; D29: the aura carries the
- * value, so it gets a default; Seal of Righteousness's proc is read the same way), + 0.1 × SP. With the
- * default 1.5 s axe that's 35 + 21.56. With no main hand it's the flat 35. Melee class with No Active
- * Defense and Always Hit, and no NOT_A_PROC, like Seal of Righteousness's: it triggers no procs but
- * Vengeance, which can proc from procs [?].
+ * a flat 35 + 0.1 × SP, whatever the weapon: client data, and measured (the beta logs). The aura's
+ * weapon-speed dummy (1607 + 42/level) is undescribed, so it models as zero. With `shield`, it puts up
+ * the absorb. Melee class with No Active Defense and Always Hit, and no NOT_A_PROC, like Seal of
+ * Righteousness's: it triggers no procs but Vengeance, which can proc from procs [?].
  */
-export function sealOfFuryProc(mainHand: { speedSec: number; twoHand: boolean } | null): SpellDef {
-  const value = mainHand ? (mainHand.twoHand ? 1.2 : 0.85) * SEAL_OF_FURY_VALUE * mainHand.speedSec : 0
+export function sealOfFuryProc(shield = false): SpellDef {
   return {
     ...HOLY_MELEE,
     id: 'sealOfFuryProc',
@@ -171,10 +191,11 @@ export function sealOfFuryProc(mainHand: { speedSec: number; twoHand: boolean } 
     noActiveDefense: true,
     alwaysHit: true,
     triggersProcs: false,
-    min: SEAL_OF_FURY_BASE + value,
-    max: SEAL_OF_FURY_BASE + value,
+    min: SEAL_OF_FURY_BASE,
+    max: SEAL_OF_FURY_BASE,
     spCoefficient: 0.1,
     takenScale: 0.1,
+    ...(shield ? { absorb: { aura: SEAL_OF_FURY_SHIELD_AURA, pct: SEAL_OF_FURY_ABSORB_PCT } } : {}),
   }
 }
 
@@ -199,12 +220,13 @@ export const JUDGEMENT_OF_FURY: SpellDef = {
 /**
  * Holy Strike r8 (10333, paladin.md#other-abilities): `NORMALIZED_WEAPON_DMG` + 93 (variance 0.25,
  * so 81.375–104.625) and `WEAPON_PERCENT_DAMAGE` 50% (40% before 1.60.1.70009) [F] [client]
- * (SpellEffect, 1.60.1.70009), read as its tooltip prints it: "50% weapon damage plus an additional
- * 81 to 105", so 0.50 × normalized main-hand damage + 81…105 [?] (OQ 6, guild test T2; the rank 1
- * tooltip's "plus 11 to 14" is its raw base points too), + 0.429 × SP. The other reading,
- * 0.50 × (weapon + 81…105), is OQ 6's. All Holy, so armor doesn't reduce it. A
- * melee special with the full table, crit ×2. Its third effect (77, a script) is Sacred Arbiter's
- * refresh of your judgements, with no damage or threat of its own (paladin.md#other-abilities).
+ * (SpellEffect, 1.60.1.70009). The flat part and the 0.429 × SP are inside the 50%, as the beta logs
+ * show (356 hits from 44 characters, paladin.md#the-beta-logs-holy-strike): 0.50 × (normalized
+ * main-hand damage + 81…105 + 0.429 × SP), so 0.2145 × SP. The tooltip prints the flat part's raw
+ * base points ("plus an additional 81 to 105"). Its share of Judgement of the Crusader's bonus is the
+ * full 0.429, outside the 50%, as measured. All Holy, so armor doesn't reduce it. A melee special with
+ * the full table, crit ×2. Its third effect (77, a script) is Sacred Arbiter's refresh of your
+ * judgements, with no damage or threat of its own (paladin.md#other-abilities).
  */
 export const HOLY_STRIKE: SpellDef = {
   ...HOLY_MELEE,
@@ -213,10 +235,9 @@ export const HOLY_STRIKE: SpellDef = {
   icon: 'classicon_paladin',
   weaponPercent: 0.5,
   normalized: true,
-  flatApart: true,
   min: spread(93, 0.25)[0],
   max: spread(93, 0.25)[1],
-  spCoefficient: 0.429,
+  spCoefficient: 0.5 * 0.429,
   takenScale: 0.429,
 }
 
@@ -225,12 +246,13 @@ export const HOLY_STRIKE: SpellDef = {
  * damage per second of your main hand weapon" (effect 2's 3; effect 0 is the damage, a script), Holy,
  * no spell damage coefficient in the data. Melee class with neither No Active Defense nor Always Hit:
  * the full special table, crit ×2, and like the other melee-class spells without a weapon share it
- * rolls to hit and then to crit [?]. Whether the weapon's DPS counts attack power is OQ 11's [?]: the
- * default counts it, the character sheet's weapon DPS (`hotrWeaponDps`, Character → Advanced), the
- * reading that fits the guild's benchmark (D29). Its effect 1 (120, 3 chain targets) is the extra
+ * rolls to hit and then to crit [?]. Whether the weapon's DPS counts attack power is OQ 11's [?]: by
+ * default it doesn't, the tooltip's reading, the damage per second of the weapon itself; Character →
+ * Advanced counts it (`hotrWeaponDps`), the DPS a character sheet shows. No log or allowed source says
+ * which (the beta logs stop below level 40, where it's trained). Its effect 1 (120, 3 chain targets) is the extra
  * targets' part, left out on one target (M6). A cast spell, so it triggers procs; not the seals'.
  */
-export function hammerOfTheRighteous(withAttackPower = true): SpellDef {
+export function hammerOfTheRighteous(withAttackPower = false): SpellDef {
   return {
     ...HOLY_MELEE,
     id: 'hammerOfTheRighteous',
@@ -309,15 +331,3 @@ export const CONSECRATION_RANK1_TICK: SpellDef = {
   max: 2 + 4,
 }
 
-/**
- * How much of the target's flat Holy damage taken (Judgement of the Crusader's +161) a Holy hit gets
- * (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc, OQ 5): `coefficient`,
- * the default, scales it by the hit's own spell damage coefficient; `flat` gives melee-class hits
- * all of it, and other hits their coefficient's share.
- */
-export type JotcRule = 'coefficient' | 'flat'
-
-export function withJotcRule(spell: SpellDef, rule: JotcRule): SpellDef {
-  if (rule === 'coefficient' || spell.defense !== 'melee') return spell
-  return { ...spell, takenScale: 1 }
-}

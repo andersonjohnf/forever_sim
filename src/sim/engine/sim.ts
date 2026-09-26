@@ -267,8 +267,9 @@ export class Sim {
   /** Test hook: every power tick with mana (its time, and the mana it restores in tenths before the cap). */
   manaTrace: ((time: number, tenths: number) => void) | null = null
   /**
-   * Test hook: every boss swing on the tank, as it resolves: its BOSS_OUTCOME, the health it cost
-   * and its size before mitigation (both 0 for a miss, dodge or parry).
+   * Test hook: every boss swing on the tank, as it resolves: its BOSS_OUTCOME, its damage after
+   * mitigation but before an absorb takes its part (`takeHit`: Seal of Fury's), and its size before
+   * mitigation (both 0 for a miss, dodge or parry).
    */
   swingTakenTrace: ((outcome: number, healthLost: number, pre: number) => void) | null = null
   /** The boss's swings by outcome (BOSS_OUTCOME), summed over every fight run (combat-tables §8). */
@@ -433,14 +434,16 @@ export class Sim {
   private readonly aYieldsTo: Int32Array
   private readonly aEnds: Int32Array
   /**
-   * Charges that hits taken which cost health use up (Seal of Fury's absorb, 1; paladin.md#protection-tree),
-   * the auras that have them, and each active one's charges left.
+   * The absorb auras (`AuraPlan.absorb`: Seal of Fury's, paladin.md#seal-of-fury-sof-new-the-protection-seal)
+   * and each one's amount left while it's up, which the spell that puts it up sets (`splAbsorbAura`).
    */
-  private readonly aTakenCharges: Int32Array
-  private readonly takenChargeAuras: Int32Array
-  private readonly auraTakenCharges: Int32Array
-  /** Each taken-charged aura's `auraGen` as a hit that costs health lands, before its procs (`onDamageTaken`). */
-  private readonly takenChargeGen: Int32Array
+  private readonly absorbAuras: Int32Array
+  private readonly auraAbsorb: Float64Array
+  /** Each absorb aura's `auraGen` when a hit spent it, before the hit's procs, or −1 (`onDamageTaken`). */
+  private readonly absorbSpentGen: Int32Array
+  /** The absorb aura a spell puts up when it lands (−1: none), and its share of the damage dealt, % (Seal of Fury's 50). */
+  private readonly splAbsorbAura: Int32Array
+  private readonly splAbsorbPct: Float64Array
   /**
    * Charges your pet's landed attacks use up (Demonic Brand's, docs/classes/warlock.md §11.3), the
    * auras that have them, and each active one's charges left.
@@ -497,8 +500,6 @@ export class Sim {
   private readonly splMax: Float64Array
   private readonly splWeaponPct: Float64Array
   private readonly splNormalized: Uint8Array
-  /** A weapon-damage spell's flat part outside its weapon share (SpellDef.flatApart: Holy Strike). */
-  private readonly splFlatApart: Uint8Array
   /** Damage from the main hand's weapon DPS × this, and whether with attack power (SpellDef.weaponDps: Hammer of the Righteous). */
   private readonly splWeaponDps: Float64Array
   private readonly splWeaponDpsAp: Uint8Array
@@ -1564,10 +1565,9 @@ export class Sim {
         )
       this.aEnds[over] = i
     })
-    this.aTakenCharges = Int32Array.from(auras, (a) => a.takenCharges ?? 0)
-    this.takenChargeAuras = Int32Array.from(auras.flatMap((a, i) => ((a.takenCharges ?? 0) > 0 ? [i] : [])))
-    this.auraTakenCharges = new Int32Array(na)
-    this.takenChargeGen = new Int32Array(this.takenChargeAuras.length)
+    this.absorbAuras = Int32Array.from(auras.flatMap((a, i) => (a.absorb ? [i] : [])))
+    this.auraAbsorb = new Float64Array(na)
+    this.absorbSpentGen = new Int32Array(this.absorbAuras.length).fill(-1)
     this.aPetCharges = Int32Array.from(auras, (a) => a.petLandedCharges ?? 0)
     this.petChargeAuras = Int32Array.from(auras.flatMap((a, i) => ((a.petLandedCharges ?? 0) > 0 ? [i] : [])))
     this.auraPetCharges = new Int32Array(na)
@@ -1620,6 +1620,8 @@ export class Sim {
     this.splBoostAura = Int32Array.from(spells, (x) => x.boostAura ?? -1)
     this.splBoostPct = Float64Array.from(spells, (x) => x.boostPct ?? 0)
     this.splBoostKeep = Uint8Array.from(spells, (x) => (x.boostKeep ? 1 : 0))
+    this.splAbsorbAura = Int32Array.from(spells, (x) => x.absorbAura ?? -1)
+    this.splAbsorbPct = Float64Array.from(spells, (x) => x.absorbPct ?? 0)
     this.splLowPct = Float64Array.from(spells, (x) => x.lowHealthPct ?? 0)
     this.splLowBelow = Float64Array.from(spells, (x) => x.lowHealthBelowPct ?? 0)
     this.splLowAt = new Float64Array(spells.length).fill(Infinity)
@@ -1635,7 +1637,6 @@ export class Sim {
     this.splMax = Float64Array.from(spells, (x) => x.max)
     this.splWeaponPct = Float64Array.from(spells, (x) => x.weaponPercent)
     this.splNormalized = Uint8Array.from(spells, (x) => (x.normalized ? 1 : 0))
-    this.splFlatApart = Uint8Array.from(spells, (x) => (x.flatApart ? 1 : 0))
     this.splWeaponDps = Float64Array.from(spells, (x) => x.weaponDps ?? 0)
     this.splWeaponDpsAp = Uint8Array.from(spells, (x) => (x.weaponDpsAp ? 1 : 0))
     this.splSpCoef = Float64Array.from(spells, (x) => x.spCoefficient)
@@ -2563,7 +2564,7 @@ export class Sim {
     this.rotOffList = this.offGcdNormal
     // paladin.md: another paladin's Judgement of the Crusader is on the boss from the pull (buffs doc §4.2).
     this.holyTaken = this.plan.holyTaken ?? 0
-    this.auraTakenCharges.fill(0)
+    this.auraAbsorb.fill(0)
     this.auraPetCharges.fill(0)
     // docs/mechanics/spells.md: no spell DoTs, no channel, and the schools' static numbers.
     this.spDotTicksLeft.fill(0)
@@ -4065,7 +4066,6 @@ export class Sim {
     // docs/classes/mage.md#combustion: a stack added to an aura that keeps its charges leaves them as they are.
     if (!wasActive || this.aKeepsCharges[a] === 0) this.auraCritCharges[a] = this.aCritCharges[a]
     this.auraBlockCharges[a] = this.aBlockCharges[a]
-    this.auraTakenCharges[a] = this.aTakenCharges[a]
     this.auraPetCharges[a] = this.aPetCharges[a]
     this.q.push(end, EV_AURA_EXPIRE, a, ++this.auraGen[a])
     if (this.watchStart[a] !== this.watchStart[a + 1]) this.watchAura(a, end)
@@ -4673,8 +4673,7 @@ export class Sim {
       const speed = this.splNormalized[s] ? this.wNormSpeed[h] : this.wSpeedSec[h]
       const roll = this.rngDamage.uniform(this.wMin[h], this.wMax[h])
       const flat = this.splMin[s] === this.splMax[s] ? this.splMin[s] : this.rngDamage.uniform(this.splMin[s], this.splMax[s])
-      // paladin.md#other-abilities: Holy Strike's flat 81–105 comes after its 50% (flatApart) [?].
-      base = this.splFlatApart[s] === 1 ? (roll + this.wFlat[h] + (this.ap / 14) * speed) * pct + flat : (roll + this.wFlat[h] + (this.ap / 14) * speed + flat) * pct
+      base = (roll + this.wFlat[h] + (this.ap / 14) * speed + flat) * pct
     } else if (this.splWeaponDps[s] > 0) {
       // paladin.md#other-abilities: Hammer of the Righteous, 3 × the main hand's weapon DPS, with its
       // attack power or without [?] (OQ 11), no roll.
@@ -4727,6 +4726,13 @@ export class Sim {
     }
     const threat = (damage * this.splThreatMult[s] + this.splThreatBonus[s]) * (holy ? this.holyThreatMult : 1) * this.threatMult
     this.addDamage(source, damage, threat)
+    // paladin.md#seal-of-fury-sof-new-the-protection-seal: an absorb worth its share of the damage dealt,
+    // which replaces any left of the last one [?].
+    const absorb = this.splAbsorbAura[s]
+    if (absorb >= 0) {
+      this.applyAura(absorb)
+      if (this.auraActive[absorb]) this.auraAbsorb[absorb] = (this.splAbsorbPct[s] / 100) * damage
+    }
     // docs/mechanics/spells.md §7: a hybrid's DoT starts as its direct part lands (Fireball, Immolate).
     if (this.splDotTicks[s] > 0) this.applySpellDot(s, euDot)
     // paladin.md#conventions-used-below: a triggered spell without NOT_A_PROC triggers nothing [?],
@@ -5751,11 +5757,12 @@ export class Sim {
 
   /**
    * One boss swing on the player (combat-tables §8, encounter §5): one roll over miss, dodge, parry,
-   * block, crit and crushing. A landed swing costs health after damage-taken modifiers, armor, its
-   * outcome's multiplier and a block's block value (damage-and-timing §2.6), and gives rage from its
-   * size before all of them (rage.md#forever-). Then the class hooks: `dodgeParry` and `dodge` or
-   * `parry` for an avoided swing; for a landed one `damageTaken` (if it cost health), `meleeTaken`,
-   * and `block` (then the blocks that end auras, of the auras up before these procs) or `critTaken`.
+   * block, crit and crushing. A landed swing's damage is after damage-taken modifiers, armor, its
+   * outcome's multiplier and a block's block value (damage-and-timing §2.6); an absorb that's up then
+   * takes its part (`takeHit`), and the rest costs health. It gives rage from its size before all of
+   * them (rage.md#forever-). Then the class hooks: `dodgeParry` and `dodge` or `parry` for an avoided
+   * swing; for a landed one `damageTaken` (if it cost health or spent an absorb), `meleeTaken`, and
+   * `block` (then the blocks that end auras, of the auras up before these procs) or `critTaken`.
    */
   private onBossSwing(): void {
     const boss = this.plan.fight.bossSwing!
@@ -5961,14 +5968,32 @@ export class Sim {
    * #implementation-notes). `pre` is its size before armor, block, absorbs and damage-taken
    * modifiers. The inlined `damageTakenRage` (core/formulas.ts): `forever` reads `pre`, so a
    * blocked hit that costs nothing still gives its full rage; the other models read health lost.
+   * An absorb that's up takes its part first (Seal of Fury's, paladin.md#seal-of-fury-sof-new-the-protection-seal),
+   * and a hit that spends it counts as one that cost health, for its procs.
    */
   private takeHit(healthLost: number, pre: number): void {
     const plan = this.plan
+    let spent = false
+    if (this.absorbAuras.length > 0 && healthLost > 0) {
+      const list = this.absorbAuras
+      for (let i = 0; i < list.length; i++) {
+        const a = list[i]
+        if (!this.auraActive[a] || this.auraAbsorb[a] <= 0) continue
+        const take = Math.min(this.auraAbsorb[a], healthLost)
+        healthLost -= take
+        this.auraAbsorb[a] -= take
+        if (this.auraAbsorb[a] <= 0) {
+          this.absorbSpentGen[i] = this.auraGen[a]
+          spent = true
+        }
+      }
+    }
     this.fightDamageTaken += healthLost
+    const costs = healthLost > 0 || spent
     // rage.md#rage-from-damage-taken, #bear-druid-rage: rage users only: the plan's switch (warriors,
     // a druid that can be in Bear Form), and a druid's current form (bear). The procs fire either way.
     if (!plan.rage.fromDamageTaken || !this.gainsRage) {
-      if (healthLost > 0) this.onDamageTaken()
+      if (costs) this.onDamageTaken()
       return
     }
     let rage = 0
@@ -5987,22 +6012,23 @@ export class Sim {
         break
     }
     this.gainRageFraction(rage * 10)
-    if (healthLost > 0) this.onDamageTaken()
+    if (costs) this.onDamageTaken()
   }
 
   /**
-   * A hit that cost health: the damage-taken procs, then a charge of each aura such hits use up,
-   * so a proc that needs the aura still sees it (Seal of Fury's absorb and Improved Seal of Fury's
-   * mana, paladin.md#protection-tree). As with blocks (`useBlockCharges`), only an aura up before
-   * these procs pays: one they applied or refreshed has a new generation and keeps its charges.
+   * A hit that cost health, or spent an absorb: the damage-taken procs, then the absorbs it spent
+   * end, so a proc that needs one still sees it (Improved Seal of Fury's mana when Seal of Fury's
+   * absorb is used up, paladin.md#protection-tree). As with blocks (`useBlockCharges`), only an
+   * absorb up before these procs ends: one they put up again has a new generation.
    */
   private onDamageTaken(): void {
-    const list = this.takenChargeAuras
-    for (let i = 0; i < list.length; i++) this.takenChargeGen[i] = this.auraGen[list[i]]
     this.fireProcs(TRIGGER.damageTaken, -1)
+    const list = this.absorbAuras
     for (let i = 0; i < list.length; i++) {
       const a = list[i]
-      if (this.auraActive[a] && this.auraGen[a] === this.takenChargeGen[i] && --this.auraTakenCharges[a] <= 0) this.removeAura(a)
+      if (this.absorbSpentGen[i] < 0) continue
+      if (this.auraActive[a] && this.auraGen[a] === this.absorbSpentGen[i]) this.removeAura(a)
+      this.absorbSpentGen[i] = -1
     }
   }
 }

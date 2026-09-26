@@ -262,11 +262,11 @@ test.describe('the wide sections', () => {
       expect(cols.length).toBe(columns)
       const bottoms = cols.map((c) => c.bottom)
       for (const c of cols) expect(Math.max(...bottoms) - c.bottom).toBeLessThanOrEqual(Math.max(...cols.map((k) => k.tallest)) + 1)
-      // The rule profile and the Crusader's bonus side by side.
+      // The rule profile and Hammer of the Righteous's rule side by side.
       const rules = (await advanced.getByRole('radiogroup', { name: 'Rules' }).boundingBox())!
-      const jotc = (await advanced.getByRole('radiogroup', { name: 'Judgement of the Crusader’s bonus' }).boundingBox())!
-      expect(jotc.x).toBeGreaterThan(rules.x + rules.width)
-      expect(jotc.y).toBeCloseTo(rules.y, 0)
+      const hotr = (await advanced.getByRole('radiogroup', { name: 'Hammer of the Righteous’s weapon DPS' }).boundingBox())!
+      expect(hotr.x).toBeGreaterThan(rules.x + rules.width)
+      expect(hotr.y).toBeCloseTo(rules.y, 0)
       await noSidewaysScroll(page)
     })
   }

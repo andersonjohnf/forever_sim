@@ -274,7 +274,7 @@ const REGISTRY = {
   },
   // The same in a paladin tank's terms: no rage or stance, its mana and Righteous Fury instead.
   whiteThreatPaladin: {
-    text: 'Threat uses Classic Era rules (1 threat per damage, 0.5 per mana you gain, ×1.6 on Holy damage from Righteous Fury); Forever threat is server-side and unmeasured.',
+    text: 'Threat uses Classic Era rules: 1 threat per damage, ×1.6 on Holy damage from Righteous Fury. Each mana you gain makes 0.5 threat, a Classic Era threat library’s value, borrowed because nobody has measured it, in Forever or in Classic Era (about 6% of your threat in the default setup). Forever threat is server-side and unmeasured.',
     docRef: `${THREAT}#per-ability-threat-at-max-rank`,
   },
   defiance: {
@@ -484,15 +484,15 @@ const REGISTRY = {
     docRef: `${PAL}#seal-of-command-soc`,
   },
   judgementOfCommand: {
-    text: 'Judgement of Command deals half its damage, since a boss can’t be stunned, but gets its full spell damage bonus, and never misses; untested.',
+    text: 'Judgement of Command deals half its damage, since a boss can’t be stunned, but gets its full spell damage bonus (untested). It can miss like a melee attack, as beta combat logs show, but can’t be dodged, parried or blocked.',
     docRef: `${PAL}#seal-of-command-soc`,
   },
   sealOfRighteousness: {
-    text: 'Seal of Righteousness deals 35 Holy plus 1.2 × 18.8 × your weapon’s speed with a two-hander (0.85 × with a one-hander), as Seal of Fury’s is read, plus 0.1 × spell damage on each landed auto attack; the formula is untested in Forever.',
+    text: 'Seal of Righteousness deals 1.2 × 18.8 × your weapon’s speed with a two-hander (0.85 × with a one-hander) plus 0.1 × spell damage on each landed auto attack. Beta combat logs below level 40 show the weapon part, and 0.2 × spell damage, which the game’s data at those ranks gives as 0.1 from the seal and 0.1 from each hit; at rank 8 the seal’s 0.1 is gone from its data. Untested at level 60.',
     docRef: `${PAL}#seal-of-righteousness-sor`,
   },
   sealOfFury: {
-    text: 'Seal of Fury deals its tooltip’s 35 Holy plus its seal value, 0.85 × 16.91 × your weapon’s speed with a one-hander (1.2 × with a two-hander), as Seal of Righteousness’s value works, plus 0.1 × spell damage on each landed auto attack; the tooltip alone would be 35. Untested.',
+    text: 'Seal of Fury deals 35 Holy plus 0.1 × spell damage on each landed auto attack, whatever the weapon: unlike Seal of Righteousness, it gets no bonus from a slower weapon. Its tooltip reads so, and beta combat logs below level 40 show it; untested at level 60.',
     docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
   },
   meleeSpellProcs: {
@@ -500,20 +500,21 @@ const REGISTRY = {
     docRef: `${PAL}#open-questions`,
   },
   jotcBonus: {
-    text: 'Judgement of the Crusader’s +161 Holy damage is scaled by each hit’s spell damage coefficient and added after your own damage bonuses; untested, and the biggest uncertainty in a paladin’s Holy damage.',
+    text: 'Each Holy hit gets its spell damage coefficient’s share of Judgement of the Crusader’s +161, as beta combat logs below level 40 and a level-20 in-game test show; untested at level 60. That share is added after your own damage bonuses and before a crit doubles it, which is untested too.',
     docRef: `${PAL}#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc`,
   },
-  jotcBonusFlat: {
-    text: 'Judgement of the Crusader’s +161 Holy damage is added in full to each melee-class Holy hit (seal procs, judgements, Holy Strike), as set under Character → Advanced, and by its coefficient’s share to spells; untested, and the biggest uncertainty in a paladin’s Holy damage.',
+  // paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc: Seal of Command's share, by Holy Strike's (DU-9).
+  jotcSealOfCommand: {
+    text: 'Seal of Command’s proc gets its whole 0.29 share of Judgement of the Crusader’s bonus (+46.7), outside its 70% of weapon damage, as Holy Strike’s judgement share, its whole 0.429 (+69), comes on top of its half in beta combat logs; no log shows Seal of Command under the judgement.',
     docRef: `${PAL}#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc`,
   },
   // The Buffs tab's Judgement of the Crusader, another paladin's, with your own off (buffs doc §4.2).
   jotcRaid: {
-    text: 'Another paladin keeps Judgement of the Crusader on the boss all fight (+161 Holy damage taken), as set in Buffs with your own off; how much each of your Holy hits gets is the rule above.',
+    text: 'Another paladin keeps Judgement of the Crusader on the boss all fight (+161 Holy damage taken), as set in Buffs with your own off; each of your Holy hits gets its share, as above.',
     docRef: `${BUFFS}#42-other-debuffs`,
   },
   holyStrike: {
-    text: 'Holy Strike deals 50% of a normalized main-hand swing plus 81–105, as its tooltip reads (not 50% of the 81–105 too), plus the full 0.429 × spell damage, and its script effect adds no threat; untested.',
+    text: 'Holy Strike deals half of (a normalized main-hand swing + 81 to 105 + 0.429 × your spell damage), so 0.21 × spell damage, as beta combat logs below level 40 show; its tooltip reads as if the 81 to 105 and the spell damage came on top of the half. Its script effect adds no threat. Untested at level 60.',
     docRef: `${PAL}#other-abilities`,
   },
   consecrationTicks: {
@@ -590,15 +591,15 @@ const REGISTRY = {
     docRef: `${PAL}#other-abilities`,
   },
   hammerOfTheRighteous: {
-    text: 'Hammer of the Righteous deals 3 × your main hand’s weapon DPS with your attack power counted in, as the character sheet shows it (Character → Advanced), with no spell damage bonus; like a special attack it can miss or be dodged, parried or blocked, and crits for double. Untested.',
+    text: 'Hammer of the Righteous deals 3 × your main hand’s weapon DPS with your attack power counted in, as the character sheet shows it (as set under Character → Advanced; its tooltip reads as the weapon’s own), with no spell damage bonus; like a special attack it can miss or be dodged, parried or blocked, and crits for double. Untested.',
     docRef: `${PAL}#other-abilities`,
   },
   hammerOfTheRighteousWeaponOnly: {
-    text: 'Hammer of the Righteous deals 3 × your main hand’s own weapon DPS, without your attack power (as set under Character → Advanced), with no spell damage bonus; like a special attack it can miss or be dodged, parried or blocked, and crits for double. Untested.',
+    text: 'Hammer of the Righteous deals 3 × your main hand’s own weapon DPS, as its tooltip reads, without your attack power (Character → Advanced can count it), with no spell damage bonus; like a special attack it can miss or be dodged, parried or blocked, and crits for double. Untested.',
     docRef: `${PAL}#other-abilities`,
   },
   improvedSealOfFury: {
-    text: 'Seal of Fury’s absorb is one shield, replaced by each of its procs and used up by the next hit that costs you health, which restores Improved Seal of Fury’s mana (87 against a level-63 boss); the absorb itself isn’t taken off the hit. Untested.',
+    text: 'Seal of Fury’s absorb, Light’s Fury, is one shield of half its last proc’s damage, for 10 s: each proc replaces it, and hits you take spend it before they cost health, as beta combat logs below level 40 show. The hit that uses it up restores Improved Seal of Fury’s mana, as the logs show too; the 87 against a level-63 boss is its tooltip’s, untested at level 60.',
     docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
   },
   // docs/classes/druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.

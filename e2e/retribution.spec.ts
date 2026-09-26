@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { openLinkNotice } from './links.ts'
 
 // Retribution, the first paladin spec (track C, C2): switching to it, its Rotation, Fight and
 // Buffs tabs, a run whose results say how its seals, judgements, Consecration and mana went, and a
@@ -140,28 +141,23 @@ test.describe('Retribution', () => {
     await expect(rotation.locator('[data-apl-row="exorcism"]')).toContainText('Undead and Demons · from 20% mana')
   })
 
-  test('Judgement of the Crusader’s bonus is an untested switch under Character → Advanced (RU1)', async ({ page }) => {
+  test('Judgement of the Crusader’s share is measured, so Character → Advanced has no switch for it (M5.668 P2)', async ({ page }) => {
     await switchToRetribution(page)
     const character = await openTab(page, 'Character')
     await character.getByRole('button', { name: /^Advanced/ }).click()
-    const bonus = character.getByRole('radiogroup', { name: 'Judgement of the Crusader’s bonus' })
-    await expect(bonus.getByRole('radio', { name: 'A share' })).toBeChecked()
-    await expect(bonus).toHaveAccessibleDescription(/Untested in Forever: how much of the \+161/)
-    await bonus.getByRole('radio', { name: 'All of it' }).click()
-    await expect(character.getByText(/Default: A share/)).toBeVisible()
-    await character.getByRole('button', { name: /^Reset Judgement of the Crusader’s bonus/ }).click()
-    await expect(bonus.getByRole('radio', { name: 'A share' })).toBeFocused()
-    await expect(character.getByText(/Default: A share/)).toHaveCount(0)
-    // With Judgement of the Crusader off in Rotation, it changes nothing, and says so.
-    const rotation = await openTab(page, 'Rotation')
-    await expect(rotation.getByText('Judgement of the Crusader’s bonus')).toHaveCount(0)
-    const prepull = await rowSettings(page, rotation, 'Before the pull')
-    await prepull.scope.getByRole('switch', { name: 'Judgement of the Crusader', exact: true }).click()
-    await expect(rotation.locator('[data-apl-row="prepull"]')).toContainText('Your seal')
-    await prepull.close()
-    const again = await openTab(page, 'Character')
-    await again.getByRole('button', { name: /^Advanced/ }).click()
-    await expect(again.getByText('Not used: Judgement of the Crusader is off in Rotation.')).toBeVisible()
+    await expect(character.getByText('Count untested ratings')).toBeVisible()
+    await expect(character.getByText('Judgement of the Crusader’s bonus')).toHaveCount(0)
+    await expect(character.getByRole('radio', { name: 'All of it' })).toHaveCount(0)
+  })
+
+  test('a link that had “All of it” for Judgement of the Crusader loads with the measured share, and says so (DL-8)', async ({ page }) => {
+    const LINE = 'Judgement of the Crusader’s “All of it” setting is gone: its share is measured now.'
+    const rules = (jotcBonus: string) => ({ profile: 'forever', unmeasuredRatings: 'apply', jotcBonus })
+    await page.goto('./')
+    await expect(await openLinkNotice(page, { version: 2, spec: 'paladin-retribution', rules: rules('flat') })).toContainText(LINE)
+    await expect(page.getByRole('button', { name: /^Spec: Retribution Paladin/ })).toBeVisible()
+    // The old default's rule changes nothing, so the load says nothing about it.
+    await expect(await openLinkNotice(page, { version: 2, spec: 'paladin-retribution', rules: rules('coefficient') })).not.toContainText('All of it')
   })
 
   test('its own Judgement of the Crusader makes the Buffs tab’s, another paladin’s, its own (T2)', async ({ page }) => {

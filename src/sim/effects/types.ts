@@ -287,10 +287,11 @@ export interface AuraSpec {
   /** Charges consumed by the player's blocks (Holy Shield 4, Redoubt 5); the aura drops when they run out. */
   blockCharges?: number
   /**
-   * Charges consumed by hits taken that cost health (Seal of Fury's absorb: 1, paladin.md#protection-tree),
-   * after their damage-taken procs; the aura drops when they run out.
+   * An absorb shield (Seal of Fury's, paladin.md#seal-of-fury-sof-new-the-protection-seal): the spell that
+   * puts it up sets its amount (`SpellDef.absorb`), hits taken spend it before they cost health, and it
+   * drops when spent, after the damage-taken procs of the hit that spent it.
    */
-  takenCharges?: number
+  absorb?: boolean
   /**
    * Charges consumed by your pet's landed attacks, its swings and abilities alike, after their procs
    * (Demonic Brand: 6 at 3/3, docs/classes/warlock.md §11.3); the aura drops when they run out.

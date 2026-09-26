@@ -474,8 +474,12 @@ Armor is a flat 206. With the bear's D37 slice and a raid druid's Thorns at 47.0
 day, Balanced makes **914.4 TPS for the warrior, 750.6 for the paladin and 1,104.7 for the bear**
 (seed 31101, 100,000 fights): the warrior 21.8% over the paladin and 17.2% under the bear. All three
 are still far above every DPS spec's TPS (Fury's 492.5 is the highest), and no tank is at twice
-another. These figures predate D37's paladin slice, which moves its own numbers; the gap to the bear
-is an open question, not a finding.
+another. With D37's paladin slice (the beta-log check: Seal of Fury a flat 35 + 0.1 × SP, Holy
+Strike's flat part and spell damage inside its 50%) and the bear's Shadowcraft Cap merged the same day,
+Balanced makes **914.4 TPS for the warrior, 701.2 for the paladin and 1,088.8 for the bear** (seed
+31101, 100,000 fights): the warrior 30.4% over the paladin and 16.0% under the bear, the bear 55.3%
+over the paladin. All three are still above every DPS spec's TPS and no tank is at twice another;
+the gaps are open questions, not findings.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 **Amended by [D37](#d37-only-sourced-values-2026-09-26):** the same-wording bonus is used as is,

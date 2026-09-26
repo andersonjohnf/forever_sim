@@ -8,7 +8,8 @@ import { buildPlan } from '../plan/build'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import { SPEC_IDS } from '../specs'
 import type { SimConfig } from '../types'
-import { compareEffects, normalizeConfig } from './normalize'
+import { compareEffects, HOTR_NOW_WEAPON_ONLY, JOTC_ALL_GONE, normalizeConfig } from './normalize'
+import { CONFIG_VERSION } from './talent-trees'
 
 describe('normalizeConfig', () => {
   it('leaves every default setup untouched, with no warnings', () => {
@@ -34,7 +35,7 @@ describe('normalizeConfig', () => {
   })
 
   it('resets a config from a newer version, keeping its spec', () => {
-    const { config, warnings } = normalizeConfig({ ...defaultConfig('warrior-arms'), version: 3 })
+    const { config, warnings } = normalizeConfig({ ...defaultConfig('warrior-arms'), version: 4 })
     expect(config).toEqual(defaultConfig('warrior-arms'))
     expect(warnings).toHaveLength(1)
   })
@@ -44,7 +45,7 @@ describe('normalizeConfig', () => {
       // Retribution's default then, one point off: Improved Holy Strike and Crusade are gone, and the
       // 20-point row below Crusade loses its gate, and with it the talents under it.
       const { config, warnings, talentChange } = normalizeConfig({ version: 1, spec: 'paladin-retribution', talents: '250003-503-052052310012330311' })
-      expect(config.version).toBe(2)
+      expect(config.version).toBe(CONFIG_VERSION)
       expect(config.talents).toBe('50003-503-05205231001')
       expect(talentChange?.successor).toBeUndefined()
       expect(talentChange?.refunds.map((t) => t.name)).toEqual(['Improved Holy Strike', 'Crusade', 'Two-Handed Weapon Specialization', 'Vengeance', 'Twist of Light', 'Champion of the Light', 'Instrument of Law'])
@@ -370,17 +371,67 @@ describe('normalizeConfig', () => {
     }
   })
 
-  it('keeps a paladin’s Judgement of the Crusader rule when it’s flat, and drops it otherwise (paladin.md OQ 5)', () => {
+  it('drops a saved Judgement of the Crusader rule; one that had “All of it” says so (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc, DL-8)', () => {
     const ret = defaultConfig('paladin-retribution')
-    const rules = (jotcBonus: unknown, spec = ret) => normalizeConfig({ ...spec, rules: { ...spec.rules, jotcBonus } })
-    expect(rules('flat').config.rules).toEqual({ ...ret.rules, jotcBonus: 'flat' })
-    expect(rules('flat').warnings).toEqual([])
-    // The default is left out, so a setup that never changed it compares equal to the default.
-    expect(rules('coefficient').config.rules).toEqual(ret.rules)
-    expect(rules('always').config.rules).toEqual(ret.rules)
-    expect(rules('always').warnings).toEqual(['The Judgement of the Crusader rule wasn\'t recognised, so it was reset.'])
-    // It does nothing for a warrior.
-    expect(rules('flat', defaultConfig('warrior-fury')).config.rules).toEqual(defaultConfig('warrior-fury').rules)
+    for (const jotcBonus of ['flat', 'coefficient', 'always']) {
+      const out = normalizeConfig({ ...ret, rules: { ...ret.rules, jotcBonus } })
+      expect(out.config.rules).toEqual(ret.rules)
+      // "All of it" moved the results; the old default, and anything else, changes nothing.
+      expect(out.warnings).toEqual(jotcBonus === 'flat' ? [JOTC_ALL_GONE] : [])
+    }
+    expect(JOTC_ALL_GONE).toBe('Judgement of the Crusader’s “All of it” setting is gone: its share is measured now.')
+    // Only a paladin's setup had it.
+    const fury = defaultConfig('warrior-fury')
+    expect(normalizeConfig({ ...fury, rules: { ...fury.rules, jotcBonus: 'flat' } }).warnings).toEqual([])
+  })
+
+  it('a Protection setup from before version 3 that uses Hammer of the Righteous and never chose its reading says the default changed (paladin.md OQ 11, DL-8)', () => {
+    const prot = defaultConfig('paladin-protection')
+    const HOTR = 'paladin.protection.hammerOfTheRighteous.enabled'
+    const on = { ...prot.rotation, [HOTR]: true }
+    const load = (version: number | undefined, rotation: SimConfig['rotation'], rules: Record<string, unknown> = prot.rules) =>
+      normalizeConfig({ ...prot, version, rotation, rules })
+    expect(HOTR_NOW_WEAPON_ONLY).toBe('Hammer of the Righteous now counts your weapon’s own DPS by default; choose “With attack power” in Character → Advanced for the old reading.')
+    for (const version of [undefined, 1, 2]) {
+      const out = load(version, on)
+      expect(out.warnings, String(version)).toContain(HOTR_NOW_WEAPON_ONLY)
+      // It loads on today's default, weapon only.
+      expect(out.config.rules.hotrWeaponDps).toBeUndefined()
+      expect(out.config.version).toBe(3)
+    }
+    // Nothing changed for it: today's setup, Hammer of the Righteous off, or a reading it chose.
+    expect(load(3, on).warnings).toEqual([])
+    expect(load(2, prot.rotation).warnings).toEqual([])
+    expect(load(2, on, { ...prot.rules, hotrWeaponDps: 'withAttackPower' }).warnings).toEqual([])
+    expect(load(2, on, { ...prot.rules, hotrWeaponDps: 'withAttackPower' }).config.rules.hotrWeaponDps).toBe('withAttackPower')
+    expect(load(2, on, { ...prot.rules, hotrWeaponDps: 'weaponOnly' }).warnings).toEqual([])
+    // A Retribution setup has no Hammer of the Righteous.
+    const ret = defaultConfig('paladin-retribution')
+    expect(normalizeConfig({ ...ret, version: 2, rotation: { ...ret.rotation, [HOTR]: true } }).warnings).not.toContain(HOTR_NOW_WEAPON_ONLY)
+  })
+
+  it('says Hammer of the Righteous’s reading changed only when the plan casts it (protection.ts row 5b, DV-1)', () => {
+    const prot = defaultConfig('paladin-protection')
+    const HOTR = 'paladin.protection.hammerOfTheRighteous.enabled'
+    const STRIKE = 'paladin.protection.holyStrike.enabled'
+    const apl = rotationApl('paladin-protection')!
+    const below = moveAplRow(apl, defaultAplOrder(apl), 'hammerOfTheRighteous', defaultAplOrder(apl).indexOf('holyStrike'))!
+    const casts = (config: SimConfig) => buildPlan(config).plan.abilities.some((a) => a.id === 'hammerOfTheRighteous')
+    const cases: [string, SimConfig, boolean][] = [
+      ['a one-handed weapon, above Holy Strike (the default order)', { ...prot, rotation: { [HOTR]: true } }, true],
+      ['no main hand', { ...prot, rotation: { [HOTR]: true }, gear: { ...prot.gear, mainHand: undefined } }, false],
+      ['a two-handed axe', { ...prot, rotation: { [HOTR]: true }, gear: { ...prot.gear, mainHand: { itemId: 12784 }, offHand: undefined } }, false],
+      ['under Holy Strike', { ...prot, rotation: { [HOTR]: true }, rotationOrder: below }, false],
+      ['under Holy Strike, with Holy Strike off', { ...prot, rotation: { [HOTR]: true, [STRIKE]: false }, rotationOrder: below }, true],
+    ]
+    expect(below.indexOf('hammerOfTheRighteous')).toBeGreaterThan(below.indexOf('holyStrike'))
+    for (const [what, config, used] of cases) {
+      const now = normalizeConfig(config)
+      expect(now.warnings, what).toEqual([])
+      // The line says what the plan does: it's there exactly when the plan casts Hammer of the Righteous.
+      expect(casts(now.config), what).toBe(used)
+      expect(normalizeConfig({ ...config, version: 2 }).warnings.includes(HOTR_NOW_WEAPON_ONLY), what).toBe(used)
+    }
   })
 
   it('maps the legacy damage-taken rage ids to their new names, without a warning (rage.md#rage-from-damage-taken)', () => {

@@ -105,18 +105,24 @@ describe('worked example 2: Seal of Command’s proc damage', () => {
 })
 
 describe('worked examples 3 and 4: Judgement of Command and Judgement of Righteousness', () => {
-  it('JoC: (339–373)/2 + 0.429 × SP, 220.9 on average and 254.04 with Improved Seals; it can’t miss', () => {
-    const plan = examplePlan()
-    plan.stats.hit = -100 // every special that can miss would
-    const joc = damagesOf(plan, 'judgementOfCommand', 40)
+  it('JoC: (339–373)/2 + 0.429 × SP, 220.9 on average and 254.04 with Improved Seals; it can miss (the beta logs), never be dodged, parried or blocked', () => {
+    const joc = damagesOf(examplePlan(), 'judgementOfCommand', 40)
     expect(Math.min(...joc)).toBeGreaterThanOrEqual(169.5 + 42.9 - 1e-6)
     expect(Math.max(...joc)).toBeLessThanOrEqual(186.5 + 42.9 + 1e-6)
     expectMean(joc, 220.9)
-    const sim = new Sim(plan)
-    sim.runFight(0)
-    expect(counter(sim, plan, 'judgementOfCommand', FIELD.misses)).toBe(0)
-    expect(counter(sim, plan, 'judgementOfCommand', FIELD.casts)).toBeGreaterThan(5)
     expectMean(damagesOf(examplePlan({ talents: IMPROVED_SEALS }), 'judgementOfCommand', 40), 254.035)
+    const missing = examplePlan()
+    missing.stats.hit = -100 // every special that can miss does
+    const sim = new Sim(missing)
+    sim.runFight(0)
+    expect(counter(sim, missing, 'judgementOfCommand', FIELD.casts)).toBeGreaterThan(5)
+    expect(counter(sim, missing, 'judgementOfCommand', FIELD.misses)).toBe(counter(sim, missing, 'judgementOfCommand', FIELD.casts))
+    const avoiding = examplePlan()
+    avoiding.fight.bossCanDodge = true
+    avoiding.fight.bossCanParry = true
+    const sim2 = new Sim(avoiding)
+    for (let i = 0; i < 20; i++) sim2.runFight(i)
+    expect(counter(sim2, avoiding, 'judgementOfCommand', FIELD.dodges) + counter(sim2, avoiding, 'judgementOfCommand', FIELD.parries)).toBe(0)
   })
 
   it('JoR r8 at 60: (170–186) + 0.5 × SP, 228 on average and 262.2 with Improved Seals; it can miss', () => {
@@ -140,10 +146,10 @@ describe('worked examples 3 and 4: Judgement of Command and Judgement of Righteo
 })
 
 describe('worked example 5: Holy Strike', () => {
-  it('is 0.50 × normalized main hand + 81–105 + 0.429 × SP = 402.33 (its tooltip’s reading); with Sacred Arbiter 482.79, from 438.84 to 526.74; armor doesn’t touch it', () => {
+  it('is 0.50 × (normalized main hand + 81–105 + 0.429 × SP) = 334.38 (the beta logs); with Sacred Arbiter 401.25, from 364.28 to 438.23; armor doesn’t touch it', () => {
     const fixed = examplePlan({ core: false, weapon: { min: 250, max: 250, speedSec: 3.5 } })
     once(fixed, HOLY_STRIKE_ABILITY)
-    expectMean(damagesOf(fixed, 'holyStrike', 400), 402.329)
+    expectMean(damagesOf(fixed, 'holyStrike', 400), 0.5 * (250 + (1200 * 3.3) / 14 + 93 + 0.429 * 100))
     const arbiter = (armor: number) => {
       const plan = examplePlan({ core: false, talents: { 'Sacred Arbiter': 1 } })
       plan.fight.targetArmor = armor
@@ -151,9 +157,9 @@ describe('worked example 5: Holy Strike', () => {
       return damagesOf(plan, 'holyStrike', 400)
     }
     const hs = arbiter(0)
-    expect(Math.min(...hs)).toBeGreaterThanOrEqual(438.84 - 0.01)
-    expect(Math.max(...hs)).toBeLessThanOrEqual(526.74 + 0.01)
-    expectMean(hs, 482.794)
+    expect(Math.min(...hs)).toBeGreaterThanOrEqual(364.28 - 0.01)
+    expect(Math.max(...hs)).toBeLessThanOrEqual(438.23 + 0.01)
+    expectMean(hs, 1.2 * 0.5 * (250 + (1200 * 3.3) / 14 + 93 + 0.429 * 100))
     expect(arbiter(5000)).toEqual(hs)
   })
 })
@@ -164,12 +170,12 @@ describe('worked example 6: Seal of Righteousness', () => {
     withSeal(plan, SEAL_OF_RIGHTEOUSNESS, talents)
     return damagesOf(plan, 'sealOfRighteousnessProc')
   }
-  it('deals 35 + 1.2 × 18.80 × 3.5 + 0.1 × SP = 123.96 on every landed swing with a two-hander, 142.55 with Improved Seals, 100.93 one-handed', () => {
+  it('deals 1.2 × 18.80 × 3.5 + 0.1 × SP = 88.96 on every landed swing with a two-hander, 102.30 with Improved Seals, 65.93 one-handed', () => {
     const twoHand = sor(true)
     expect(twoHand.length).toBe(Math.ceil(60000 / 3500))
-    for (const d of twoHand) expect(d).toBeCloseTo(123.96, 9)
-    expect(sor(true, IMPROVED_SEALS)[0]).toBeCloseTo(142.554, 9)
-    expect(sor(false)[0]).toBeCloseTo(100.93, 9)
+    for (const d of twoHand) expect(d).toBeCloseTo(88.96, 9)
+    expect(sor(true, IMPROVED_SEALS)[0]).toBeCloseTo(102.304, 9)
+    expect(sor(false)[0]).toBeCloseTo(65.93, 9)
   })
 })
 
@@ -321,8 +327,8 @@ describe('Hammer of Wrath’s 1 s cast, without Instrument of Law [?] (paladin.m
   })
 })
 
-describe('worked example 11: Judgement of the Crusader’s bonus (the default coefficient rule)', () => {
-  it('adds 161 × 0.429 = 69.07 to an Exorcism and 161 × 0.203 = 32.68 to a Seal of Command proc', () => {
+describe('worked example 11: Judgement of the Crusader’s bonus', () => {
+  it('adds 161 × 0.429 = 69.07 to an Exorcism and 161 × 0.29 = 46.69 to a Seal of Command proc, its whole coefficient', () => {
     const fixed = { min: 250, max: 250, speedSec: 3.5 }
     const plan = (jotc: boolean) => {
       const p = examplePlan({ weapon: fixed, core: false })
@@ -334,7 +340,7 @@ describe('worked example 11: Judgement of the Crusader’s bonus (the default co
     const exo = (jotc: boolean) => avg(damagesOf(plan(jotc), 'exorcism', 200))
     expect(exo(true) - exo(false)).toBeCloseTo(161 * 0.429, 0)
     const soc = (jotc: boolean) => damagesOf(plan(jotc), 'sealOfCommandProc')[0]
-    expect(soc(true) - soc(false)).toBeCloseTo(161 * 0.203, 9)
+    expect(soc(true) - soc(false)).toBeCloseTo(161 * 0.29, 9)
   })
 
   it('lasts 40 s, always lands, is one per paladin with the other judgement debuffs, and your auto attacks refresh it', () => {
@@ -350,14 +356,22 @@ describe('worked example 11: Judgement of the Crusader’s bonus (the default co
 })
 
 describe('worked example 13: Seal of Fury and Judgement of Fury (Protection)', () => {
-  it('at SP 300 with a 2.7 s one-hander: 35 + 0.85 × 16.91 × 2.7 + 30 = 103.81 Holy a landed swing, 166.10 threat with Righteous Fury; JoF 295 on average, 339.25 with Improved Seals', () => {
+  it('at SP 300: 35 + 30 = 65 Holy a landed swing whatever the weapon, 104 threat with Righteous Fury; JoF 295 on average, 339.25 with Improved Seals', () => {
+    for (const weapon of [
+      { min: 150, max: 150, speedSec: 2.7, twoHand: false },
+      { min: 60, max: 60, speedSec: 1.5, twoHand: false },
+      { min: 250, max: 250, speedSec: 3.5, twoHand: true },
+    ]) {
+      const plan = examplePlan({ spec: 'paladin-protection', sp: 300, weapon })
+      expect(plan.holyThreatMult).toBeCloseTo(1.6, 12)
+      const sim = new Sim(plan)
+      sim.runFight(0)
+      const procs = counter(sim, plan, 'sealOfFuryProc', FIELD.hits)
+      expect(procs).toBeGreaterThan(0)
+      expect(counter(sim, plan, 'sealOfFuryProc', FIELD.damage) / procs).toBeCloseTo(65, 9)
+      expect(counter(sim, plan, 'sealOfFuryProc', FIELD.threat) / procs).toBeCloseTo(104, 9)
+    }
     const plan = examplePlan({ spec: 'paladin-protection', sp: 300, weapon: { min: 150, max: 150, speedSec: 2.7, twoHand: false } })
-    expect(plan.holyThreatMult).toBeCloseTo(1.6, 12)
-    const sim = new Sim(plan)
-    sim.runFight(0)
-    const procs = counter(sim, plan, 'sealOfFuryProc', FIELD.hits)
-    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.damage) / procs).toBeCloseTo(35 + 0.85 * 16.91 * 2.7 + 30, 9)
-    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.threat) / procs).toBeCloseTo((35 + 0.85 * 16.91 * 2.7 + 30) * 1.6, 9)
     expectMean(damagesOf(plan, 'judgementOfFury', 40), 160 + 135)
     const improved = examplePlan({ spec: 'paladin-protection', sp: 300, talents: IMPROVED_SEALS })
     expectMean(damagesOf(improved, 'judgementOfFury', 40), 339.25)

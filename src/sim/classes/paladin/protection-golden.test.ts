@@ -131,6 +131,14 @@ describe('golden run (fixed config and seed)', () => {
   //   Restoration druid's 313 spell damage, 22 + 0.08 × 313 = 47.04 a landed swing, was 38. Only the
   //   Thorns row moves: both goldens 744.81 → 748.52 TPS, 460.34 → 463.98 DPS. With Thorns set back to
   //   38, this snapshot reproduces exactly.
+  // - The beta-log check (paladin.md#the-beta-log-check-2026-09-26), step 1: Seal of Fury's proc is a
+  //   flat 35 + 0.1 × SP (its weapon-speed dummy zero), and its absorb comes off the next hit taken.
+  //   Both goldens 744.81 → 716.32 TPS, 460.34 → 442.88 DPS, damage taken 918.7 → 900.2 a second.
+  //   Step 3: Holy Strike's flat part and spell damage inside its 50%, as the beta logs show: TPS
+  //   716.32 → 695.29, DPS 442.88 → 432.57.
+  // - Merging the beta-log check with the bear slice's Thorns (2026-09-26): both at once, both goldens
+  //   695.29 → 699.00 TPS, 432.57 → 436.21 DPS, damage taken 900.2 a second unchanged. With Thorns set
+  //   back to 38, the beta-log check's snapshot reproduces exactly.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

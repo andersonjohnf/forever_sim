@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { openLinkNotice } from './links.ts'
 
 // The Protection paladin, shipped in C3, as a visitor gets to it: from the spec switcher, its
 // Rotation tab's presets (decisions D26, D28: Balanced by default, Defensive and Max TPS), the Buffs
@@ -182,24 +183,22 @@ test.describe('Protection paladin', () => {
     await expect(jotc).toBeChecked()
     await expect(jotc).toBeDisabled()
     await expect(jotc).toHaveAccessibleDescription(YOURS_JOTC)
-    // Character → Advanced: the JotC rule is in use; Hammer of the Righteous's is dimmed while it's off
-    // in Rotation, as every preset has it (D28).
+    // Character → Advanced: no JotC switch (its share is measured); Hammer of the Righteous's rule is
+    // dimmed while it's off in Rotation, as every preset has it (D28).
     await openTab(page, 'Rotation')
     await pickPreset(page, 'Defensive')
     const character = await openTab(page, 'Character')
     await character.getByRole('button', { name: /^Advanced/ }).click()
-    const bonus = character.getByRole('radiogroup', { name: 'Judgement of the Crusader’s bonus' })
-    await expect(bonus).toHaveAccessibleDescription(/how much of the \+161 Holy damage each Holy hit gets.*Seal of Fury proc 10%/)
-    await expect(character.getByText('Not used: Judgement of the Crusader is off in Rotation.')).toHaveCount(0)
+    await expect(character.getByText('Judgement of the Crusader’s bonus')).toHaveCount(0)
     const hammer = character.getByRole('radiogroup', { name: 'Hammer of the Righteous’s weapon DPS' })
-    await expect(hammer.getByRole('radio', { name: 'With attack power' })).toBeChecked()
+    await expect(hammer.getByRole('radio', { name: 'Weapon only' })).toBeChecked()
     await expect(character.getByText('Not used: Hammer of the Righteous is off in Rotation.')).toBeVisible()
-    await hammer.getByRole('radio', { name: 'Weapon only' }).click()
-    await expect(character.getByText(/Default: With attack power/)).toBeVisible()
+    await hammer.getByRole('radio', { name: 'With attack power' }).click()
+    await expect(character.getByText(/Default: Weapon only/)).toBeVisible()
     await character.getByRole('button', { name: /^Reset Hammer of the Righteous’s weapon DPS/ }).click()
-    await expect(hammer.getByRole('radio', { name: 'With attack power' })).toBeFocused()
-    // With Hammer of the Righteous on in Rotation, its rule is in use; with your judgement off, the JotC rule isn't,
-    // and the Buffs tab's becomes another paladin's, off.
+    await expect(hammer.getByRole('radio', { name: 'Weapon only' })).toBeFocused()
+    // With Hammer of the Righteous on in Rotation, its rule is in use; with your judgement off, the Buffs
+    // tab's becomes another paladin's, off.
     const rotation = await openTab(page, 'Rotation')
     await rotation.getByRole('switch', { name: 'Hammer of the Righteous', exact: true }).click()
     const prepull = await prepullSettings(page, rotation)
@@ -211,7 +210,6 @@ test.describe('Protection paladin', () => {
     const again = await openTab(page, 'Character')
     await again.getByRole('button', { name: /^Advanced/ }).click()
     await expect(again.getByText('Not used: Hammer of the Righteous is off in Rotation.')).toHaveCount(0)
-    await expect(again.getByText('Not used: Judgement of the Crusader is off in Rotation.')).toBeVisible()
   })
 
   test('a run reads as a paladin tank’s: TPS and DPS, damage taken, Holy Shield, mana and the boss’s table', async ({ page }) => {
@@ -250,6 +248,31 @@ test.describe('Protection paladin', () => {
     await expect(buffs.getByRole('switch', { name: 'Devotion Aura', exact: true })).toBeEnabled()
     expect(new URL(other.url()).hash).toBe('')
     await other.context().close()
+  })
+
+  test('a link from before Hammer of the Righteous counted the weapon’s own DPS says the default changed, and one with “All of it” that it’s gone (DL-8)', async ({ page }) => {
+    const HOTR = 'paladin.protection.hammerOfTheRighteous.enabled'
+    const HOTR_LINE = 'Hammer of the Righteous now counts your weapon’s own DPS by default; choose “With attack power” in Character → Advanced for the old reading.'
+    const JOTC_LINE = 'Judgement of the Crusader’s “All of it” setting is gone: its share is measured now.'
+    const rules = { profile: 'forever', unmeasuredRatings: 'apply' }
+    await page.goto('./')
+    const notice = await openLinkNotice(page, { version: 2, spec: 'paladin-protection', rotation: { [HOTR]: true }, rules: { ...rules, jotcBonus: 'flat' } })
+    await expect(notice).toContainText(HOTR_LINE)
+    await expect(notice).toContainText(JOTC_LINE)
+    await expect(page.getByRole('button', { name: /^Spec: Protection Paladin/ })).toBeVisible()
+    // It loaded on today's default reading, which the setting shows.
+    const character = await openTab(page, 'Character')
+    await character.getByRole('button', { name: /^Advanced/ }).click()
+    const hammer = character.getByRole('radiogroup', { name: 'Hammer of the Righteous’s weapon DPS' })
+    await expect(hammer.getByRole('radio', { name: 'Weapon only' })).toBeChecked()
+    await expect(character.getByText('Not used: Hammer of the Righteous is off in Rotation.')).toHaveCount(0)
+    // Today's link, or an old one that chose its reading, has nothing to say about it.
+    await expect(await openLinkNotice(page, { version: 3, spec: 'paladin-protection', rotation: { [HOTR]: true } })).not.toContainText('Hammer of the Righteous')
+    const chose = await openLinkNotice(page, { version: 2, spec: 'paladin-protection', rotation: { [HOTR]: true }, rules: { ...rules, hotrWeaponDps: 'withAttackPower' } })
+    await expect(chose).not.toContainText('Hammer of the Righteous')
+    const again = await openTab(page, 'Character')
+    await again.getByRole('button', { name: /^Advanced/ }).click()
+    await expect(again.getByRole('radiogroup', { name: 'Hammer of the Righteous’s weapon DPS' }).getByRole('radio', { name: 'With attack power' })).toBeChecked()
   })
 })
 

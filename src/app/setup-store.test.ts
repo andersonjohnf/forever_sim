@@ -265,7 +265,7 @@ describe('the automatic save follows the defaults', () => {
     ])
     expect(update.change?.refunds.reduce((n, r) => n + r.points, 0)).toBe(15)
     // The load saved it on today's trees, so the next one has nothing to say.
-    expect(saved().config).toMatchObject({ version: 2, talents: '50003-503-05205231001' })
+    expect(saved().config).toMatchObject({ version: 3, talents: '50003-503-05205231001' })
     await load()
     expect(takeDefaultsUpdates()).toEqual([])
   })
@@ -282,7 +282,7 @@ describe('the automatic save follows the defaults', () => {
       { spec: 'paladin-retribution', gear: false, talents: false, change: { refunds: [], successor: { label: 'the Retribution default', now: 'today’s default', spec: 'paladin-retribution' } } },
     ])
     // Saved on today's trees: today's default, so it follows the default from now on, and says nothing again.
-    expect(saved().config).toMatchObject({ version: 2, talents: d.talents })
+    expect(saved().config).toMatchObject({ version: 3, talents: d.talents })
     expect(saved().following['paladin-retribution'].talents).toBe(true)
     await load()
     expect(takeDefaultsUpdates()).toEqual([])

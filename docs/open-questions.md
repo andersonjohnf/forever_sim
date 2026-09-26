@@ -675,15 +675,18 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [Q3](classes/druid.md#10-open-questions)
 
 #### B18. Judgement of the Crusader: flat or coefficient-scaled bonus
-**High · M5 · ≤20**
-- **Assumes:** each Holy hit gets `161 × c`, where `c` is its spell-power coefficient [?], added
-  after your own damage multipliers and before a crit's [?]. The alternative, a flat +161 per
-  Holy hit, roughly doubles JotC's value. The paladin doc calls this the biggest single
-  uncertainty for Ret DPS.
-- **Test:** JoC, Seal of Command proc and Holy Strike damage with and without your own JotC on
-  the target (any rank available), then the same with Vengeance stacked.
-- **Samples:** ≥30 non-crit hits of each, with and without.
-- **Changes:** the JotC engine switch; Ret DPS and every player's Holy damage.
+**Medium · M5 · ≤20**
+- **Settled (2026-09-26):** each Holy hit gets `bonus × c`, `c` its client spell-power coefficient,
+  whole (outside a weapon percentage): the beta logs, 23 hits from 6 characters, 1.001 ± 0.039; the
+  user's level-20 test rules out the flat reading [F]. The "All of it" switch is gone.
+- **Assumes:** Seal of Command's share is its whole 0.29, by Holy Strike's [?]; the share comes
+  after your own damage multipliers and before a crit's [?]. Unexplained: the user's single hits,
+  Holy Strike 36 under JotC where the share predicts 42, and 43 with Seal of Fury up too [?].
+- **Test:** Seal of Command proc damage with and without your own JotC on the target, then the
+  same with Vengeance stacked; Holy Strike with no judgement, with JotC, and with JotC and Seal of
+  Fury up.
+- **Samples:** ≥30 non-crit hits of each, with and without; ≥10 Holy Strikes a state.
+- **Changes:** Retribution DPS (Seal of Command's share).
 - **Docs:** [paladin § JotC](classes/paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc),
   [OQ 5](classes/paladin.md#open-questions);
   [buffs §4.2](mechanics/buffs-debuffs-consumables.md#42-other-debuffs)
@@ -699,17 +702,22 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Docs:** [paladin § SoC](classes/paladin.md#seal-of-command-soc),
   [OQ 1](classes/paladin.md#open-questions)
 
-#### B20. Seal of Fury per-hit damage
+#### B20. Seal of Fury per-hit damage and absorb
 **High · M5 · ≤20 (ranks from level 10)**
-- **Assumes:** +35 Holy per landed white hit at rank 7 [F tooltip], plus the aura's SoR-style
-  weapon-speed value (1607 + 42/level: `0.85 × 16.91 × speed` one-handed) on top [?], and 0.1 × SP.
-  Seal of Righteousness's proc carries the same 35 and is read the same way (B67).
-  Absorb stacking [?]; Improved Seal of Fury's mana (the client's rank text reads 60, which
-  foreverchanges printed as 0) [?].
-- **Test:** highest rank available, two weapons of different speed: average proc damage vs the
-  tooltip's flat value; watch absorb stacking and mana on a full absorb.
-- **Samples:** ≥30 procs per weapon.
-- **Changes:** the SoF model, the main Prot paladin threat source.
+- **Settled (2026-09-26):** 35 Holy + 0.1 × SP per landed white hit at rank 7, whatever the weapon
+  [F tooltip, client], measured in the beta logs (179 of 179 procs from 24 characters,
+  [paladin § SoF](classes/paladin.md#the-beta-logs-seal-of-fury)); the aura's undescribed
+  weapon-speed dummy adds nothing.
+- **Settled (2026-09-26), the absorb:** Light's Fury (1310927), all schools, 10 s [F client]; one
+  absorb of 50% of the last proc's damage, which each proc replaces (214 of 224 absorbs; none fits a
+  sum) and hits you take spend; Improved Seal of Fury's mana comes with the hit that uses it up (221
+  of 224), measured in the beta logs ([paladin § Light's Fury](classes/paladin.md#the-beta-logs-lights-fury)).
+- **Assumes:** Improved Seal of Fury's mana at level 60 (the client's rank text reads 60, which
+  foreverchanges printed as 0), 87 against a level-63 boss [?].
+- **Test:** at level 60, Seal of Fury up with a shield: the mana each Improved Seal of Fury restore
+  gives against mobs of your level and three above.
+- **Samples:** ≥30 restores per state.
+- **Changes:** Improved Seal of Fury's mana, which funds a Protection paladin's rotation.
 - **Docs:** [paladin § SoF](classes/paladin.md#seal-of-fury-sof-new-the-protection-seal),
   [OQ 10](classes/paladin.md#open-questions);
   [threat § paladin](mechanics/threat.md#paladin)
@@ -1038,13 +1046,15 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **Medium · M5 · ≤20**
 - **Assumes:** SoC procs roll the full special table (miss, dodge, parry, block, crit ×2) [F
   data; ? dodge and parry reading]; JoR and JoF can miss but not be dodged, parried or
-  blocked, and crit ×2 [F data; one third-party log]; **JoC can't miss**: its damage spell
-  20966 carries Always Hit, though the dummy 20968 that casts it doesn't [F client `SpellMisc`,
-  found by the client-data check (D18); whether the server honours it ?]; level-based partial
-  resists on melee-class Holy vs +3 [?].
-- **Test:** from the front vs mobs three levels higher, log SoC procs and JoC/JoR outcomes (a
-  single JoC miss disproves Always Hit; JoR is the control); compare average SoC damage vs +3
-  and +0 mobs.
+  blocked, and crit ×2 [F data; one third-party log]; **JoC can miss too**: its damage spell
+  20966 carries Always Hit, but the dummy 20968 that casts it doesn't [F client `SpellMisc`], and
+  in the beta logs the dummy misses (10 of 43, 5 characters; 2026-09-26), so the sim rolls it the
+  melee special miss chance [?]. Which table the judgements roll is open: in those logs they missed
+  30% (17 of 56) where the same characters' Holy Strikes missed 11% and white swings 6%, which fits a
+  spell-like table better [?]; level-based partial resists on melee-class Holy vs +3 [?].
+- **Test:** from the front vs mobs three levels higher, log SoC procs and judgement outcomes (the
+  judgements' miss rate against Holy Strike's, the melee control, with and without +spell hit and
+  +melee hit gear); compare average SoC damage vs +3 and +0 mobs.
 - **Samples:** ≥300 SoC procs; ≥200 JoC and ≥50 JoR judgements.
 - **Changes:** Ret hit tables and resist averaging.
 - **Docs:** [paladin § SoC](classes/paladin.md#seal-of-command-soc),
@@ -1372,13 +1382,14 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B67. Seal of Righteousness formula
 **Low · M5 · ≤20**
-- **Assumes:** Forever's flat 35 (proc 25713's base, 0 in Classic Era) [F] plus two-hander
-  `1.20 × v × speed`, one-hander `0.85 × v × speed`, plus 0.1 × SP, with v = 18.80 at 60 [C/?]; the
-  35 on top of the seal value, as Seal of Fury's (B20) [?]; the TBC-era `+0.03 × weapon average`
+- **Assumes:** two-hander `1.20 × v × speed`, one-hander `0.85 × v × speed`, with v = 18.80 at
+  60, and not the proc's base points (35 at rank 8): the beta logs at ranks 1–4 [C/?]; 0.1 × SP at
+  rank 8, the proc's 0.1 plus the aura dummy's none there [F]; at ranks 1–4 the logs' 0.2 (16 procs
+  from 4 characters) is the proc's 0.1 plus the dummy's 0.1 [?]; the TBC-era `+0.03 × weapon average`
   term is refused.
-- **Test:** SoR procs with two two-handers of different speed and one one-hander, no spell
-  power; then add spell power.
-- **Samples:** ≥30 procs per weapon.
+- **Test:** SoR procs at level 60 with a known weapon, with and without +100 spell damage (0.1 × SP
+  adds 10 a proc; 0.2 would add 20).
+- **Samples:** ≥50 procs per state.
 - **Changes:** SoR (the alternative seal and twisting partner).
 - **Docs:** [paladin § SoR](classes/paladin.md#seal-of-righteousness-sor),
   [OQ 4](classes/paladin.md#open-questions)
@@ -2110,7 +2121,7 @@ doc).
 What raw client files can't settle stays in Routes B and C: server-side behaviour (PPM rates,
 what a dummy effect does, whether the server honours an attribute) and anything a hotfix changed
 ([client.md § hotfix caveat](data/client.md#hotfix-caveat)). The partial matches added checks
-to [B41](#b41-soc-and-judgement-avoidance-partial-resists-on-melee-class-holy) (JoC can't miss),
+to [B41](#b41-soc-and-judgement-avoidance-partial-resists-on-melee-class-holy) (JoC's miss, which the beta logs later showed),
 [C11](#c11-windfury-totem) (Windfury's 100 ms internal cooldown) and
 [C12](#c12-new-elixirs-and-frenzy-potions) (Frenzy potions share the potion cooldown). For a
 new build, re-run `npm run scrape:client -- --claims` instead of checking in a browser.

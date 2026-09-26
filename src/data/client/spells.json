@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 51,
       "consumable": 82,
-      "docs": 624,
+      "docs": 626,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 884,
     "notInClient": 1,
-    "seeds": 2856,
-    "spells": 3130
+    "seeds": 2858,
+    "spells": 3132
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -131861,6 +131861,56 @@
         "targets": 64
       }
     },
+    "1280353": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [8, 0]
+      },
+      "classOptions": {
+        "spellClassMask": [32, 0, 0, 0],
+        "spellClassSet": 10
+      },
+      "duration": {
+        "duration": 600,
+        "maxDuration": 600
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectBonusCoefficient": 0.095,
+          "effectIndex": 0,
+          "effectRadiusIndex": [0, 14],
+          "implicitTarget": [87, 16]
+        },
+        {
+          "effect": 6,
+          "effectAura": 270,
+          "effectIndex": 1,
+          "effectMiscValue": [2, 0],
+          "effectRadiusIndex": [0, 14],
+          "implicitTarget": [87, 16]
+        }
+      ],
+      "id": 1280353,
+      "levels": {
+        "baseLevel": 1,
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [0, 136, 1073741824, 1073741824, 32896, 1024, 0, 0, 4096, 1048584, 0, 0, 0, 129, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 135926
+      },
+      "name": "Consecration",
+      "range": {
+        "rangeMax": [50000, 50000]
+      },
+      "sources": ["docs"],
+      "targetRestrictions": {
+        "targets": 64
+      }
+    },
     "1282590": {
       "duration": {
         "duration": 15000,
@@ -138025,6 +138075,40 @@
       },
       "name": "Shield Specialization",
       "sources": ["docs", "trigger"]
+    },
+    "1310927": {
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 10
+      },
+      "duration": {
+        "duration": 10000,
+        "maxDuration": 10000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 69,
+          "effectIndex": 0,
+          "effectMiscValue": [127, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "equippedItems": {
+        "equippedItemClass": 4,
+        "equippedItemSubclass": 64
+      },
+      "id": 1310927,
+      "misc": {
+        "attributes": [262144, 0, 0, 0, 1048576, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 134951
+      },
+      "name": "Light's Fury",
+      "sources": ["docs"]
     },
     "1310949": {
       "classOptions": {

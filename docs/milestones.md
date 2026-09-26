@@ -196,12 +196,18 @@ research only). They ship as soon as the gate passes, ahead of the tooltips.
 
 What the beta logs and the first guild test (the user's level-20 paladin, 2026-09-25) settle for
 paladins; the research is in the Judgement of the Crusader notes (B18).
-- [ ] **P1 Seal of Fury flat:** 35 + 0.1 × SP per hit, dropping the weapon-speed term the logs
-      disprove (rank 1 hits 6 every time, whatever the weapon); Protection Paladin re-tuned
-- [ ] **P2 Judgement of the Crusader:** each Holy hit's share (coefficient × bonus), measured; the
+- [x] **P1 Seal of Fury flat:** 35 + 0.1 × SP per hit, dropping the weapon-speed term the logs
+      disprove (rank 1 hits 6 every time, whatever the weapon); Protection Paladin re-tuned. Its
+      absorb now comes off the next hit taken. With the log check's other paladin findings: Seal of
+      Righteousness the seal value alone + 0.1 × SP at rank 8, Holy Strike's flat part and spell damage inside
+      its 50%, Judgement of Command can miss, Retribution Aura's coefficient left open
+      ([the beta-log check](classes/paladin.md#the-beta-log-check-2026-09-26): Protection 746.8 →
+      697.3 TPS, Retribution 608.6 → 597.3 DPS; first-pass re-checks hold the defaults)
+- [x] **P2 Judgement of the Crusader:** each Holy hit's share (coefficient × bonus), measured; the
       "All of it" switch removed (user decision); Seal of Command's share 0.29 outside its 70%
-- [ ] **P3 Provenance:** every "guild benchmark" or "guild test" label that isn't one corrected
-      (user, 2026-09-25: the guild had run no tests before that one)
+- [x] **P3 Provenance:** every "guild benchmark" or "guild test" label that isn't one corrected
+      (user, 2026-09-25: the guild had run no tests before that one); Hammer of the Righteous's
+      weapon DPS defaults to the tooltip's reading, without attack power
 
 ## M5.669: Only sourced values 🚧 next update
 

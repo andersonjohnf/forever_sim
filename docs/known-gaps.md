@@ -118,9 +118,9 @@ slice is worked:
     paladin's TPS as Undead; the default race is Human, so no default moves.
   - **A7:** Eye for an Eye (Holy damage × Righteous Fury [?]) isn't simulated; no default build
     takes it.
-  - **A10 (survival only):** Seal of Fury's absorb isn't taken off the hit it absorbs (~20 damage,
-    about −5 damage taken a second), Force of Will's 51-damage cut (~5% [?]) isn't simulated, and
-    Templar's Bulwark and Divine Protection aren't used.
+  - **A10 (survival only):** Force of Will's 51-damage cut (~5% [?]) isn't simulated, and
+    Templar's Bulwark and Divine Protection aren't used. (Seal of Fury's absorb comes off the hit it
+    absorbs since the beta-log check.)
   - **A11:** mana-gain threat doesn't take the global multiplier [?] (+0.1%).
 - **Interim Protection paladin gear** (T2; T2R-2's fix): the Lamellar PvP pieces are Alliance's with
   no Horde twin, so a Horde paladin wears the Horde picks measured for those slots (the Premier

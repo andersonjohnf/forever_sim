@@ -141,17 +141,32 @@ and their values are in [buffs-debuffs-consumables.md](buffs-debuffs-consumables
 No Forever raid boss has been logged yet (Forever's raids open on 2026-12-09), so the default is a
 Classic Era analog measured from a public log, physical melee only (user decision,
 [D38 #11](../decisions.md#d38-the-values-audits-calls-2026-09-26)): **Golemagg the Incinerator**
-in Molten Core, whose tank takes only its melee. It's `[?]`: a closest similar value from an
+in Molten Core, a boss whose tank is hit by its melee, the only part measured here (what else the
+tank took is below). It's `[?]`: a closest similar value from an
 allowed source, used as is ([doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)'s
 fallback order).
 
 - **Source.** A Classic Era public log on Warcraft Logs: a rank-100 normal-mode Golemagg kill of
   0:40, its tank Mangox, shared by the user on 2026-09-26 ([wcl-golemagg]).
 - **Method.** Each landed melee swing's unmitigated amount, the log's "U": the swing before armor
-  and before the crit or crushing multiplier. Two swings check it at the fight's 58.2% armor
-  reduction: a crit of 2,008 = 2 × 2,402 × 0.418, and a crushing blow of 1,467 = 1.5 × 2,304 ×
-  0.4244. The boss had Curse of Recklessness on it, whose attack power adds about 13 a swing by the
-  `AP / 14 × swing speed` rule above, and no Thunder Clap or Demoralizing Shout.
+  and before the crit or crushing multiplier. Two swings check it, each at its own armor factor
+  (the share of the swing the tank's armor lets through): a crit of 2,008 = 2 × 2,402 × 0.418 (58.2%
+  reduction, about 8,013 armor against the boss's 5,755 constant), and a crushing blow of 1,467 = 1.5
+  × 2,304 × 0.4244 (57.6% reduction, about 7,805 armor). With one factor for both, the crushing blow
+  would be 1,445 at 0.418 (JL-8). So the tank's armor was about 208 lower at the crushing blow than
+  at the crit. The log wasn't read for why: an armor debuff on the tank, or an armor buff that ended
+  between the two, would do it. Classic Era's client has one Golemagg-named candidate, **Magma
+  Splash** (13879, a melee proc at 25%, triggering 13880: 93–107 Fire damage, then 50 Fire every
+  3 s and −250 armor, stacking to 50 [C] client 1.15.9.69722), but which creature uses a spell is
+  server-side, so the log has to show it ([OQ 3](#open-questions)). Either way U doesn't depend on
+  it: each check reads its own swing's armor, and both give the multiplier on U the log's "U"
+  implies (×2 for the crit, ×1.5 for the crushing blow). The boss had Curse of Recklessness on it,
+  whose attack power adds about 13 a swing by the `AP / 14 × swing speed` rule above, and no Thunder
+  Clap or Demoralizing Shout.
+- **What else the tank took.** Only the melee swings were read. If Golemagg's melee carries Magma
+  Splash, the tank also took its Fire damage, which the sim doesn't model (§5's table: spells and
+  special attacks aren't); the log's other damage to the tank is an open question
+  ([OQ 3](#open-questions)).
 - **Sample.** 24 landed swings: 2,556, 2,617, 2,362, 2,700, 2,275, 2,249, 2,713, 2,820, 2,504,
   3,167, 3,033, 3,033, 2,520, 2,496, 2,335, 2,304, 2,274, 2,738, 2,938, 2,807, 2,402, 2,820, 2,889
   and 2,696. Mean 2,635, standard deviation 270, lowest 2,249, highest 3,167. The steady swing
@@ -160,7 +175,11 @@ fallback order).
   the sample's: the observed 2,249–3,167, widened at each end by one average gap between the sorted
   swings, (3,167 − 2,249) ÷ 23 ≈ 40, the usual estimate of a uniform's ends from its draws: 2,209–3,207,
   to the nearest hundred **2,200–3,200** (mean 2,700). Curse of Recklessness's 13 is inside the
-  rounding. It replaces a stand-in of 4,500–5,500 (mean 5,000, from "Classic-era raid bosses hit a
+  rounding: without it the ends are 2,196–3,194, the same 2,200–3,200, so the range stands for the
+  swing with no curse on the boss, and each rules profile adds its own on top. Forever's Curse of
+  Recklessness gives the boss no attack power (`curseOfRecklessnessBossAp: 0`); Classic Era rules'
+  gives 90, about 13 a swing, which is that profile's curse and not a second count of the log's
+  (JL-8). It replaces a stand-in of 4,500–5,500 (mean 5,000, from "Classic-era raid bosses hit a
   well-geared tank for about 1,500–2,500 after armor").
 - **Left out.** The log also shows extra swings 15–35 ms after a swing, near its double, and a
   faster run late in the fight. The user reads both as Golemagg's own (user decision, 2026-09-26:
@@ -351,6 +370,11 @@ convention [?]).
    - **The extra swings:** the Golemagg log's near-double swings 15–35 ms after a swing, and its
      faster late run, are left out as Golemagg's own. A Forever boss that shows them would need
      them modelled.
+   - **The Golemagg log's armor and other damage** (JL-8): the crit and the crushing blow that check
+     U imply about 8,013 and 7,805 armor on the tank. Read the tank's buffs and debuffs in the log
+     (a stacking Magma Splash, 13880's −250 armor, or a buff that ended), and list what else the tank
+     took (Magma Splash's Fire damage, if it's Golemagg's). U itself doesn't move. Needs the report
+     link ([wcl-golemagg], a known gap).
    - **Parry haste on the boss:** the sim hastens the boss's next swing when the tank parries
      ([damage-and-timing §3.4](damage-and-timing.md#parry-haste), [C]); the 2.0 s gaps above were
      read where the timer was steady, so the log doesn't test it. Compare the gap after a tank's

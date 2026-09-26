@@ -295,7 +295,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     label: 'Rend (stance dance)',
     // Why first (W4U-1): a Fury player from Classic Era never Rends. "About 1.4%": Rend off costs 1.37–1.40% in the
     // default setup (warrior.md §5.2 "Re-tuning after D36"). Partial uptime, not "keep it up" (W4U-4).
-    help: 'In Forever, Rend’s ticks gain from your attack power, so it’s worth about 1.4% of your damage. When your rage is low, swap to Battle Stance for it and back while Bloodthirst and Whirlwind are cooling down, outside the execute phase, so it’s up for part of the fight. Each swap keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank.',
+    help: 'In Forever, Rend’s ticks gain from your attack power, so it adds about 1.4% to your damage. When your rage is low, swap to Battle Stance for it and back while Bloodthirst and Whirlwind are cooling down, outside the execute phase, so it’s up for part of the fight. Each swap keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank.',
     default: true,
   },
   {
@@ -695,7 +695,8 @@ export function furyRotation(
       b.dance(def, STANCE.battle, [
         ...outsideExecute(false),
         { code: COND.abilityAuraRefresh, a: b.ability(def), b: seconds(v, ID.rendRefresh) },
-        timeLeftAtLeast(def.dotTickMs!),
+        // + 1: a Rend cast with exactly one tick left lands its first tick at the fight's end, which the loop never reaches (VW4-1)
+        timeLeftAtLeast(def.dotTickMs! + 1),
         maxRage(v.num(ID.rendMaxRage)),
         ...gcdSafe(bit(btIndex()) | bit(wwIndex())),
       ])

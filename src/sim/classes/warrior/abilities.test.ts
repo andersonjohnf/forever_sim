@@ -1243,7 +1243,7 @@ describe('furyRotation: the Overpower dance and Slam (warrior.md §5.2 rows 10 a
     const lines = linesOf(r, 'rend')
     expect(lines.map((e) => e.danceTo)).toEqual([STANCE.battle])
     // Again with 3 s left (unless it lasts to the end), never with under a tick (3 s) of the fight left (W4L-2), up to 25 rage.
-    const tickLeft = { code: COND.timeLeftAtLeast, a: 3000, b: 0 }
+    const tickLeft = { code: COND.timeLeftAtLeast, a: 3001, b: 0 }
     expect(lines.map((e) => e.conditions)).toEqual([
       [notExec, { code: COND.abilityAuraRefresh, a: rend, b: 3000 }, tickLeft, { code: COND.maxRage, a: 250, b: 0 }, safe((1 << bt) | (1 << ww))],
     ])

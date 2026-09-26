@@ -549,7 +549,8 @@ export function armsRotation(
       const to = danceTo(def, STANCE.battle)
       b.line(def, to, [
         { code: COND.abilityAuraRefresh, a: at, b: seconds(v, ID.rendRefresh) },
-        timeLeftAtLeast(def.dotTickMs!),
+        // + 1: a Rend cast with exactly one tick left lands its first tick at the fight's end, which the loop never reaches (VW4-1)
+        timeLeftAtLeast(def.dotTickMs! + 1),
         ...(to ? [swapCap] : []),
       ])
     },

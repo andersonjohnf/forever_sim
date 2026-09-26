@@ -39,7 +39,7 @@ describe('golden run (fixed config and seed)', () => {
   //   exactly.
   // - D36, pre-Ahn'Qiraj ranks (W2): Fireball r11 (10151: 396.57–505.43, 395 mana, DoT 14) for r12, and
   //   Blessing of Wisdom r5 (36 mp5). 529.59 → 524.79 DPS.
-  // - The per-level term truncated, as the client renders it (docs/data/items.md#per-level-values): Scorch
+  // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values): Scorch
   //   r7 + trunc(3.4) = 3 (166.28–195.72). 524.79 → 524.74 DPS.
   it('keeps the default Fire mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

@@ -362,7 +362,7 @@ describe('golden run and determinism (docs/doctrine.md#4-engine)', () => {
   //   either side's code reverted, the other side's snapshot reproduces exactly.
   // - D36, pre-Ahn'Qiraj ranks (W2): Starfire r6 (9876: 313.81–369.39, 315 mana) for r7 (349.96–412.04, 340),
   //   and Blessing of Wisdom r5. 448.73 → 445.04 DPS.
-  // - The per-level term truncated, as the client renders it (docs/data/items.md#per-level-values): Starfire
+  // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values): Starfire
   //   r6 and Moonfire r10 add trunc(4.6) = 4 (313.21–368.79, 128.46–149.54). 445.04 → 444.80 DPS.
   it('keeps the default Balance druid’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(BALANCE), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

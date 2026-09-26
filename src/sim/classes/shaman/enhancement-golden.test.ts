@@ -31,7 +31,7 @@ describe('golden run (fixed config and seed)', () => {
   //   555.94, ± 0.63).
   // - D36, pre-Ahn'Qiraj ranks (W2): the raid's buffs at the trainers' ranks (Battle Shout r6 +115, Blessing of Might r6 +112, Strength of Earth r4 +42, Grace of Air r2 +77, Blessing of Wisdom r5 36 mp5), your own totems among them.
   //   556.16 → 539.17 DPS.
-  // - The per-level term truncated, as the client renders it (docs/data/items.md#per-level-values):
+  // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values):
   //   Lightning Bolt r10 + 4 (189.38–210.62). 539.17 → 539.12 DPS.
   it('keeps the default Enhancement shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-enhancement'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

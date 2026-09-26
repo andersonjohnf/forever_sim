@@ -90,10 +90,10 @@ describe('Fury’s Rend dance, row 10b (warrior.md §5.2)', () => {
   })
 
   it('never Rends with less than one tick of the fight left, without an execute phase too (W4L-2)', () => {
-    for (const r of rends) expect(r.left).toBeGreaterThanOrEqual(TICK_MS)
+    for (const r of rends) expect(r.left).toBeGreaterThan(TICK_MS)
     const noPhase = run('warrior-fury', { fight: { executePct: 0 }, fights: 300, seed: 991 })
     expect(noPhase.rends.length).toBeGreaterThan(300 * 4)
-    for (const r of noPhase.rends) expect(r.left).toBeGreaterThanOrEqual(TICK_MS)
+    for (const r of noPhase.rends) expect(r.left).toBeGreaterThan(TICK_MS)
   })
 
   it('is deterministic: the same seed gives the same Rends', () => {
@@ -112,6 +112,6 @@ describe('no Rend that can’t tick (W4L-2; warrior.md §5.2 row 10b, §5.3 row 
   it('Arms never Rends with less than one tick of the fight left in its default fight', () => {
     const { rends } = run('warrior-arms', { fights: 300 })
     expect(rends.length).toBeGreaterThan(300 * 5)
-    for (const r of rends) expect(r.left).toBeGreaterThanOrEqual(TICK_MS)
+    for (const r of rends) expect(r.left).toBeGreaterThan(TICK_MS)
   })
 })

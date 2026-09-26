@@ -28,7 +28,7 @@ describe('golden run (fixed config and seed)', () => {
   //   fights on seed 2701.
   // - D36, pre-Ahn'Qiraj ranks (W2): Frostbolt r10 (10181: 382.89–412.31, 260 mana) for r11 (457.24–492.76,
   //   290), and Blessing of Wisdom r5 (36 mp5). 451.79 → 414.14 DPS.
-  // - The per-level term truncated, as the client renders it (docs/data/items.md#per-level-values):
+  // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values):
   //   Frostbolt r10 adds trunc(11.6) = 11 (382.29–411.71). 414.14 → 413.82 DPS.
   it('keeps the default Frost mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

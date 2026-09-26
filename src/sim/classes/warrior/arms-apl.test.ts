@@ -69,7 +69,7 @@ describe('Arms’ priority list (D31)', () => {
     const beforeW4Fix = (plan: Plan): Plan => ({
       ...plan,
       rotation: plan.rotation.map((e) =>
-        plan.abilities[e.ability].id === 'rend' ? { ...e, conditions: e.conditions.filter((c) => !(c.code === COND.timeLeftAtLeast && c.a === 3000)) } : e,
+        plan.abilities[e.ability].id === 'rend' ? { ...e, conditions: e.conditions.filter((c) => !(c.code === COND.timeLeftAtLeast && c.a === 3001)) } : e,
       ),
     })
     expect(plans.filter((p) => p.rotation.some((e) => p.abilities[e.ability].id === 'rend')).every((p) => p.rotation.some((e) => e.conditions.some((c) => c.code === COND.timeLeftAtLeast)))).toBe(true)

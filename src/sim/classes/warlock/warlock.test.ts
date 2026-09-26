@@ -393,7 +393,7 @@ describe('golden runs (fixed config and seed)', () => {
   // - D36, pre-Ahn'Qiraj ranks (W2): Shadow Bolt r9 (237.43–264.57, 370 mana), Immolate r7 (146, then 52 a
   //   tick, 370 mana) and Corruption r6 (57 a tick, 290 mana) for the Ahn'Qiraj books' ranks. Destruction
   //   597.86 → 590.44, Affliction 514.05 → 502.87 DPS.
-  // - The per-level term truncated, as the client renders it (docs/data/items.md#per-level-values):
+  // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values):
   //   Shadowburn r6 + 7 (258.47–287.53). Destruction 590.44 → 590.43 DPS.
   for (const spec of ['warlock-destruction', 'warlock-affliction'] as const) {
     it(`keeps the default ${spec}’s result unchanged`, () => {

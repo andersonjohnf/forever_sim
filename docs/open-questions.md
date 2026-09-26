@@ -379,8 +379,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   average hit (the off-hand modifier on an off-hand crit), snapshotted with the damage modifiers,
   to a pool; the ticks left go back to 4 and the pending tick keeps its time; each tick pays
   `pool ÷ ticks left`. Nobody has measured it. The Classic Era restart (the next tick 3 s after
-  each crit, old damage lost) gives the default Fury and Arms warriors about **13% less DPS**
-  (the engine's golden runs). Deadly Poison's stacks keep their
+  each crit, old damage lost) gives the default Fury and Arms warriors about **14% less DPS**
+  on today's defaults ([warrior Q21](classes/warrior.md#9-open-questions)). Deadly Poison's stacks keep their
   timer too ([rogue Q8](classes/rogue.md#10-open-questions)), so the two models now agree.
 - **Evidence so far** (searched 2026-09-25, no level-60 data: the beta is capped at 20):
   - WarriorSim's author, watching Pikaboo's BlizzCon demo stream, saw "Deep Wounds stacking

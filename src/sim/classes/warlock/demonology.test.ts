@@ -472,7 +472,7 @@ describe('golden runs (fixed config and seed)', () => {
   //   663.7 → 675.0 over 20,000 fights on seed 2701.
   // - D36, pre-Ahn'Qiraj ranks (W2): Shadow Bolt r9 (237.43–264.57, 370 mana), Immolate r7 and Corruption r6
   //   for the Ahn'Qiraj books' ranks. 675.56 → 663.04 DPS.
-  // - The per-level term truncated, as the client renders it (docs/data/items.md#per-level-values): the
+  // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values): the
   //   Imp's Firebolt r7 + 1 (42.50–47.50), Soul Fire r2 + 7. 663.04 → 662.73 DPS.
   it('keeps the default warlock-demonology’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

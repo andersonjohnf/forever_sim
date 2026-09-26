@@ -44,6 +44,7 @@ export {
   ammoKind,
   defaultConfig,
   defaultGear,
+  defaultOffHand,
   defaultTalents,
   FULL_RAID,
   hasThreatSet,

@@ -83,13 +83,14 @@ export interface FactionGearChange {
   swapped: { slot: GearSlot; from: Item; to: Item; setDiffers: boolean }[]
   /**
    * Default slots that take the new race's default, which isn't their twin (a Horde paladin's own
-   * threat set pieces), in paper-doll order; `from` is null for a slot that was empty (an Alliance
-   * caster's off hand, after a Horde caster's two-hander).
+   * threat set pieces), in paper-doll order; `from` is null for a slot that was empty (a caster's off
+   * hand, after a Horde caster's two-hander).
    */
   defaulted: { slot: GearSlot; from: Item | null; to: Item }[]
   /**
    * Default slots the new race's default leaves empty (a Horde caster's off hand, beside Whiteout
-   * Staff), in paper-doll order.
+   * Staff: the off hand that follows the defaults is none beside a two-hander, `defaultOffHandBeside`),
+   * in paper-doll order.
    */
   cleared: { slot: GearSlot; item: Item }[]
   /** The other faction's items with no twin, kept as they are. */
@@ -98,7 +99,9 @@ export interface FactionGearChange {
 
 /**
  * Changes the race. The slots that hold the spec's default for the old race take the new race's
- * default (docs/architecture.md "Following the defaults"), so an untouched set stays the default set;
+ * default (docs/architecture.md "Following the defaults"), so an untouched set stays the default set,
+ * and an off hand that follows the default takes the one beside the main hand worn: the new race's
+ * best off hand beside a one-hander, the player's own or the default's, and none beside a two-hander;
  * then each other item the new race's faction can't wear swaps for the other faction's piece with
  * the same stats (`raceChangeTwin`). An item with none, or whose match would break a Unique rule
  * with the rest of the gear, stays. Enchants stay with the slot: the twins take the same enchants.

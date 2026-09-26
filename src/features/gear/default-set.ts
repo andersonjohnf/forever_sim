@@ -6,6 +6,7 @@ import type { Item } from '@/data/items/types'
 import { itemsById } from '@/lib/items'
 import {
   defaultConfig,
+  defaultOffHand,
   defaultTalents,
   GEAR_SLOTS,
   isTwoHand,
@@ -33,6 +34,26 @@ export function defaultGearFor(spec: SpecId, race: string): Readonly<SimConfig['
     cache.set(key, gear)
   }
   return gear
+}
+
+const offHands = new Map<string, EquippedItem | undefined>()
+
+/**
+ * The off hand that follows the defaults beside this main hand, the default's or the player's own
+ * (`defaultOffHand`: none beside a two-hander, else the spec's best off hand for the race), as a
+ * loaded setup holds it: normalized. One rule, so a race change or a new default never empties an
+ * off hand beside a one-hander because the default set's main hand is a two-hander (gate step 6,
+ * review finding EV2-1).
+ */
+export function defaultOffHandBeside(spec: SpecId, race: string, mainHand: EquippedItem | undefined): EquippedItem | undefined {
+  const item = mainHand && itemsById.get(mainHand.itemId)
+  if (item && isTwoHand(item)) return undefined
+  const key = `${spec}|${race}`
+  if (!offHands.has(key)) {
+    const offHand = defaultOffHand(spec, race, null)
+    offHands.set(key, offHand && normalizeConfig({ ...defaultConfig(spec, race), gear: { offHand } }).config.gear.offHand)
+  }
+  return offHands.get(key)
 }
 
 /** Whether two slots hold the same thing: the same item with the same enchant, or both nothing. */
@@ -82,18 +103,24 @@ export interface Following {
   talents: boolean
 }
 
-/** The parts of the setup that hold the spec's defaults for its race, so follow them. */
+/**
+ * The parts of the setup that hold the spec's defaults for its race, so follow them. The off hand
+ * follows while it holds the default beside the main hand worn (`defaultOffHandBeside`).
+ */
 export function following(config: SimConfig): Following {
   const offDefault = new Set(slotsOffDefault(config))
+  const offHand = sameEntry(config.gear.offHand, defaultOffHandBeside(config.spec, config.race, config.gear.mainHand))
   return {
-    gear: GEAR_SLOTS.filter((slot) => !offDefault.has(slot)),
+    gear: GEAR_SLOTS.filter((slot) => (slot === 'offHand' ? offHand : !offDefault.has(slot))),
     talents: config.talents === defaultTalents(config.spec),
   }
 }
 
 /**
  * The setup with the parts that follow the defaults set to the spec's current defaults for its race,
- * normalized, and whether that changed its gear or talents (when neither, the setup itself). A
+ * normalized, and whether that changed its gear or talents (when neither, the setup itself). The off
+ * hand takes the default beside the main hand worn once the main hand is settled
+ * (`defaultOffHandBeside`): none beside a two-hander, the spec's best off hand beside a one-hander. A
  * default item that can't go in beside the player's own (a Unique rule, or a two-hander with their
  * off hand) leaves that slot as it was, and `blocked` lists it: it still follows the default, so the
  * next load tries again (setup-store.ts keeps it in the save's `following` until the player changes it).
@@ -114,16 +141,15 @@ export function followDefaults(
   }
   // The player's own slots first: a default never displaces them.
   for (const slot of GEAR_SLOTS) if (!followed.has(slot)) put(slot, config.gear[slot])
-  const ownMainHand = followed.has('mainHand') ? undefined : worn.mainHand
   const blocked: GearSlot[] = []
   for (const slot of GEAR_SLOTS) {
     if (!followed.has(slot)) continue
-    const next = defaults[slot]
+    // GEAR_SLOTS puts the main hand before the off hand, so `gear.mainHand` is settled here.
+    const next = slot === 'offHand' ? defaultOffHandBeside(config.spec, config.race, gear.mainHand) : defaults[slot]
     const item = next && itemsById.get(next.itemId)
     if (!next || !item) continue
     const isBlocked =
       uniqueConflicts(worn, slot, item).length > 0 ||
-      (slot === 'offHand' && ownMainHand !== undefined && isTwoHand(ownMainHand)) ||
       (slot === 'mainHand' && isTwoHand(item) && !followed.has('offHand') && worn.offHand !== undefined)
     if (isBlocked) blocked.push(slot)
     put(slot, isBlocked ? config.gear[slot] : next)

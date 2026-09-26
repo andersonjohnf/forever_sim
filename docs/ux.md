@@ -255,7 +255,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     finding EV2-2: "Swapped" read wrong for a slot that was only filled): a Human Fire mage turned
     Troll reads "Changed 4 slots for Horde gear", ending "Whiteout Staff, from Horde pre-raid best
     in slot. Off hand cleared: Whiteout Staff takes both hands.", and back to Human "Changed 4
-    slots for Alliance gear" names the off hand's Tome of Fiery Arcana with Sageclaw.
+    slots for Alliance gear" names the off hand's Tome of Fiery Arcana with Sageclaw. An off hand
+    that follows the default goes by the main hand actually worn ([Gear](#gear), "The off hand
+    follows the main hand"), so a player's own one-hander keeps an off hand across the change: a
+    Human Fire mage with their own Witchblade turned Troll keeps Witchblade and the Tome.
   - Advanced: the rule profile (`Forever`, the default, or `Classic Era`) and the switch for
     unmeasured ratings
     ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
@@ -360,6 +363,18 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     pre-raid best in slot"), or for a tank, whose default is the sim's measured threat set rather
     than a guide's list (D29, D30), "Starts as the Protection Paladin threat set: pre-raid items
     measured for threat, keeping an effective-health floor".
+  - **The off hand follows the main hand,** by one rule (gate step 6, review finding EV2-1): the
+    default off hand is none beside a two-hander and, beside a one-hander, the default's or the
+    player's own, the spec's pre-raid best-in-slot off hand for the race
+    (`defaultOffHand` in `src/sim/defaults.ts`). A Horde caster's default wears Whiteout Staff with
+    an empty off hand, but that empty hand belongs to the staff, not to the race, so a race change
+    or a newer default never empties an off hand beside a one-hander. What was cut: the default
+    off hand used to be stored per race with the default set, so the Horde's empty one followed a
+    player's own one-hander (a Human Fire mage with Witchblade turned Troll lost the Tome), and
+    `followDefaults` carried its own branch for an off hand beside the player's two-hander. The
+    list of two-handers ranked over a main hand and off hand (`twoHandersOverPair`) now only
+    chooses the default main hand and the main-hand picker's order. An empty off hand beside a
+    one-hander that the player left that way stays theirs.
   - Under it, a bordered row puts the default set back in one tap: a 44 px **Equip pre-raid best in
     slot** button, or **Equip the threat set** for a tank, beside a line on how the gear compares.
     While any slot's item or enchant differs from the default for the spec and race, the line

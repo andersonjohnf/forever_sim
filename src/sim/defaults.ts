@@ -16,7 +16,7 @@ import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
 import { POPULAR_WARRIOR_TALENTS } from './classes/warrior/popular-builds'
 import { presetBuffIds } from './effects/presets'
-import { canUse, fitsFaction, uniqueConflicts, usesSupplies } from './equip'
+import { canUse, fitsFaction, isTwoHand, uniqueConflicts, usesSupplies } from './equip'
 import { firesAmmo } from './plan/ranged'
 import { SPEC_META } from './specs'
 import type { ClassId, EquippedItem, GearSlot, SimConfig, SpecId } from './types'
@@ -465,10 +465,11 @@ const TWO_HAND_SPECS: ReadonlySet<SpecId> = new Set(['druid-feral-cat', 'druid-f
 
 /**
  * Two-handers the sim ranks above the spec's main hand and off hand (D29, paired runs; docs/data/items.md
- * "Sim-ranked lists"): a race that can wear one takes it, and any other race the main hand and off hand.
- * Whiteout Staff (+74 spell power, Frostwolf Clan Revered, Horde only) beats Mindfang and the off hand
- * for every Horde caster; the Alliance's Crackling Staff (+25 in Forever) doesn't, so an Alliance
- * caster keeps Sageclaw and its off hand (docs/classes/warlock.md#73-gear).
+ * "Sim-ranked lists"): a race that can wear one takes it as its default main hand, and any other race
+ * the main hand. Whiteout Staff (+74 spell power, Frostwolf Clan Revered, Horde only) beats Mindfang and
+ * the off hand for every Horde caster; the Alliance's Crackling Staff (+25 in Forever) doesn't, so an
+ * Alliance caster keeps Sageclaw (docs/classes/warlock.md#73-gear). It chooses only the main hand: the
+ * off hand follows from the main hand worn, by one rule (`defaultOffHand`).
  */
 const TWO_HANDERS_OVER_PAIR: Partial<Record<SpecId, readonly number[]>> = Object.fromEntries(
   (['druid-balance', 'shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'priest-shadow'] as const).map((spec) => [spec, [19101]]),
@@ -563,6 +564,7 @@ export function preRaidListGear(
   spec: SpecId,
   race = DEFAULT_RACE[SPEC_META[spec].classId],
   interim: Partial<Record<GearSlot, readonly number[]>> = {},
+  { oneHander = false }: { oneHander?: boolean } = {},
 ): Partial<Record<GearSlot, EquippedItem>> {
   const gear: Partial<Record<GearSlot, EquippedItem>> = {}
   const worn: Partial<Record<GearSlot, Item>> = {}
@@ -595,14 +597,15 @@ export function preRaidListGear(
   const twoHands = bisFor(spec, 'twoHand')
   const mainHands = bisFor(spec, 'mainHand')
   const overPair = (TWO_HANDERS_OVER_PAIR[spec] ?? []).flatMap((id) => itemById.get(id) ?? []).filter((i) => canUse(classId, i) && fitsFaction(race, i))
-  if (overPair.length > 0) {
-    put('mainHand', overPair)
-  } else if (twoHands.length > 0 && (mainHands.length === 0 || TWO_HAND_SPECS.has(spec))) {
-    put('mainHand', twoHands)
-  } else {
-    put('mainHand', mainHands)
-    put('offHand', bisFor(spec, 'offHand'))
-  }
+  // The main hand: a two-hander the sim ranks over the pair, else the spec's two-hander, else its main
+  // hand; `oneHander` takes the main hand, for the off hand beside one (`defaultOffHand`).
+  if (oneHander) put('mainHand', mainHands)
+  else if (overPair.length > 0) put('mainHand', overPair)
+  else if (twoHands.length > 0 && (mainHands.length === 0 || TWO_HAND_SPECS.has(spec))) put('mainHand', twoHands)
+  else put('mainHand', mainHands)
+  // One rule for the off hand (gate step 6, review finding EV2-1): none beside a two-hander, else the
+  // spec's best off hand for the race.
+  if (!worn.mainHand || !isTwoHand(worn.mainHand)) put('offHand', bisFor(spec, 'offHand'))
   // Paladins and druids equip a relic in the ranged slot.
   if (!gear.ranged) put('ranged', bisFor(spec, 'relic'))
   // docs/classes/hunter.md#73-gear: the ammo the ranged weapon fires and the quiver or ammo pouch that
@@ -622,6 +625,17 @@ export function preRaidListGear(
     if (equipped && enchantId) gear[slot] = { ...equipped, enchantId }
   }
   return gear
+}
+
+/**
+ * The off hand the spec's defaults put beside a main hand (docs/ux.md "Gear defaults"), one rule
+ * whatever the main hand is, the default's or the player's own (gate step 6, review finding EV2-1):
+ * nothing beside a two-hander, else the spec's pre-raid best-in-slot off hand for the race (the one
+ * `defaultGear` gives beside the spec's one-handed main hand), or nothing when the spec lists none.
+ */
+export function defaultOffHand(spec: SpecId, race: string, mainHand: Item | null | undefined): EquippedItem | undefined {
+  if (mainHand && isTwoHand(mainHand)) return undefined
+  return preRaidListGear(spec, race, INTERIM_GEAR[spec] ?? {}, { oneHander: true }).offHand
 }
 
 /** The spec's default setup; `race` (legal for the class) changes the race and its faction's gear. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { GearSlot, SimConfig } from '@/sim'
-import { defaultGearFor, equipEffect, slotsOffDefault } from './default-set'
+import { defaultConfig, type GearSlot, type SimConfig } from '@/sim'
+import { defaultGearFor, equipEffect, followDefaults, following, slotsOffDefault } from './default-set'
 
 // The Gear tab's line says what equipping the default set does to the slots that differ (docs/ux.md "Gear").
 describe('equipEffect', () => {
@@ -58,5 +58,31 @@ describe('equipEffect', () => {
     const off = slotsOffDefault(config)
     expect(off).toEqual(['mainHand', 'offHand'])
     expect(equipEffect(config.gear, off, defaults)).toBe('replaces 1 slot and clears Off hand')
+  })
+})
+
+// The off hand that follows the defaults is the one beside the main hand worn (gate step 6, EV2-1).
+describe('the off hand that follows the defaults', () => {
+  const troll = defaultConfig('mage-fire', 'horde-troll')
+  const human = defaultConfig('mage-fire', 'alliance-human')
+  const withGear = (config: SimConfig, gear: SimConfig['gear']): SimConfig => ({ ...config, gear: { ...config.gear, ...gear } })
+
+  it('is none beside a two-hander, the default’s or the player’s own', () => {
+    expect(following(troll).gear).toContain('offHand')
+    const rod = withGear(human, { mainHand: { itemId: 18534 }, offHand: undefined })
+    expect(following(rod).gear).toContain('offHand')
+    expect(followDefaults(rod, following(rod)).config.gear.offHand).toBeUndefined()
+  })
+
+  it('is the spec’s best off hand beside a one-hander, the player’s own too', () => {
+    const own = withGear(human, { mainHand: { itemId: 13964 } })
+    expect(following(own).gear).toContain('offHand')
+    // A Troll's empty off hand beside their own one-hander is theirs: it isn't the default beside it.
+    const trollOwn = withGear(troll, { mainHand: { itemId: 13964 } })
+    expect(following(trollOwn).gear).not.toContain('offHand')
+    // Following the Troll's defaults beside their own one-hander gives the Tome, not Whiteout Staff's empty hand.
+    const moved = followDefaults(trollOwn, { gear: ['offHand'], talents: false })
+    expect(moved.config.gear.offHand).toEqual(human.gear.offHand)
+    expect(moved.blocked).toEqual([])
   })
 })

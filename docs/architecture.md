@@ -79,7 +79,10 @@ talent build, and what they changed stays theirs.
 
 - **A part follows the default while it holds it.** A gear slot follows while its item and enchant
   are the spec's default for the setup's race (`defaultGearFor`, normalized, in
-  `src/features/gear/default-set.ts`); the talent build follows while it's the spec's default build.
+  `src/features/gear/default-set.ts`); the off hand follows while it holds the default beside the
+  main hand worn, none beside a two-hander and the spec's best off hand beside a one-hander, the
+  player's own too (`defaultOffHandBeside`, one rule: [ux.md "Gear"](ux.md#gear)); the talent build
+  follows while it's the spec's default build.
   Picking the default item back, **Equip the threat set** (or pre-raid best in slot) and **Reset
   setup** make parts follow again; any other change makes them the player's.
 - **The save says which parts follow.** Beside `config`, `bySpec` and `section`, the saved state
@@ -91,7 +94,8 @@ talent build, and what they changed stays theirs.
   that spec's, `section` falls back to Gear unless it's one of today's tabs (`SECTION_IDS`), and
   unknown keys are dropped. A save from another version (`version` other than 1) goes through the
   same merge (`migrate` passes it on) rather than being dropped with a console error.
-- **A load puts today's defaults in the parts that follow** (`followDefaults()`), then normalizes.
+- **A load puts today's defaults in the parts that follow** (`followDefaults()`), then normalizes;
+  an off hand that follows takes the default beside the main hand the load settled on.
   The player's own slots go in first: a default item that would break a Unique rule with one of
   them, or a default two-hander beside their own off hand, leaves its slot as it was, and a
   hunter's own ranged weapon keeps ammo it fires. Such a **blocked slot still follows**: the store

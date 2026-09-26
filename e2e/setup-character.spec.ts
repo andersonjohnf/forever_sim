@@ -100,6 +100,34 @@ test.describe('faction gear on a race change', () => {
     await expect(page.getByRole('button', { name: /^Off hand: Therazane's Touch/ })).toHaveCount(0)
   })
 
+  test('a player’s own one-hander keeps an off hand on the way to Horde (EV2-1)', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('button', { name: /^Spec: / }).click()
+    await page.getByRole('group', { name: 'Mage' }).getByRole('menuitem', { name: /^Fire/ }).click()
+    await expect(page.getByRole('button', { name: /^Spec: Fire Mage/ })).toBeVisible()
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await page.getByRole('radio', { name: 'Human' }).click()
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Changed 4 slots for Alliance gear' })).toBeVisible()
+    await page.getByRole('tab', { name: 'Gear', exact: true }).click()
+    await page.getByRole('button', { name: /^Main hand: Sageclaw/ }).click()
+    const picker = page.getByRole('dialog', { name: 'Choose main hand' })
+    await picker.getByRole('radio', { name: 'All items' }).click()
+    await picker.getByLabel('Search items').fill('Witchblade')
+    await picker.getByRole('list', { name: 'Items' }).getByRole('button', { name: /^Witchblade/ }).first().click()
+    await expect(page.getByRole('button', { name: /^Main hand: Witchblade/ })).toBeVisible()
+
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await page.getByRole('radio', { name: 'Troll' }).click()
+    // The off hand follows the default beside the main hand worn: the Tome beside the player's own
+    // one-hander, not the empty hand the Horde default's Whiteout Staff leaves (gate step 6).
+    const notice = page.locator('[data-sonner-toast]').filter({ hasText: 'for Horde gear' })
+    await expect(notice).toContainText(/^Changed \d+ slots for Horde gear/)
+    await expect(notice).not.toContainText('Off hand cleared')
+    await page.getByRole('tab', { name: 'Gear', exact: true }).click()
+    await expect(page.getByRole('button', { name: /^Main hand: Witchblade/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Off hand: Tome of Fiery Arcana/ })).toBeVisible()
+  })
+
   test('a race on the same side changes no gear and shows no toast', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Character', exact: true }).click()

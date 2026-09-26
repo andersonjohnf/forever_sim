@@ -712,8 +712,15 @@ pre-raid sources as Arathi Basin's are, and Darkmoon Faire rewards stay out (the
 2026-09-26). Whiteout Staff (Frostwolf Clan Revered, Horde, [equipping rule 2](#equipping-rules))
 beats Mindfang and the off hand for every caster default, all Horde, by the sim's own paired runs
 (10,000 fights, the default seed), so it takes rank 1 in the 9 caster lists' two-handers, the rest one
-rank lower, and a Horde character wears it with an empty off hand (`TWO_HANDERS_OVER_PAIR` in
-`src/sim/defaults.ts`). For an Alliance character nothing moves: the Alliance's Crackling Staff (+25 in
+rank lower, and a Horde character wears it as the default main hand (`TWO_HANDERS_OVER_PAIR` in
+`src/sim/defaults.ts`). The off hand isn't part of that choice: one rule puts the default off hand
+beside the main hand actually worn, none beside a two-hander and the spec's best off hand beside a
+one-hander, the default's or the player's own (`defaultOffHand`; gate step 6, review finding EV2-1).
+So a Horde caster's empty off hand comes from the staff, and a Horde caster wearing their own
+one-hander gets the off hand an Alliance caster's default has. Cut with it: the empty off hand
+stored as part of the Horde default, which a race change carried onto a player's own one-hander,
+and the separate branch for an off hand beside the player's own two-hander ([ux.md
+"Gear"](../ux.md#gear)). For an Alliance character nothing moves: the Alliance's Crackling Staff (+25 in
 Forever) is 14 to 22 DPS behind Sageclaw and the off hand, and Ironbark Staff 1 to 8 behind, so
 Sageclaw and the off hand stay. Crackling Staff isn't listed: it trails Ironbark Staff and Rod of the
 Ogre Magi, and where it passes a guide's last two-hander (Staff of Jordan on the Frost, Arcane and

@@ -4,9 +4,9 @@ import type { Item, ItemData } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
 import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
-import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, INTERIM_GEAR, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
+import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, defaultOffHand, INTERIM_GEAR, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
 import { armorReduction } from './core/formulas'
-import { canUse, fitsFaction, uniqueConflicts } from './equip'
+import { canUse, fitsFaction, isTwoHand, uniqueConflicts } from './equip'
 import { ITEM_EFFECTS } from './effects/items'
 import { buildPlan } from './plan/build'
 import { FOREVER } from './rules/profiles'
@@ -110,6 +110,22 @@ describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
         }
       }
     }
+  })
+
+  it('puts the off hand beside the default main hand by one rule: none beside a two-hander (gate step 6)', () => {
+    for (const spec of SPEC_IDS) {
+      const classId = SPEC_META[spec].classId
+      for (const race of races.filter((r) => r.classes.forever.includes(classId)).map((r) => r.id)) {
+        const gear = defaultConfig(spec, race).gear
+        const main = gear.mainHand && items.get(gear.mainHand.itemId)
+        expect(defaultOffHand(spec, race, main), `${spec} ${race}`).toEqual(gear.offHand)
+        if (main && isTwoHand(main)) expect(gear.offHand, `${spec} ${race}`).toBeUndefined()
+      }
+    }
+    // Beside a one-hander, a Troll caster's off hand is the Alliance caster's: Whiteout Staff's
+    // empty off hand belongs to the staff, not to the race (EV2-1).
+    expect(defaultOffHand('mage-fire', 'horde-troll', items.get(13964))).toEqual(defaultConfig('mage-fire', 'alliance-human').gear.offHand)
+    expect(defaultOffHand('mage-fire', 'horde-troll', items.get(19101))).toBeUndefined()
   })
 
   it('gives every Horde caster Whiteout Staff and every Alliance caster Sageclaw and an off hand (EL-2, D29)', () => {

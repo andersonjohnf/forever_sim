@@ -1485,6 +1485,11 @@ its open and close rules by `ItemTooltip` in `src/features/gear/item-tooltip.tsx
     lines aren't read at every focus stop as the player tabs through a list. The tooltip is
     `role="tooltip"`; the info control, where it shows, says whether it's open (`aria-expanded`) and
     names the tooltip as its description while it is, so the full text is one control away.
+  - **Its fade:** it fades in and out over 100 ms, with a slight zoom and slide only where motion
+    isn't reduced (`prefers-reduced-motion` keeps just the fade, VF-2). The panel is removed in its
+    fade-out's own end, never inside a focus move, where a dialog's focus trap takes the removal for
+    focus lost and pulls focus to the dialog; with no fade to wait for (animations switched off), in
+    the next frame (VF-1). Only Escape's instant close removes it at once.
 - **Placement:** beside the item from 640 px (right, or left where the item asks: the wide grid's
   mirrored right side), on the other side where that one lacks the room, and **below it where
   neither side has 16 rem** (`tooltipSide` in `item-tooltip-open.ts`, measured as it opens), flipping

@@ -262,15 +262,23 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
     [openedBy],
   )
   // Faded out, it goes in the fade-out's own event, committed there and then (`shown`, above). The
-  // fade-in a quick close cuts short is cancelled, and only the fade-out's own end counts. Closed with
-  // no fade to wait for (Escape's instant close, or animations switched off), it goes at once: Escape
-  // isn't a focus move, and the picker must hear the key with the panel gone (above).
+  // fade-in a quick close cuts short is cancelled, and only the fade-out's own end counts. Escape's
+  // instant close goes at once: a key press isn't a focus move, and the picker must hear the key with
+  // the panel gone (above). Any other close with no fade to wait for (animations switched off, or no
+  // panel yet) still waits for the next frame: a blur's close commits inside the Tab's focus move, and
+  // removing the panel there is the very removal the dialog's focus trap takes for focus lost (review
+  // finding VF-1). A frame never runs inside a focus move, and it runs before the next paint, so the
+  // closed panel is never drawn; reopened first, the frame is cancelled.
   useLayoutEffect(() => {
     if (open || !shown) return
-    if (!panel || getComputedStyle(panel).animationName === 'none') {
-      // oxlint-disable-next-line react/set-state-in-effect -- the closed panel's animation is known only once it's committed
+    if (instantClose) {
+      // oxlint-disable-next-line react/set-state-in-effect -- the closed panel goes in the same commit, so the picker hears Escape
       setShown(false)
       return
+    }
+    if (!panel || getComputedStyle(panel).animationName === 'none') {
+      const frame = requestAnimationFrame(() => flushSync(() => setShown(false)))
+      return () => cancelAnimationFrame(frame)
     }
     const fadedOut = (e: globalThis.AnimationEvent) => {
       const running = getComputedStyle(panel).animationName.split(',').map((name) => name.trim())
@@ -282,7 +290,7 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
       panel.removeEventListener('animationend', fadedOut)
       panel.removeEventListener('animationcancel', fadedOut)
     }
-  }, [open, shown, panel])
+  }, [open, shown, panel, instantClose])
   const within = (ref: RefObject<HTMLElement | null>, target: EventTarget | null) => target instanceof Node && !!ref.current?.contains(target)
   // Pinned open (a long press or the info control), a tap or click outside only closes it: the item or
   // row it lands on doesn't also act, as in the game and most phone popovers. Another item's info
@@ -359,9 +367,11 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
                 // it's placed, 20 rem, so the height measured as it opens is the height it will have.
                 'w-max max-w-[min(20rem,var(--radix-popover-content-available-width,20rem),calc(100vw-1rem))]',
                 'max-h-(--radix-popover-content-available-height) overflow-y-auto overscroll-contain',
-                'duration-100 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95',
-                'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-                instantClose ? 'data-closed:animate-none' : 'data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95',
+                // A short fade in and out; the zoom and slide only where the player allows motion. Reduced
+                // motion keeps the fade, never `animate-none`: the panel goes in the fade-out's own end (above).
+                'duration-100 data-open:animate-in data-open:fade-in-0 motion-safe:data-open:zoom-in-95',
+                'motion-safe:data-[side=bottom]:slide-in-from-top-2 motion-safe:data-[side=left]:slide-in-from-right-2 motion-safe:data-[side=right]:slide-in-from-left-2 motion-safe:data-[side=top]:slide-in-from-bottom-2',
+                instantClose ? 'data-closed:animate-none' : 'data-closed:animate-out data-closed:fade-out-0 motion-safe:data-closed:zoom-out-95',
                 // Resting on the item, the pointer never lands on the panel; a pinned one scrolls.
                 openedBy !== 'press' && 'pointer-events-none',
               )}

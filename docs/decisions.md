@@ -263,11 +263,10 @@ public beta combat logs**:
 
 The value stays **[?]**, keeps an open question saying how to confirm it at level 60, and moves
 to **[F]** when an in-game test (tier 2) confirms it. Anecdotes and single-tester fits still can't
-set a server-side rule or override an allowed source's value. The one exception is the user's
-(2026-09-26, [D37](#d37-only-sourced-values-2026-09-26)): where no allowed source has a value at
-all, a third-party in-game measurement of the effect may stand as its default, `[?]` and labelled.
-This covers the white-hit rage normalization and the damage-taken formula
-([rage.md](mechanics/rage.md)).
+set a default. Where no allowed source has a value, the default follows
+[doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable)
+([D37](#d37-only-sourced-values-2026-09-26)). This covers the white-hit rage normalization and the
+damage-taken formula ([rage.md](mechanics/rage.md)).
 
 ### D23: The default rotation is the best one we've found (2026-09-23)
 User directive. Each spec's default rotation is the best-performing one we can come up with that
@@ -300,8 +299,9 @@ of combat, where a DPS warrior usually walks in after the tank's pull, and your 
 gain depends on the raid's composition (the Buffs tab).
 
 ### D24: Small assumptions don't gate features (2026-09-23)
-**Amended by [D37](#d37-only-sourced-values-2026-09-26):** the Classic-based default is the same ability's Classic Era value or a
-similar known value used as is, never a value rescaled or fitted by a ratio we chose.
+**Amended by [D37](#d37-only-sourced-values-2026-09-26):** rule 1's Classic-based default follows
+[doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable);
+rule 2's stand-in is that order's one exception.
 
 User directive: build with sensible defaults, track them, and fix them once every spec is built.
 It replaces the 2026-09-22 rule "no forbidden-source placeholders" in character-stats.md. Two
@@ -471,9 +471,10 @@ in-game tests ([milestones T6](milestones.md#m56-tanks-reviewed-against-the-guil
 failures.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
-**Amended by [D37](#d37-only-sourced-values-2026-09-26):** the same-wording bonus is used as is, never rescaled; a default is an
-allowed source's value used as is, never an estimate we reason out; an undescribed client dummy
-effect models as zero; and a gap goes to the open questions (there are no organized guild tests).
+**Amended by [D37](#d37-only-sourced-values-2026-09-26):** the same-wording bonus is used as is,
+never rescaled; a default follows
+[doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable); an
+undescribed client dummy effect models as zero; and a gap goes to the open questions (there are no organized guild tests).
 
 User directive, after v1's tank numbers embarrassed the user in front of the guild: the
 Paladin and bear presets came from survival guides, and every tank ability whose extra threat
@@ -842,28 +843,10 @@ that no source gave: values chosen to close a gap to a feeling, rescaled analogs
 effects given a meaning by analogy. It amends D29 (every value has a default), D24 (the
 Classic-based default), D36 (the Season of Discovery exception) and [doctrine §2](doctrine.md#2-where-numbers-come-from-non-negotiable).
 - **No invented multipliers, ratios, scalings or fitted terms.** A described effect's default
-  comes from the first of these that has a value, **used as is**, never rescaled by a ratio we
-  chose (by rank, level, cost or anything else); the order is the user's, confirmed 2026-09-26
-  ([D38](#d38-the-values-audits-calls-2026-09-26)):
-  1. **An allowed source:** the same ability's Classic Era value; client data, with the meaning
-     the client defines for it; Season of Discovery values from **Blizzard's own SoD client
-     data or patch notes**, where the Forever client carries the SoD spell (see below);
-     measurements: a reproducible beta-log analysis (D22), or in-game tests by the user or guild
-     members, recorded with the build, date, method and sample size. Tier 2 is unchanged from
-     before D37; so far none exist except the user's own (below).
-  2. **A third-party in-game measurement** of the effect itself, such as a player's tests shared
-     on Discord: `[?]`, labelled by where it came from (the user's exception, below).
-  3. **The closest similar known value from an allowed source** (the user's words: "finding
-     something similar and using it"): `[?]`, with where it came from stated plainly.
-  4. **A value another sim or threat tool carries:** `[?]`, with its provenance stated plainly,
-     never one it carried over from a forbidden ruleset. The user's examples: Maul's ×1.75 and
-     Felstriker's 1 proc a minute.
-  5. **Zero:** `[?]`, with an open question.
-
-  Steps 2–5 are listed as open questions and shown in the results' assumptions. It's never a
-  number reasoned into existence.
-- **Only a stand-in is `[?]`.** A value that stands in for an unknown Forever value is `[?]`;
-  a value a tier 1–3 source gives for this very ability keeps its `[F]` or `[C]`.
+  follows [doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable),
+  which D37 set out: five steps from an allowed source to zero, with D24's stand-in its one
+  exception. The user confirmed the five-step order on 2026-09-26
+  ([D38](#d38-the-values-audits-calls-2026-09-26)).
 - **An undescribed client dummy effect models as zero.** D29's "every value has a default" covers
   only effects that a tooltip, a talent's text, the client's defined meaning or observed play
   describes. Giving a dummy effect a meaning by analogy is making a number up. A zero for a dummy
@@ -875,17 +858,12 @@ Classic-based default), D36 (the Season of Discovery exception) and [doctrine §
   Anything else labelled a guild test, benchmark or measurement was mislabelled and is relabelled
   by where it came from: a player's in-game tests shared on Discord are third-party Forever
   measurements, `[?]`.
-- **The user's exception for third-party measurements (2026-09-26).** Where no allowed source
-  has a value, a third-party in-game measurement of the effect (a player's tests shared on
-  Discord, say) may stand as its default, `[?]` and labelled by where it came from (step 2). It
-  never overrides an allowed source's value, and a fit to a tester's numbers is still never a
-  default. The rogue's attack-power shares are the first
-  ([rogue.md Q3, Q16](classes/rogue.md#10-open-questions)).
+- **The user's exception for third-party measurements (2026-09-26)** is the order's step 2. The
+  rogue's attack-power shares are the first ([rogue.md Q3, Q16](classes/rogue.md#10-open-questions)).
 - **Other sims are never authoritative.** wowsims classic and SoD, WarriorSim, LibThreatClassic2
   and the Warcraft Logs threat configs are unconfirmed data we may consider. Their code, pinned
-  to a commit or not, can corroborate a value or point to a source. One of their values is used
-  only as the last resort before zero (step 4), as is, `[?]` with its provenance stated plainly.
-  Their bear and most of their warrior threat constants cite no source.
+  to a commit or not, can corroborate a value or point to a source; what they may supply is the
+  order's step 4. Their bear and most of their warrior threat constants cite no source.
 - **Season of Discovery, scoped.** SoD stays forbidden, except Blizzard's own SoD client data or
   patch notes for a spell Forever reuses from SoD (the same spell ID in the Forever client). This
   replaces D36's "SoD behaviour as the closest analog" exception: a value from another sim's SoD

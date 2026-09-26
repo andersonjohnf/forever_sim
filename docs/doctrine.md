@@ -88,21 +88,16 @@ Rules come from four tiers. Use the highest tier that has an answer.
 community Forever sims such as [wowsims/forever](https://github.com/wowsims/forever) and
 [ElliotWood/Forever](https://github.com/ElliotWood/Forever). News posts and tooltip captures
 may be cited for Forever-specific facts, tagged **[?]** until client data or a tier 2
-measurement confirms them. The community sims are other sims (below): they can corroborate a
-value or point to its source, and supply one only as the last resort before zero (step 4 of the
-fallback order below), labelled with its provenance. Never adopt a value they carried over
-from a forbidden ruleset: both are built on wowsims code with Season of Discovery or TBC
-lineage.
+measurement confirms them. The community sims are other sims (below), built on wowsims code
+with Season of Discovery or TBC lineage; what they may supply follows the fallback order below.
 
 Two more kinds of evidence are secondary and tagged **[?]**:
 
 - **Third-party Forever measurements**, such as beta tests posted by other theorycrafters,
   a player's in-game tests shared on Discord, or community combat logs, until the user or a
   guild member reproduces them (tier 2). Label them by where they came from ("a player's
-  tests shared on Discord"), never as a guild test. **The user's exception (2026-09-26,
-  [D37](decisions.md#d37-only-sourced-values-2026-09-26)):** where no allowed source has a value,
-  a third-party in-game measurement of the effect may stand as its default, `[?]` and labelled
-  (step 2 of the fallback order below). It never overrides an allowed source's value.
+  tests shared on Discord"), never as a guild test. What one may supply follows the fallback
+  order below.
 - **Forever client data read through a secondary source**, such as tables extracted in
   wowsims/forever, until the same value is read from the client files (tier 1). Then cite
   the client table and build, and tag it **[F]**.
@@ -112,18 +107,14 @@ Two more kinds of evidence are secondary and tagged **[?]**:
 Discovery sim and still contains SoD rune code. The same goes for tools with SoD or TBC
 modes or ancestry (WarriorSim, LibThreatClassic2, Sixty Upgrades). Their code, even pinned to
 a commit from before Season of Discovery launched (2023-11-30), can corroborate a value or
-point to a Classic Era source. It supplies a value only as the last resort before zero (step 4
-of the fallback order below): **[?]**, with its provenance stated plainly, until a genuine
-Classic Era source gives it.
+point to a Classic Era source; what it may supply follows the fallback order below.
 
 **Other sims are never authoritative**
 ([D37](decisions.md#d37-only-sourced-values-2026-09-26)). wowsims classic and SoD, WarriorSim,
 LibThreatClassic2 and the Warcraft Logs threat configs are unconfirmed data we may consider: a
-lead to check against the client, Classic Era or a measurement. Their value is used only as the
-last resort before zero, when no allowed source, third-party measurement or similar known value
-has one (step 4 of the fallback order below), and then as is, **[?]**, with its provenance stated
-plainly in the owning doc: Maul's ×1.75 and Felstriker's 1 proc a minute are the user's examples.
-Many of their constants cite nothing (their bear and most warrior threat terms among them).
+lead to check against the client, Classic Era or a measurement. What they may supply follows the
+fallback order below. Many of their constants cite nothing (their bear and most warrior threat
+terms among them).
 
 **The user's offhand numbers are never evidence or targets**
 ([D37](decisions.md#d37-only-sourced-values-2026-09-26)). A number said in passing ("bears do
@@ -139,10 +130,8 @@ adopts it in two cases:
   ([D22](decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23)).
 
 Either way, tag it **[?]** and list it for confirmation. Anecdotes, and one tester's fit to their
-own logs, don't override Classic Era in the default profile; they become open questions. The one
-exception is the user's (2026-09-26): where no allowed source has a value at all, a third-party
-in-game measurement of the effect may stand as its default, `[?]` and labelled (step 2 below). A
-fit to a tester's numbers is still never a default.
+own logs, don't override Classic Era in the default profile; they become open questions. Where no
+allowed source has a value, the fallback order below decides.
 
 **Verbatim mirrors of client files are client data.** A mirror of the Forever client's UI code
 or text strings is **[F]** for what the client *displays or computes*, such as a
@@ -157,35 +146,51 @@ number as **[F]** and record the derived one as an open question.
 ([D29](decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24),
 narrowed by [D37](decisions.md#d37-only-sourced-values-2026-09-26)). Leaving a described effect
 out models it as zero, which is rarely the most accurate reading; making a number up is worse.
-So:
-- **The fallback order.** An effect a tooltip, a talent's text, the client's defined meaning
-  or observed play describes gets a default from the first of these that has a value, **used
-  as is**: never rescaled by a ratio we chose (by rank, level, cost or anything else).
-  1. **An allowed source:** the same ability's Classic Era value; client data, with the meaning
-     the client defines for it; Blizzard's own Season of Discovery client data or patch notes,
-     for a spell Forever reuses from SoD (tier 4's scoped exception); a measurement (a D22 log
-     analysis or a tier 2 test).
-  2. **A third-party in-game measurement** of the effect itself, such as a player's tests
-     shared on Discord (the user's exception, 2026-09-26): **[?]**, labelled by where it came
-     from, never as a guild test.
-  3. **The closest similar known value from an allowed source** (the user's words: "finding
-     something similar and using it"): **[?]**, with where it came from stated plainly.
-  4. **A value another sim or threat tool carries:** **[?]**, with its provenance stated
-     plainly, never one it carried over from a forbidden ruleset. The user's examples are
-     Maul's ×1.75 and Felstriker's 1 proc a minute.
-  5. **Zero:** **[?]**, with an open question.
 
-  Every step from 2 on is listed as an open question and shown in the results' assumptions.
-  It's never a number reasoned into existence: no estimate, and no value moved to close a gap.
-- **No invented multipliers, ratios, scalings or fitted terms.** A coefficient chosen to make a
-  result look right, or fitted to one tester's numbers, is not a default.
+**The fallback order.** An effect a tooltip, a talent's text, the client's defined meaning or
+observed play describes gets its default from the first of these that has a value, **used as
+is**: never rescaled by a ratio we chose (by rank, level, cost or anything else). The user
+confirmed the order on 2026-09-26 ([D37](decisions.md#d37-only-sourced-values-2026-09-26),
+[D38](decisions.md#d38-the-values-audits-calls-2026-09-26)).
+1. **An allowed source:** client data, with the meaning the client defines for it; the same
+   ability's Classic Era value; Blizzard's own Season of Discovery client data or patch notes,
+   for a spell Forever reuses from SoD (tier 4's scoped exception); a measurement (a
+   reproducible public-log analysis per D22, or a recorded tier 2 in-game test).
+2. **An outside player's in-game measurement** of the effect itself, such as a player's tests
+   shared on Discord (a third-party Forever measurement; the user's exception, 2026-09-26):
+   labelled by where it came from, never as a guild test. It never overrides a step 1 value.
+3. **The closest similar known value from an allowed source,** used as is (the user's words:
+   "finding something similar and using it"), with where it came from stated plainly.
+4. **Another sim's or threat tool's value,** labelled with where it came from, never one it
+   carried over from a forbidden ruleset. The user's examples are Maul's ×1.75 and
+   Felstriker's 1 proc a minute.
+5. **Zero,** with an open question.
+
+In one line, which CLAUDE.md and the builder agent copy verbatim: A described effect's default
+is the first of these with a value, used as is: an allowed source, an outside player's in-game
+measurement, the closest similar value from an allowed source, another sim's value, then zero;
+every step after the first is `[?]`, labelled with where it came from, with an open question and
+a line in the results' assumptions.
+
+- **The order's one exception is [D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)'s
+  stand-in:** a value Classic Era kept unchanged from 1.12 (class base attributes, base health),
+  found only in an emulator database, on tier 4's terms above. Otherwise no step takes a value
+  from a forbidden source.
+- **Never a number reasoned into existence:** no estimate, no multiplier, ratio, scaling or
+  fitted term chosen to make a result look right or fitted to one tester's numbers, and no value
+  moved to close a gap.
 - **An undescribed client dummy effect models as zero.** A dummy aura or effect with no
   tooltip, talent text or defined client meaning has nothing to default from; giving it a
   meaning by analogy is invention. The zero is tagged **[?]** and listed as an open question.
-- A value that stands in for an unknown Forever value is tagged **[?]**, listed in the doc's
-  open questions and shown in the results' assumptions, until a tier 1–2 source replaces it. A
-  value a tier 1–3 source gives for this very ability keeps its **[F]** or **[C]**.
-- The tier 4 rule still holds: a default is never copied from a forbidden source.
+- **Tags.** A value that stands in for an unknown Forever value (every step after the first,
+  and step 1's `[?]` sources) is tagged **[?]**, listed in the doc's open questions and shown in
+  the results' assumptions, until a tier 1–2 source replaces it. A value a tier 1–3 source
+  gives for this very ability keeps its **[F]** or **[C]**.
+- **Stated once** (gate step 6, 2026-09-26): after three review rounds in a row found a
+  restatement left behind, this section is the order's only statement. Every other doc points
+  here ("follows doctrine §2's fallback order", "no step of doctrine §2's fallback order gives
+  it") rather than paraphrase it; CLAUDE.md and the builder agent carry only the one-line
+  sentence above, and `src/app/fallback-order.test.ts` fails if their copy drifts from it.
 
 **The same threat wording means the same threat on every tank** (D29). "A high amount of threat"
 on a bear's or a paladin's ability is the bonus the warrior's abilities with those words carry,
@@ -305,9 +310,9 @@ finding is fixed or waived with a written reason, and the log is committed as
   it. What neither closes becomes an open question: a gap is never a reason to move a value
   ([D37](decisions.md#d37-only-sourced-values-2026-09-26)). A gear preset gets the same
   scrutiny: stat weights, and each slot against the pool's best.
-- **Invented values are findings** (D37). Any multiplier, ratio, scaling or fitted term that no
-  allowed source gives, and any undescribed client dummy given a meaning by analogy, is a
-  finding however plausible the result it produces.
+- **Invented values are findings** (D37). Any value no step of §2's fallback order gives, and
+  any undescribed client dummy given a meaning by analogy, is a finding however plausible the
+  result it produces.
 
 The procedure and checklists are in
 [CLAUDE.md](../CLAUDE.md#core-doctrine-adversarial-review-before-every-push) and

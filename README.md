@@ -43,9 +43,9 @@ It runs entirely in your browser (no server), hosted on Firebase Hosting:
 3. Never Season of Discovery, Season of Mastery, original Vanilla, TBC+ or Retail values, with one
    exception: where Forever reuses a Season of Discovery spell, Blizzard's own SoD data for it
    ([D37](docs/decisions.md#d37-only-sourced-values-2026-09-26)).
-4. Where none of these has a value: a player's in-game measurement, then the closest similar
-   known value, then a value another sim carries, then zero, each flagged as unconfirmed and
-   listed in the results' assumptions. Other sims are never authoritative.
+4. Where none of these has a value, the default follows
+   [doctrine §2's fallback order](docs/doctrine.md#2-where-numbers-come-from-non-negotiable), and
+   the results list it among their assumptions. Other sims are never authoritative.
 
 Every mechanic is documented, with sources, in [docs/](docs/README.md). The full rules are in
 [docs/doctrine.md](docs/doctrine.md).

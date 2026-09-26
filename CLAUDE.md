@@ -27,7 +27,7 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
    - statistical sanity: iterations and confidence interval
    - plausibility: the headline against the other specs and what players expect; a described
      effect modelled as zero; a gear preset built for the wrong stats (D29)
-   - sourcing: any invented multiplier, ratio, scaling or fitted term, or an undescribed client
+   - sourcing: any value no step of doctrine §2's fallback order gives, or an undescribed client
      dummy given a meaning, is a finding (D37)
    - performance, data integrity, and test gaps
 3. **Adversarial UX review.** An independent reviewer inspects `npm run snap` screenshots of
@@ -197,20 +197,16 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
   database (D24); and Blizzard's own SoD client data or patch notes for a spell Forever reuses
   from SoD ([D37](docs/decisions.md#d37-only-sourced-values-2026-09-26)). Both are `[?]`.
   **Other sims are never authoritative** (wowsims, WarriorSim, LibThreatClassic2, Warcraft Logs
-  threat configs): unconfirmed data to consider, and a value of theirs is used only as the last
-  resort before zero, labelled with its provenance. **The user's offhand numbers are never
-  evidence or targets.** There are no guild tests apart from the user's paladin test; a player's
-  tests shared elsewhere are third-party `[?]`.
+  threat configs): unconfirmed data to consider; what they may supply follows doctrine §2's
+  fallback order. **The user's offhand numbers are never evidence or targets.** There are no
+  guild tests apart from the user's paladin test; a player's tests shared elsewhere are
+  third-party `[?]`.
 - **Only sourced values; every described effect has a default (D29, D37).** No invented
-  multipliers, ratios, scalings or fitted terms. An effect a tooltip, talent, the client or
-  observed play describes takes the first of these, used as is (doctrine §2's fallback order):
-  (1) an allowed source: the same ability's Classic Era value, client data as the client defines
-  it, Blizzard's SoD data for a reused spell, or a measurement (D22 log analysis, in-game test);
-  (2) a third-party in-game measurement of the effect, labelled (the user's exception); (3) the
-  closest similar known value from an allowed source; (4) a value another sim or threat tool
-  carries (Maul's ×1.75, Felstriker's 1 proc a minute); (5) zero. Steps 2–5 are `[?]` with their
-  provenance stated, an open question and a line in the results' assumptions; a tier 1–3 value for
-  the ability itself keeps its `[F]` or `[C]`. Never a number reasoned into being.
+  multipliers, ratios, scalings or fitted terms. Defaults follow doctrine §2's fallback order; its
+  one exception is D24's stand-in above. A described effect's default is the first of these with a
+  value, used as is: an allowed source, an outside player's in-game measurement, the closest similar
+  value from an allowed source, another sim's value, then zero; every step after the first is `[?]`,
+  labelled with where it came from, with an open question and a line in the results' assumptions.
   **An undescribed client dummy models as zero.** **The same threat wording means the same threat on every tank:** "a
   high amount of threat" on a bear's or paladin's ability carries the bonus the warrior's
   abilities with those words carry, used as is (threat.md's wording table).

@@ -493,7 +493,7 @@ describe('druid defaults (druid.md §7)', () => {
     // druid.md §7.3a: the review's measured threat preset, until the optimizer's (D30).
     const items = Object.fromEntries(Object.entries(d.gear).map(([slot, e]) => [slot, e!.itemId]))
     expect(items).toEqual({
-      head: 22005,
+      head: 16707, // Shadowcraft Cap: Darkmantle Cap is a rogue’s quest reward (items.md#class-quest-rewards)
       neck: 19491,
       shoulder: 23254, // Champion's Dragonhide Shoulders
       back: 20691,

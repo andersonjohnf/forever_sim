@@ -404,9 +404,11 @@ export const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, reado
   // The gear review's bear set (2026-09-24), with Earthstrike for its Adaptive Combat Assistant, whose
   // value rests on the unmeasured expertise rating (D12), then six swaps that bring its effective
   // health up to the tanks' floor, 90% of the v1 preset's (user decision, 2026-09-24): head, neck,
-  // shoulders, back, chest and second ring (druid.md §7.3a).
+  // shoulders, back, chest and second ring (druid.md §7.3a). The head swap's Darkmantle Cap is a rogue's
+  // quest reward (docs/data/items.md#class-quest-rewards): the head is the most TPS within the floor
+  // among the heads a druid can get (2026-09-26, druid.md §7.3a).
   'druid-feral-bear': {
-    head: [22005], // Darkmantle Cap (EHP swap for Eye of Rend)
+    head: [16707], // Shadowcraft Cap (for Darkmantle Cap, a rogue's)
     neck: [19491], // Amulet of the Darkmoon (EHP swap for Mark of Fordring)
     shoulder: [23254], // Champion's Dragonhide Shoulders, or its twin (EHP swap for Truestrike Shoulders)
     back: [20691], // Windshear Cape (EHP swap for Cape of the Black Baron)

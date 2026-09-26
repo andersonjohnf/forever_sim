@@ -1650,9 +1650,38 @@ set instead, set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's:
    | 5 | Neck | Mark of Fordring | Amulet of the Darkmoon (19491) | −0.55% | +560 |
    | 6 | Shoulder | Truestrike Shoulders | Champion's Dragonhide Shoulders (23254; Alliance: Lieutenant Commander's, 23309) | −1.82% | +1,031 |
 
+3. **The head, re-picked 2026-09-26.** Step 1's Darkmantle Cap is a rogue's: Dungeon Set 2 comes from
+   quests only its class can take, though the client lets any leather wearer wear it
+   ([items.md, "Class-quest rewards"](../data/items.md#class-quest-rewards) `[C]`). The head is now
+   the most TPS within the floor among the heads a druid can get. The optimizer's gear search with
+   every other slot locked (`npm run optimize -- --spec druid-feral-bear --search gear --goal tps
+   --lock <every other slot> --per-slot 8 --no-restarts`, seed 1, the default floor) raced 16 heads
+   and answered Champion's Dragonhide Headguard (23253) with Arcanum of Rapidity, not clear of the
+   list's Mask of the Unforgiven (the fallback, which misses the floor: 88.6%) after its one round. The
+   preset's enchants are the spec's (buffs doc §6.4), which this re-pick leaves alone. With
+   the spec's own head enchant (Lesser Arcanum of Voracity, Agility), every one of the 48 heads a
+   druid can wear, run on the same fights (5,000 each, seed 424242), puts **Shadowcraft Cap** (16707,
+   Dungeon Set 1, which anyone can loot) first within the floor in the default pool. Only Zul'Gurub's
+   Blooddrenched Mask (22718, item level 68) makes more, and the default pool leaves the later raids out
+   ([optimizer.md](../optimizer.md#the-default-pool)). Paired over five seeds (20,000 fights each),
+   Shadowcraft Cap makes 1.2 to 2.7 more TPS than Champion's Dragonhide Headguard on every one. Both
+   factions wear it. Against Darkmantle Cap (seed 424242, 20,000 fights, on 2026-09-26's model):
+
+   | Head | Faction | TPS | DPS | Damage taken a second | Health | Armor | Effective health |
+   | --- | --- | --- | --- | --- | --- | --- | --- |
+   | Darkmantle Cap (before) | Horde (Tauren) | 1,103.1 | 540.9 | 633.4 | 7,038 | 14,608 | 24,903 (90.3%) |
+   | **Shadowcraft Cap** | Horde (Tauren) | **1,087.4** | **533.6** | 637.4 | 7,038 | 14,555 | 24,838 (90.1%) |
+   | Champion's Dragonhide Headguard | Horde (Tauren) | 1,084.7 | 532.5 | 633.1 | 7,006 | 14,799 | 25,022 (90.7%) |
+   | Mask of the Unforgiven (the list's) | Horde (Tauren) | 1,092.9 | 536.9 | 648.7 | 6,954 | 14,469 | 24,437 (88.6%) |
+   | Darkmantle Cap (before) | Alliance (Night Elf) | 1,129.2 | 550.4 | 620.7 | 6,663 | 14,630 | 23,601 (90.3%) |
+   | **Shadowcraft Cap** | Alliance (Night Elf) | **1,112.9** | **542.9** | 624.6 | 6,663 | 14,577 | 23,540 (90.1%) |
+
+   The bear loses 1.4% of its TPS and 1.3% of its DPS for a head it can actually get, and 65 effective
+   health. The table below the preset is from before, on 2026-09-25's model.
+
 | Slot | Item | Slot | Item |
 | --- | --- | --- | --- |
-| Head | Darkmantle Cap (22005) | Legs | Legionnaire's Dragonhide Leggings (22878; Alliance: Knight-Captain's, 23295) |
+| Head | Shadowcraft Cap (16707) | Legs | Legionnaire's Dragonhide Leggings (22878; Alliance: Knight-Captain's, 23295) |
 | Neck | Amulet of the Darkmoon (19491) | Feet | Dunestalker's Boots (20715) |
 | Shoulder | Champion's Dragonhide Shoulders (23254; Alliance: Lieutenant Commander's, 23309) | Rings | Painweaver Band (13098), Don Julio's Band (19325) |
 | Back | Windshear Cape (20691) | Trinkets | Earthstrike (21180), Hand of Justice (11815) |

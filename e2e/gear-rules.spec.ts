@@ -1,8 +1,10 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { linkFor } from './links.ts'
 
 // The gear rules the picker and defaults follow (docs/data/items.md#equipping-rules,
-// docs/ux.md#sections "Gear"): Unique and Unique-Equipped, and each faction's own PvP gear.
+// docs/ux.md#sections "Gear"): Unique and Unique-Equipped, each faction's own PvP gear, and each
+// class's own quest rewards.
 
 /**
  * Clicks a slot or picker row's button on the item's icon. The row's flag badges sit above the
@@ -112,5 +114,53 @@ test.describe('faction gear', () => {
     await feet.getByLabel('Search items').fill('plate greaves')
     await expect(feet.getByRole('button', { name: /Knight-Lieutenant's Plate Greaves/ })).toBeVisible()
     await expect(feet.getByRole('button', { name: /Blood Guard's Plate Greaves/ })).toHaveCount(0)
+  })
+})
+
+test.describe('class-quest rewards', () => {
+  // docs/data/items.md#class-quest-rewards: Dungeon Set 2 pieces come from quests only their set's
+  // class can take, though the client lets any class that wears the armor type wear them.
+  async function switchSpec(page: Page, menuItem: RegExp, button: RegExp) {
+    await page.goto('./')
+    await page.getByRole('button', { name: /^Spec: / }).click()
+    await page.getByRole('menuitem', { name: menuItem }).click()
+    await expect(page.getByRole('button', { name: button })).toBeVisible()
+  }
+
+  async function searchHeads(page: Page, search: string) {
+    await page.getByRole('button', { name: /^Head: / }).click(onIcon)
+    const picker = page.getByRole('dialog', { name: 'Choose head' })
+    await picker.getByRole('radio', { name: 'All items' }).click()
+    await picker.getByLabel('Search items').fill(search)
+    return picker
+  }
+
+  test('the head picker offers Darkmantle Cap to a rogue, and not to a Feral druid', async ({ page }) => {
+    await switchSpec(page, /Combat/, /^Spec: Combat Rogue/)
+    let picker = await searchHeads(page, 'darkmantle')
+    await expect(picker.getByRole('button', { name: /^Darkmantle Cap/ })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(picker).toBeHidden()
+
+    await switchSpec(page, /Feral \(Bear\)/, /^Spec: Feral \(Bear\) Druid/)
+    // The bear's default head isn't the rogue's cap any more.
+    await expect(page.getByRole('button', { name: /^Head: / })).not.toHaveAccessibleName(/Darkmantle Cap/)
+    // A leather helm the druid can wear is offered (Dungeon Set 1's, anyone's); the rogue's cap isn't.
+    picker = await searchHeads(page, 'wildheart cowl')
+    await expect(picker.getByRole('button', { name: /^Wildheart Cowl/ })).toBeVisible()
+    await picker.getByLabel('Search items').fill('darkmantle')
+    await expect(picker.getByRole('button', { name: /Darkmantle Cap/ })).toHaveCount(0)
+  })
+
+  test('a shared bear setup wearing Darkmantle Cap still loads, without it, and says why', async ({ page }) => {
+    await page.goto('./')
+    const hash = await linkFor(page, { version: 1, spec: 'druid-feral-bear', race: 'horde-tauren', gear: { head: { itemId: 22005 }, neck: { itemId: 19491 } } })
+    await page.goto('about:blank')
+    await page.goto(`./${hash}`)
+    await expect(page.getByText('Loaded a shared setup')).toBeVisible()
+    await expect(page.getByText('Darkmantle Cap comes from a quest only rogues can take, so it was removed.')).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Spec: Feral \(Bear\) Druid/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Head: empty' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Neck: Amulet of the Darkmoon' })).toBeVisible()
   })
 })

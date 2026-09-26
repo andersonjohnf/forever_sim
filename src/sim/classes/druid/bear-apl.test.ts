@@ -57,7 +57,9 @@ describe('the Feral bear’s priority list (D31)', () => {
     // reproduces exactly (no case turns on the bear's own Thorns, `thornsOwn`). Re-taken for Touch of
     // the Grave's trigger (`damageLanded`, character-stats.md#touch-of-the-grave): every plan carries
     // one more trigger list, empty, since a druid can't be Undead; with the lists held at the 27 codes
-    // before it, the snapshot before it reproduces exactly.
+    // before it, the snapshot before it reproduces exactly. Re-taken for the default head, Shadowcraft
+    // Cap for Darkmantle Cap, a rogue's quest reward (druid.md §7.3a): with Darkmantle Cap back, the
+    // snapshot before it reproduces exactly.
     const cases = bearCases(BEAR_OPTIONS, 200)
     const plans = cases.map((config) =>
       buildPlan({

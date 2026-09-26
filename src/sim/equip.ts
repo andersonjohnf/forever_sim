@@ -4,7 +4,8 @@
 // Proficiencies are Classic Era's [C]; no Forever change to them has been found [?]
 // (docs/open-questions.md). Plate and mail are trained at level 40, so every level-60
 // warrior and paladin has them.
-import type { ArmorType, Item, WeaponType } from '@/data/items/types'
+import itemJson from '@/data/items/pre-bis.json'
+import type { ArmorType, Item, ItemData, WeaponType } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { Faction, RaceData } from '@/data/races/types'
 import type { ClassId, GearSlot } from './types'
@@ -156,9 +157,47 @@ export function isTwoHand(item: Item): boolean {
 /** Whether the class fills the ammo and quiver slots (the hunter; docs/mechanics/ranged-and-pets.md §1). */
 export const usesSupplies = (classId: ClassId) => PROFICIENCY[classId].supplies === true
 
-/** Can this class use the item at all (armor type, weapon type, relic, class restriction)? */
+// --- Class-quest rewards (docs/data/items.md#class-quest-rewards) ----------------------------
+
+/**
+ * Item sets whose every piece is the reward of a quest only one class can take, by the set's name in
+ * the client's ItemSet table, and that class. The item rows carry no class restriction, so the client
+ * would let anyone wear them, but no other class can get one. Dungeon Set 2: each class's upgrade
+ * quests give its own set's pieces [C]
+ * ([Dungeon Set 2](https://warcraft.wiki.gg/wiki/Dungeon_Set_2)).
+ */
+export const CLASS_QUEST_SETS: Readonly<Record<string, ClassId>> = {
+  'Battlegear of Heroism': 'warrior',
+  'Soulforge Armor': 'paladin',
+  'Feralheart Raiment': 'druid',
+  'The Five Thunders': 'shaman',
+  'Darkmantle Armor': 'rogue',
+  "Sorcerer's Regalia": 'mage',
+  'Deathmist Raiment': 'warlock',
+  'Vestments of the Virtuous': 'priest',
+  'Beastmaster Armor': 'hunter',
+}
+
+/** Each class-quest set piece's class, from the sets' item lists (every piece, in the pool or not). */
+const QUEST_CLASS = new Map<number, ClassId>()
+for (const set of Object.values((itemJson as unknown as ItemData).sets)) {
+  const classId = CLASS_QUEST_SETS[set.name]
+  if (classId) for (const id of set.itemIds) QUEST_CLASS.set(id, classId)
+}
+
+/** The one class whose quest gives this item, or null when the item isn't a class-quest reward. */
+export function questClass(item: Pick<Item, 'id'>): ClassId | null {
+  return QUEST_CLASS.get(item.id) ?? null
+}
+
+/**
+ * Can this class use the item at all (armor type, weapon type, relic, class restriction, and a
+ * class-quest reward's class: docs/data/items.md#class-quest-rewards)?
+ */
 export function canUse(classId: ClassId, item: Item): boolean {
   if (item.classes && !item.classes.includes(CLASS_NAME[classId])) return false
+  const quest = QUEST_CLASS.get(item.id)
+  if (quest !== undefined && quest !== classId) return false
   const p = PROFICIENCY[classId]
   if (item.itemClass === 'Armor') {
     if (item.slot === 'shield') return p.shield

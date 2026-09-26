@@ -4,7 +4,8 @@ import type { Item, ItemData } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
 import { defaultConfig } from './defaults'
-import { canUse, fitsFaction, fitsSlot, itemFaction, raceFaction, uniqueConflicts, WARSONG_GULCH_PREFIX } from './equip'
+import { normalizeConfig } from './config/normalize'
+import { canUse, CLASS_QUEST_SETS, fitsFaction, fitsSlot, itemFaction, questClass, raceFaction, uniqueConflicts, WARSONG_GULCH_PREFIX } from './equip'
 import { SPEC_IDS, SPEC_META } from './specs'
 import type { GearSlot } from './types'
 
@@ -39,6 +40,81 @@ describe('proficiencies', () => {
     const druidOnly = items.find((i) => i.classes?.length === 1 && i.classes[0] === 'Druid')!
     expect(canUse('druid', druidOnly)).toBe(true)
     expect(canUse('warrior', druidOnly)).toBe(false)
+  })
+})
+
+describe('class-quest rewards (docs/data/items.md#class-quest-rewards)', () => {
+  const sets = Object.values((itemJson as unknown as ItemData).sets)
+
+  it('names nine Dungeon Set 2 sets the client has, one a class, eight pieces each', () => {
+    expect(new Set(Object.values(CLASS_QUEST_SETS)).size).toBe(9)
+    for (const name of Object.keys(CLASS_QUEST_SETS)) {
+      const matches = sets.filter((s) => s.name === name)
+      expect(matches, name).toHaveLength(1)
+      expect(matches[0].itemIds, name).toHaveLength(8)
+    }
+  })
+
+  it('gives Darkmantle Cap to rogues only, though its row has no class restriction', () => {
+    const cap = byId(22005)
+    expect(cap.name).toBe('Darkmantle Cap')
+    expect(cap.classes).toBeNull()
+    expect(questClass(cap)).toBe('rogue')
+    expect(canUse('rogue', cap)).toBe(true)
+    expect(fitsSlot('rogue', 'head', cap)).toBe(true)
+    // A druid wears leather, but can't take the rogue's quest.
+    expect(canUse('druid', cap)).toBe(false)
+    expect(fitsSlot('druid', 'head', cap)).toBe(false)
+  })
+
+  it('gives every pooled piece of each set to its class alone', () => {
+    let checked = 0
+    for (const set of sets) {
+      const owner = CLASS_QUEST_SETS[set.name]
+      if (!owner) continue
+      for (const id of set.itemIds) {
+        const item = items.find((i) => i.id === id)
+        if (!item) continue
+        expect(questClass(item), item.name).toBe(owner)
+        for (const classId of Object.values(CLASS_QUEST_SETS)) {
+          if (classId !== owner) expect(canUse(classId, item), `${item.name} for a ${classId}`).toBe(false)
+        }
+        checked++
+      }
+    }
+    expect(checked).toBe(46)
+  })
+
+  it('leaves Dungeon Set 1 and every other item alone', () => {
+    expect(questClass(byName('Wildheart Cowl'))).toBeNull()
+    expect(canUse('rogue', byName('Wildheart Cowl'))).toBe(true)
+    expect(questClass(byName('Lionheart Helm'))).toBeNull()
+  })
+
+  it('is in no spec’s default gear for another class, for any race it can be', () => {
+    const races = (raceJson as unknown as RaceData).races
+    let checked = 0
+    for (const spec of SPEC_IDS) {
+      const { classId } = SPEC_META[spec]
+      for (const race of races.filter((r) => r.classes.forever.includes(classId))) {
+        for (const [slot, entry] of Object.entries(defaultConfig(spec, race.id).gear)) {
+          const quest = questClass({ id: entry!.itemId })
+          expect(quest === null || quest === classId, `${spec} ${race.id} ${slot}: ${entry!.itemId}`).toBe(true)
+          checked++
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(500)
+  })
+
+  it('removes another class’s piece from a loaded setup, saying whose quest it is', () => {
+    const { config, warnings } = normalizeConfig({ ...defaultConfig('druid-feral-bear'), gear: { head: { itemId: 22005 } } })
+    expect(config.gear.head).toBeUndefined()
+    expect(warnings).toContain('Darkmantle Cap comes from a quest only rogues can take, so it was removed.')
+    // The rogue's own setup keeps it.
+    const rogue = normalizeConfig({ ...defaultConfig('rogue-combat'), gear: { head: { itemId: 22005 } } })
+    expect(rogue.config.gear.head).toEqual({ itemId: 22005 })
+    expect(rogue.warnings).toEqual([])
   })
 })
 

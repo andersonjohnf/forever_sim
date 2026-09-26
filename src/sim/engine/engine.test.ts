@@ -735,6 +735,9 @@ describe('golden run (fixed config and seed)', () => {
   //   206 + 0.05 × the attack power as it lands, in place of Classic Era's 261 (threat.md's wording
   //   table, D29). On this seed's 500 fights only Lacerate's threat moves, 14,273,663 → 14,609,981:
   //   TPS 1,114.45 → 1,118.19, DPS 547.00 unchanged.
+  // - The head is Shadowcraft Cap for Darkmantle Cap, a rogue's quest reward (druid.md §7.3a,
+  //   items.md#class-quest-rewards). On this seed's 500 fights TPS 1,102.03 → 1,085.43, DPS 540.39 →
+  //   532.82; with Darkmantle Cap back on the head, the snapshot before it reproduces exactly.
   it('keeps the default Feral bear’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)
@@ -751,6 +754,7 @@ describe('golden run (fixed config and seed)', () => {
   //   plays; bear-apl.test.ts checks 200 random setups too).
   // - Build 1.60.1.70009: Lacerate's threat as above (206 + 0.05 × AP for 261). Lacerate's threat
   //   13,321,144 → 13,641,126; TPS 1,081.78 → 1,085.34, DPS unchanged.
+  // - Shadowcraft Cap for Darkmantle Cap, as above: TPS 1,069.95 → 1,054.01, DPS 526.21 → 518.84.
   it('keeps the Defensive Feral bear’s result unchanged', () => {
     const d = defaultConfig('druid-feral-bear')
     const bundle = buildPlan({ ...d, rotation: { 'druid.bear.priority': 'duties' }, run: { mode: 'fixed', iterations: 500, seed: 12345 } })

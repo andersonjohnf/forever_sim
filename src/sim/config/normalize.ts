@@ -11,7 +11,7 @@ import { BUFFS_BY_ID, type BuffSpec, TEMP_ENCHANT } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { catalogueEffects } from '../effects/types'
 import { buffProvided, buffUnusedReason, forSpecClass, presetBuffIds } from '../effects/presets'
-import { fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
+import { fitsSlot, isTwoHand, questClass, uniqueConflicts } from '../equip'
 import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_IDS, SPEC_META } from '../specs'
 import { normalizeAplOrder, storedAplOrder } from '../classes/apl'
@@ -276,7 +276,13 @@ function normalizeGear(input: unknown, spec: SpecId, race: string, classId: Clas
       continue
     }
     if (!fitsSlot(classId, s, item)) {
-      r.add(`${item.name} can’t go in that slot for this class, so it was removed.`)
+      // A class-quest reward another class can't get says whose it is (docs/data/items.md#class-quest-rewards).
+      const quest = questClass(item)
+      r.add(
+        quest !== null && quest !== classId
+          ? `${item.name} comes from a quest only ${quest}s can take, so it was removed.`
+          : `${item.name} can’t go in that slot for this class, so it was removed.`,
+      )
       continue
     }
     gear[s] = { itemId: item.id }

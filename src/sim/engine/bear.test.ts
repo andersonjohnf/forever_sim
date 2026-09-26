@@ -659,13 +659,13 @@ describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TP
   const DEFENSIVE: SimConfig['rotation'] = { [BEAR_IDS.priority]: BEAR_PRIORITY.duties }
   const config = (rotation: SimConfig['rotation'], buffs: string[] = []): SimConfig => {
     const d = defaultConfig('druid-feral-bear')
-    return { ...d, rotation, buffs: { ...d.buffs, enabled: [...d.buffs.enabled, ...buffs] }, run: { mode: 'fixed', iterations: 2000, seed: 33 } }
+    return { ...d, rotation, buffs: { ...d.buffs, enabled: [...d.buffs.enabled, ...buffs] }, run: { mode: 'fixed', iterations: 6000, seed: 33 } }
   }
   const run = (c: SimConfig) => {
     const bundle = buildPlan(c)
     let agg = emptyAggregate(bundle.plan.sources.length, bundle.plan.auras.length)
     const sim = new Sim(bundle.plan)
-    for (let k = 0; k < 4; k++) agg = mergeChunk(agg, runChunk(bundle.plan, k, 500, sim))
+    for (let k = 0; k < 4; k++) agg = mergeChunk(agg, runChunk(bundle.plan, k, 1500, sim))
     return toResult(bundle, agg, 0)
   }
 
@@ -698,7 +698,8 @@ describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TP
     expect(balanced.tank!.dtps.mean / duties.tank!.dtps.mean).toBeGreaterThan(1)
     expect(balanced.abilities.find((a) => a.id === 'demoralizingRoar')).toBeUndefined()
     // Max TPS drops the roar as Balanced does, and Mauls from 14 rather than 20, tuned on TPS alone
-    // (§6.3 "Max TPS", T5): about 0.2% more TPS for 0.2% less DPS.
+    // (§6.3 "Max TPS", T5): about 0.2% more TPS for 0.2% less DPS. On 6,000 fights: 2,000 put the DPS
+    // gap within the noise once the default head changed (2026-09-26; 0.25% less over 50,000 fights).
     expect(max.tps!.mean / balanced.tps!.mean).toBeGreaterThan(1)
     expect(max.tps!.mean / balanced.tps!.mean).toBeLessThan(1.006)
     expect(max.dps.mean / balanced.dps.mean).toBeLessThan(1)

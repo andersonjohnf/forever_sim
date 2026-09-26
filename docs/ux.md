@@ -490,6 +490,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - The picker offers only what the character can wear together
     ([items.md, "Equipping rules"](data/items.md#equipping-rules)):
     - It leaves out the other faction's PvP and battleground items, except the one equipped.
+    - It leaves out what the class can't wear, and another class's quest rewards: a druid isn't
+      offered Darkmantle Cap, a rogue's
+      ([items.md, "Class-quest rewards"](data/items.md#class-quest-rewards)). A share link, code or
+      saved setup that holds one loads without it, and the load's notice says why.
     - A unique item worn in the other slot of a pair moves over when picked. Its second line
       says so: "Unique: moves from ring 2".
     - An item that would break a Unique-Equipped group is dimmed and can't be picked. A line

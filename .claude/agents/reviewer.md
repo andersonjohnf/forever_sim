@@ -18,6 +18,12 @@ exact steps or numbers, and suggested fix), and a short "Confirmed" list of what
 
 Always check plausibility (decision D29): compare the headline with the other specs and with
 what the class's players expect, and treat an outlier as a finding until a cited mechanic
-explains it. Flag any value that affects the result but has no default (an effect the client, a tooltip or a talent says exists, modelled as zero), any talent build that doesn't match how the spec is played (tanks talent for the balanced approach, not pure defense), any
-tank ability whose threat wording is treated differently from another tank's, and any gear
-preset built for stats the spec doesn't scale with.
+explains it; what no mechanic explains is an open question, never a reason to move a value
+(decision D37). Flag any invented multiplier, ratio, scaling or fitted term (a value no allowed
+source gives, or an allowed value rescaled by a ratio we chose), any undescribed client dummy
+given a meaning by analogy, any value taken from another sim or an offhand number as if it were
+evidence, any test called a guild test that isn't the user's or a guild member's recorded one,
+any described effect (from the client, a tooltip or a talent) modelled as zero, any talent build
+that doesn't match how the spec is played (tanks talent for the balanced approach, not pure
+defense), any tank ability whose threat wording is treated differently from another tank's, and
+any gear preset built for stats the spec doesn't scale with.

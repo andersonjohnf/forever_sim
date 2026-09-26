@@ -297,6 +297,9 @@ of combat, where a DPS warrior usually walks in after the tank's pull, and your 
 gain depends on the raid's composition (the Buffs tab).
 
 ### D24: Small assumptions don't gate features (2026-09-23)
+**Amended by [D37](#d37-only-sourced-values-2026-09-26):** the Classic-based default is the same ability's Classic Era value or a
+similar known value used as is, never a value rescaled or fitted by a ratio we chose.
+
 User directive: build with sensible defaults, track them, and fix them once every spec is built.
 It replaces the 2026-09-22 rule "no forbidden-source placeholders" in character-stats.md. Two
 rules:
@@ -465,6 +468,10 @@ guild's tests ([milestones T6](milestones.md#m56-tanks-reviewed-against-the-guil
 failures.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
+**Amended by [D37](#d37-only-sourced-values-2026-09-26):** the same-wording bonus is used as is, never rescaled; a default is an
+allowed source's value used as is, never an estimate we reason out; an undescribed client dummy
+effect models as zero; and a gap goes to the open questions (there are no organized guild tests).
+
 User directive, after v1's tank numbers embarrassed the user in front of the guild: the
 Paladin and bear presets came from survival guides, and every tank ability whose extra threat
 had no known number was modelled with none. Both are now rules:
@@ -785,6 +792,10 @@ the same build to both hosts, and `sim.decades.gg` stays on Pages; the cutover i
   load, and the unhashed files in `public/` cache for an hour.
 
 ### D36: What we take from WarriorSim (2026-09-25)
+**Amended by [D37](#d37-only-sourced-values-2026-09-26):** the Season of Discovery exception is narrowed to Blizzard's own SoD client
+data or patch notes for a spell Forever reuses, and WarriorSim is unconfirmed data, never
+authoritative; its uncited terms adopted here are re-checked against allowed sources.
+
 User decision, after six researchers compared WarriorSim's Forever mode
 ([tzcnt/WarriorSim](https://github.com/tzcnt/WarriorSim) at `069329b`) with this sim, area by
 area. WarriorSim is the Classic sim with a thin Forever layer; most of that layer cites no source,
@@ -817,3 +828,45 @@ evidence, and no organized guild tests are coming, so each call rests on the evi
   - Hand of Justice's 1% and 2 s;
   - Forever's item, consumable and enchant values;
   - no reaction delay.
+
+### D37: Only sourced values (2026-09-26)
+User decision, after a review of the tank threat terms found multipliers, ratios and fitted terms
+that no source gave: values chosen to close a gap to a feeling, rescaled analogs, and client dummy
+effects given a meaning by analogy. It amends D29 (every value has a default), D24 (the
+Classic-based default), D36 (the Season of Discovery exception) and [doctrine §2](doctrine.md#2-where-numbers-come-from-non-negotiable).
+- **No invented multipliers, ratios, scalings or fitted terms.** A default comes only from:
+  - the same ability's Classic Era value;
+  - a similar known value used **as is**, never rescaled by a ratio we chose (by rank, level,
+    cost or anything else);
+  - Season of Discovery values from **Blizzard's own SoD client data or patch notes**, where the
+    Forever client carries the SoD spell (see below);
+  - client data, with the meaning the client defines for it;
+  - measurements: a reproducible beta-log analysis (D22), or in-game tests by the user or guild
+    members, recorded with the build, date, method and sample size.
+- **An undescribed client dummy effect models as zero.** D29's "every value has a default" covers
+  only effects that a tooltip, a talent's text, the client's defined meaning or observed play
+  describes. Giving a dummy effect a meaning by analogy is making a number up. A zero for a dummy
+  is tagged `[?]` and listed as an open question.
+- **The user's offhand numbers are never evidence or targets.** No value moves to close a gap to
+  a feeling (such as "800–900 TPS"). A gap no cited mechanic explains is an open question.
+- **There are no guild tests or benchmarks** apart from the user's own level-20 paladin test
+  (Holy Strike 27 threat, 36 with Judgement of the Crusader, 43 with Seal of Fury as well).
+  Anything else labelled a guild test, benchmark or measurement was mislabelled and is relabelled
+  by where it came from: a player's in-game tests shared on Discord are third-party Forever
+  measurements, `[?]`.
+- **Other sims are never authoritative.** wowsims classic and SoD, WarriorSim, LibThreatClassic2
+  and the Warcraft Logs threat configs are unconfirmed data we may consider, never a source that
+  sets a value on its own. Their bear and most of their warrior threat constants cite no source.
+- **Season of Discovery, scoped.** SoD stays forbidden, except Blizzard's own SoD client data or
+  patch notes for a spell Forever reuses from SoD (the same spell ID in the Forever client). This
+  replaces D36's "SoD behaviour as the closest analog" exception: a value from another sim's SoD
+  code is still only unconfirmed data. Such values are tagged `[?]` with the spell and source.
+- **Maul ×1.75 stays** `[?]`, with its provenance stated plainly: every Classic and SoD threat
+  tool has used it since 2019, it traces to a 2006 guide, and it has never been measured on
+  Classic Era. The same lineage covers Swipe ×1.75, Faerie Fire's 108 and Demoralizing Roar's 39.
+- **Lacerate's threat is 206, flat,** by the same-wording rule: Sunder Armor's Forever value,
+  with no attack-power term.
+
+D29's other rules stand: equal threat wording across tanks (now the bonus used as is), talent
+builds and presets suited to how the spec is played, and the plausibility check, whose finding is
+closed by a cited mechanic or recorded as an open question, never by moving a value.

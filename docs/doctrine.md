@@ -55,9 +55,12 @@ Rules come from four tiers. Use the highest tier that has an answer.
    documented API has no hotfix endpoint. A value that only a hotfix could explain is
    flagged **[?]** and listed as an open question, never guessed
    ([client.md § Hotfix caveat](data/client.md#hotfix-caveat)).
-2. **WoW Forever, measured**: in-game tests on the Forever beta by the guild, recorded in
-   the relevant doc with the build, date, method, and sample size. If a measurement
-   contradicts a tooltip, the measurement wins; flag the conflict.
+2. **WoW Forever, measured**: in-game tests on the Forever beta by the user or guild members,
+   recorded in the relevant doc with the build, date, method, and sample size. If a
+   measurement contradicts a tooltip, the measurement wins; flag the conflict. So far the only
+   one is the user's level-20 paladin test
+   ([D37](decisions.md#d37-only-sourced-values-2026-09-26)); a test shared by someone else is a
+   third-party measurement (below), not tier 2.
 3. **Classic Era**: the 2019+ WoW Classic re-release, clients 1.13–1.15. Its client
    (product `wow_classic_era`, build `1.15.9.69722`), read through the same API, is the
    baseline the datasets compare Forever against. Use it wherever tiers 1–2 are silent.
@@ -72,24 +75,28 @@ Rules come from four tiers. Use the highest tier that has an answer.
    [C] values around it. It's tagged `[?]` as a placeholder, never cited as evidence, listed in
    the open questions with its estimated effect and in the results' assumptions, and replaced as
    soon as a tier 1–3 source has it.
-   **A second exception ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)):**
-   where the Forever client itself carries a Season of Discovery spell in place of the Classic
-   one (the same ID, absent from Classic before SoD), that spell's SoD behaviour is the closest
-   analog for how the server runs it. It's tagged `[?]` with that reasoning, never as a value
-   from SoD alone.
+   **Season of Discovery, scoped ([D37](decisions.md#d37-only-sourced-values-2026-09-26),
+   replacing [D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)'s exception):**
+   where the Forever client carries a Season of Discovery spell (the same spell ID, absent
+   from Classic before SoD), **Blizzard's own** SoD client data or patch notes for that spell
+   may supply its values. Nothing else from SoD may: a value from another sim's SoD code, a
+   wiki or a guide stays forbidden, and a rescaled or "closest analog" SoD value is still
+   invented. Such a value is tagged `[?]` with the spell ID and the Blizzard source, and listed
+   in the open questions.
 
 **Secondary Forever sources** include Wowhead news posts, streamer tooltip captures, and
 community Forever sims such as [wowsims/forever](https://github.com/wowsims/forever) and
 [ElliotWood/Forever](https://github.com/ElliotWood/Forever). They may be cited for
-Forever-specific facts but are tagged **[?]** until client data or a guild measurement
+Forever-specific facts but are tagged **[?]** until client data or a tier 2 measurement
 confirms them. Never adopt a value they carried over from a forbidden ruleset: both are
 built on wowsims code with Season of Discovery or TBC lineage.
 
 Two more kinds of evidence are secondary and tagged **[?]**:
 
-- **Third-party Forever measurements**, such as beta tests posted by other theorycrafters
-  or community combat logs, until the guild reproduces them (tier 2 is *guild*
-  measurement).
+- **Third-party Forever measurements**, such as beta tests posted by other theorycrafters,
+  a player's in-game tests shared on Discord, or community combat logs, until the user or a
+  guild member reproduces them (tier 2). Label them by where they came from ("a player's
+  tests shared on Discord"), never as a guild test.
 - **Forever client data read through a secondary source**, such as tables extracted in
   wowsims/forever, until the same value is read from the client files (tier 1). Then cite
   the client table and build, and tag it **[F]**.
@@ -101,6 +108,19 @@ modes or ancestry (WarriorSim, LibThreatClassic2, Sixty Upgrades). A value suppo
 by such a source is **[?]**, not **[C]**, until a genuine Classic Era source corroborates
 it. Exception: code pinned to a commit from **before Season of Discovery launched
 (2023-11-30)** is Classic Era and can back a **[C]** value.
+
+**Other sims are never authoritative**
+([D37](decisions.md#d37-only-sourced-values-2026-09-26)). wowsims classic and SoD, WarriorSim,
+LibThreatClassic2 and the Warcraft Logs threat configs are unconfirmed data we may consider: a
+lead to check against the client, Classic Era or a measurement, never a source that sets a value
+on its own. Many of their constants cite nothing (their bear and most warrior threat terms among
+them). Where one is kept for want of anything better, as Maul's ×1.75 is, its provenance is
+stated plainly in the owning doc and it stays **[?]**.
+
+**The user's offhand numbers are never evidence or targets**
+([D37](decisions.md#d37-only-sourced-values-2026-09-26)). A number said in passing ("bears do
+about 800–900 TPS") is a feel, not a measurement. No value moves to close a gap to it; a gap no
+cited mechanic explains is an open question.
 
 **When secondary Forever evidence contradicts Classic Era,** the `forever` rule profile
 adopts it in two cases:
@@ -122,22 +142,32 @@ measured: the server may disagree with the client's display.
 derived from raw client tables disagrees with it (e.g. per-level scaling), use the tooltip
 number as **[F]** and record the derived one as an open question.
 
-**Every value that affects the result has a default** ([D29](decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)).
-Leaving a known variable blank is not the careful choice. A blank models the effect as zero, and
-that is the least accurate guess there is. So:
-- Anything we know exists, from a tooltip, the client's data, a talent's text or how the game
-  plays, gets a sensible default: the closest analog from allowed sources, or an estimate
-  reasoned from them.
-- The default is tagged **[?]**, listed in the doc's open questions and shown in the results'
-  assumptions, until a tier 1–2 source or a guild measurement replaces it.
-- "Unknown", "untested" and "no allowed source" are never reasons to leave a value out. Only an
-  allowed source saying the effect is zero makes it zero.
-- The tier 4 rule still holds: a default is never copied from a forbidden source. That rule
-  decides where a default may come from, never whether there is one.
+**Every described effect has a default, and no default is invented**
+([D29](decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24),
+narrowed by [D37](decisions.md#d37-only-sourced-values-2026-09-26)). Leaving a described effect
+out models it as zero, which is rarely the most accurate reading; making a number up is worse.
+So:
+- An effect a tooltip, a talent's text, the client's defined meaning or observed play
+  describes gets a default, and it's an allowed source's value **used as is**, one of:
+  - the same ability's Classic Era value;
+  - a similar known value, unchanged: never rescaled by a ratio we chose (by rank, level, cost
+    or anything else);
+  - Blizzard's own Season of Discovery client data or patch notes, for a spell Forever reuses
+    from SoD (tier 4's scoped exception);
+  - client data, with the meaning the client defines for it;
+  - a measurement: a D22 log analysis or a tier 2 test.
+- **No invented multipliers, ratios, scalings or fitted terms.** A coefficient chosen to make a
+  result look right, or fitted to one tester's numbers, is not a default.
+- **An undescribed client dummy effect models as zero.** A dummy aura or effect with no
+  tooltip, talent text or defined client meaning has nothing to default from; giving it a
+  meaning by analogy is invention. The zero is tagged **[?]** and listed as an open question.
+- Every such default is tagged **[?]**, listed in the doc's open questions and shown in the
+  results' assumptions, until a tier 1–2 source replaces it.
+- The tier 4 rule still holds: a default is never copied from a forbidden source.
 
 **The same threat wording means the same threat on every tank** (D29). "A high amount of threat"
 on a bear's or a paladin's ability is the bonus the warrior's abilities with those words carry,
-scaled the way those values scale (by rank, level or cost). The wording table in
+used as is, never rescaled (D37). The wording table in
 [threat.md](mechanics/threat.md) maps each phrase to its value.
 
 **Worked examples name their rule profile** (`forever` or `classicEra`) whenever the
@@ -170,7 +200,7 @@ fix one of them in the same change.
 - Every dataset has a `meta` envelope recording its source URL, scrape time, client builds
   and the files it read. The beta changes weekly, so always know which build a number came
   from.
-- Corrections to scraped data (a mis-rendered tooltip, a value the guild measured) go in
+- Corrections to scraped data (a mis-rendered tooltip, a value measured in-game) go in
   an explicit, documented override layer in the engine, each with a reason and a source.
   They never go in the JSON.
 - Scrapers call only wago.tools' documented API (tier 1 above) and GitHub for WoWDBDefs, run
@@ -249,8 +279,13 @@ finding is fixed or waived with a written reason, and the log is committed as
 - **Plausibility is part of the logic review** (D29). A reviewer compares the headline with
   the other specs and with what the class's players expect. An outlier, such as a tank below
   most DPS specs' threat or one tank at twice another, is a finding until a cited mechanic
-  explains it or a fix removes it; "every formula matches its doc" doesn't close it. A gear
-  preset gets the same scrutiny: stat weights, and each slot against the pool's best.
+  explains it or a sourced correction removes it; "every formula matches its doc" doesn't close
+  it. What neither closes becomes an open question: a gap is never a reason to move a value
+  ([D37](decisions.md#d37-only-sourced-values-2026-09-26)). A gear preset gets the same
+  scrutiny: stat weights, and each slot against the pool's best.
+- **Invented values are findings** (D37). Any multiplier, ratio, scaling or fitted term that no
+  allowed source gives, and any undescribed client dummy given a meaning by analogy, is a
+  finding however plausible the result it produces.
 
 The procedure and checklists are in
 [CLAUDE.md](../CLAUDE.md#core-doctrine-adversarial-review-before-every-push) and

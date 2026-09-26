@@ -62,7 +62,7 @@ Rules come from four tiers. Use the highest tier that has an answer.
    ([D37](decisions.md#d37-only-sourced-values-2026-09-26)): the level-20 paladin's Holy Strike
    test ([paladin.md](classes/paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)), the Maul flip test ([druid §4.1](classes/druid.md#mauls-threat-and-rage-in-the-users-test-)),
    the Judgement of Fury reverse flip test ([paladin.md](classes/paladin.md#open-questions), OQ 28)
-   and the Redoubt logs (paladin.md OQ 8). There are no guild tests; a test shared by someone else
+   and the Redoubt logs (paladin.md OQ 8). There are no tests by other guild members; a test shared by someone else
    is a third-party measurement (below), not tier 2.
 3. **Classic Era**: the 2019+ WoW Classic re-release, clients 1.13–1.15. Its client
    (product `wow_classic_era`, build `1.15.9.69722`), read through the same API, is the

@@ -140,8 +140,9 @@ talent build, and what they changed stays theirs.
   it and reports `bossMeleeMoved`, which the autosave's defaults notice names by spec
   ([ux.md](ux.md#persistence-and-sharing)). It isn't in `following`: the setup's version says whether
   the swing was written while it was the default.
-- **Share links, setup codes and saved setups are deliberate** and are loaded exactly as they are:
-  they're `SimConfig`s with no `following`, loaded with `replace`, and never migrated. After that,
+- **Share links, setup codes and saved setups are deliberate** and are loaded as they are:
+  they're `SimConfig`s with no `following`, loaded with `replace`, and never follow the defaults; only the
+  version migrations above apply (the former boss melee among them). After that,
   the autosave treats one as any setup: its slots that happen to hold today's defaults follow them
   from then on, and the rest are the player's.
 

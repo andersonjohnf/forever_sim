@@ -14,6 +14,10 @@ review's log under [reviews/](reviews/). The milestones are in [milestones.md](m
   it (2026-09-26). Until it's there, nobody can re-derive the 24 swings, the 2.0 s gaps, the crit and
   crushing checks or the tank's armor between them (encounter OQ 3). Add the link, then read the
   tank's buffs, debuffs and other damage in it.
+- **The tank gear-search test catches the shield rule only incidentally (review JV-2, introduced by
+  the JL-4 fix, low).** `gear-search.test.ts`'s tank case fails if the whole one-hander-and-shield rule
+  goes, but through its "main hand changed" assertion; with only the two-hander filter removed it still
+  passes. Assert on the weapons step's candidates directly: no two-handers, only shields in the off hand.
 - **The bear preset's PvP-rank and Darkmoon pieces, and FL-1's joint head-and-feet pick (review
   JL-13, pre-existing, low).** The bear's default set still wears Champion's Dragonhide Shoulders
   (rank 10), Legionnaire's Dragonhide Leggings (rank 8) and the Darkmoon amulet, against D38 #20 and

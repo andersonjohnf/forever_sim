@@ -152,7 +152,7 @@ placement, 611.0 on this data with 3 points unspent).
 
 A reproducible read of the 47 public beta logs (build 1.60.1, 18–25 Sep 2026;
 [D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23),
-methods with each section) and the one guild test there is, the user's level-20 paladin (2026-09-25),
+methods with each section) and the user's own level-20 paladin test (2026-09-25), the first of their in-game tests,
 replaced every paladin value that had been fitted to a TPS figure rather than sourced. Each step's
 headline, the default setups at 10,000 fights:
 

@@ -371,9 +371,10 @@ convention [?]).
      faster late run, are left out as Golemagg's own. A Forever boss that shows them would need
      them modelled.
    - **The Golemagg log's armor and other damage** (JL-8): the crit and the crushing blow that check
-     U imply about 8,013 and 7,805 armor on the tank. Read the tank's buffs and debuffs in the log
-     (a stacking Magma Splash, 13880's −250 armor, or a buff that ended), and list what else the tank
-     took (Magma Splash's Fire damage, if it's Golemagg's). U itself doesn't move. Needs the report
+     U imply about 8,013 and 7,805 armor on the tank, 203–219 apart with rounding: not a whole
+     stack of anything the client shows at −250. Read the tank's buffs and debuffs in the log (Classic Era's
+     client has Magma Splash, 13880, −250 armor a stack, proc flags 40, which fire on whoever strikes the
+     aura's holder in melee; the client ties it to no creature), and list what else the tank took. U itself doesn't move. Needs the report
      link ([wcl-golemagg], a known gap).
    - **Parry haste on the boss:** the sim hastens the boss's next swing when the tank parries
      ([damage-and-timing §3.4](damage-and-timing.md#parry-haste), [C]); the 2.0 s gaps above were

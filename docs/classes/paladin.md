@@ -321,8 +321,11 @@ or blocked, and crits ×2** [F] [client] (SpellMisc, SpellCategories, SpellEffec
 ([method](#the-beta-logs-seal-of-fury)), 10 of the 43 Judgements of Command at ranks 1–2 were a
 `SPELL_MISSED` MISS of the rank-1 dummy 20425, from 5 of the 10 characters who judged it, and the other
 33 dealt damage. So the sim rolls JoC's miss, as JoR's and JoF's, then its crit on a landed one [?]
-([open question 23](#open-questions)); the logs' 23% misses were against mobs of every level, so the
-rate is the melee special table's. In Classic JoC was magic
+([open question 23](#open-questions)). Which table the miss comes from isn't settled: for the 10
+characters who judged Command, their judgements (Command and Fury) missed **17 of 56 (30%)**, while their
+Holy Strikes missed 7 of 64 (11%) and their white swings 26 of 412 (6%), against mobs of every level.
+Judgements missing that much more than the melee specials fits a spell-like table better; the sim
+keeps the melee special table's miss for now [?]. In Classic JoC was magic
 class, rolling spell hit ([C 20968][c20968]) [C]. Raid bosses are stun-immune, so the sim
 always uses the halved value.
 
@@ -430,8 +433,12 @@ It corroborates the client data above but isn't a guild measurement.
     +35; Holy Strike rank 3; Seal of Fury rank 2) [F]: Holy Strike hit 27 with no judgement on the
     target, 36 with Judgement of the Crusader, and 43 with Seal of Fury up as well. A Holy Strike gets
     part of the bonus and far less than all of it (27 + 35 = 62), so the "All of it" reading is ruled
-    out. These are single hits, which the weapon's roll moves by a few points; the logs' share predicts
-    27 + 15 = 42.
+    out. It leaves two gaps the model doesn't explain ([open question 5](#open-questions)): the logs'
+    share predicts 27 + 0.429 × 35 = **42**, and the hit under the judgement was **36 (−6)**, more than
+    a rank-3 Holy Strike's roll moves it at level 20 (its 32% of the weapon spans about ±3); and Seal of
+    Fury **raised it to 43 (+7)**, which nothing in the model does (Holy Strike triggers no Seal of Fury
+    proc, and in the logs 7 characters' Holy Strikes are no bigger with Seal of Fury up, and none of
+    189 Seal of Fury procs follows a Holy Strike). They're single hits, so a repeat decides it.
   The Character → Advanced switch that offered "All of it" is gone (user decision, 2026-09-26); a saved
   setup that had it loads with the measured share and no notice.
 - **A Protection paladin judges it too** (user, 2026-09-24): it opens with Seal of the Crusader
@@ -1737,8 +1744,14 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    ([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc): the beta logs, 1.001 ±
    0.039, and the user's in-game test, which rules out the flat reading). Open: Seal of Command's share
    (0.29, by Holy Strike's, which the logs show whole outside its weapon percentage), and whether the
-   share comes after your own damage multipliers (the sim's default) or before them. *Test:* SoC-proc
-   damage with and without your JotC on a mob, then again with Vengeance stacked.
+   share comes after your own damage multipliers (the sim's default) or before them. Open too: the
+   user's single-hit test's two gaps ([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)):
+   Holy Strike hit 36 under the judgement where the share predicts 42 (−6), and 43 with Seal of Fury up
+   as well (+7), which nothing in the model explains. *Test:* SoC-proc damage with and without your JotC
+   on a mob, then again with Vengeance stacked; and 10+ non-crit Holy Strikes in each of three states
+   (no judgement on the mob, Judgement of the Crusader, Judgement of the Crusader with Seal of Fury
+   up), same weapon and mob level, comparing the averages. Whatever it finds, "All of it" stays ruled
+   out (it would be +35 on each).
 6. **Holy Strike formula**: the beta logs put the flat part and the 0.429 × SP inside the weapon
    percentage, 0.5 × (normalized weapon + 81–105 + 0.429 × SP) at rank 8
    ([the logs](#the-beta-logs-holy-strike)), not the tooltip's order (the flat part after the 50%);
@@ -1852,8 +1865,14 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 23. **Judgement of Command's miss chance.** The damage spell 20966 carries Always Hit, but the
     dummy 20968 that casts it doesn't [F] [client] (SpellMisc, 1.60.1.70009), and in the beta logs
     the dummy misses (10 of 43, 5 characters; [Seal of Command](#seal-of-command-soc)). The sim rolls
-    the melee special miss chance for it [?]. *Test:* 200+ JoC judgements on mobs three levels above
-    you, counting misses, with JoR judgements as the control (both should miss at the same rate).
+    the melee special miss chance for it [?]. Open: which table the judgement dummies roll, the melee
+    special attacks' or the spells'. In the logs the judgements of the characters who judged Command
+    missed 30% (17 of 56), their Holy Strikes 11% (7 of 64) and their white swings 6% (26 of 412). If
+    it's the spells', a level-60 paladin's judgements would miss 17% against a raid boss, less
+    spell hit, not the melee table's 8% less melee hit: about 1% of Retribution's DPS and 1–2% of
+    Protection's TPS (Judgement of Fury rolls the same way). *Test:* 200+ judgements on mobs three
+    levels above you, counting misses, with Holy Strikes as the melee control and with and without
+    +spell hit and +melee hit gear.
 
 24. **Mana regeneration's timing.** The sim ticks every 2 s from a random phase, and a seal cast
     before the pull is free and starts no five-second rule [?]. *Test:* a combat log of a

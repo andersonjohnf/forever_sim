@@ -632,10 +632,12 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   whole (outside a weapon percentage): the beta logs, 23 hits from 6 characters, 1.001 ± 0.039; the
   user's level-20 test rules out the flat reading [F]. The "All of it" switch is gone.
 - **Assumes:** Seal of Command's share is its whole 0.29, by Holy Strike's [?]; the share comes
-  after your own damage multipliers and before a crit's [?].
+  after your own damage multipliers and before a crit's [?]. Unexplained: the user's single hits,
+  Holy Strike 36 under JotC where the share predicts 42, and 43 with Seal of Fury up too [?].
 - **Test:** Seal of Command proc damage with and without your own JotC on the target, then the
-  same with Vengeance stacked.
-- **Samples:** ≥30 non-crit hits of each, with and without.
+  same with Vengeance stacked; Holy Strike with no judgement, with JotC, and with JotC and Seal of
+  Fury up.
+- **Samples:** ≥30 non-crit hits of each, with and without; ≥10 Holy Strikes a state.
 - **Changes:** Retribution DPS (Seal of Command's share).
 - **Docs:** [paladin § JotC](classes/paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc),
   [OQ 5](classes/paladin.md#open-questions);
@@ -994,9 +996,12 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   blocked, and crit ×2 [F data; one third-party log]; **JoC can miss too**: its damage spell
   20966 carries Always Hit, but the dummy 20968 that casts it doesn't [F client `SpellMisc`], and
   in the beta logs the dummy misses (10 of 43, 5 characters; 2026-09-26), so the sim rolls it the
-  melee special miss chance [?]; level-based partial resists on melee-class Holy vs +3 [?].
-- **Test:** from the front vs mobs three levels higher, log SoC procs and JoC/JoR outcomes (JoC's
-  miss rate against JoR's, the control); compare average SoC damage vs +3 and +0 mobs.
+  melee special miss chance [?]. Which table the judgements roll is open: in those logs they missed
+  30% (17 of 56) where the same characters' Holy Strikes missed 11% and white swings 6%, which fits a
+  spell-like table better [?]; level-based partial resists on melee-class Holy vs +3 [?].
+- **Test:** from the front vs mobs three levels higher, log SoC procs and judgement outcomes (the
+  judgements' miss rate against Holy Strike's, the melee control, with and without +spell hit and
+  +melee hit gear); compare average SoC damage vs +3 and +0 mobs.
 - **Samples:** ≥300 SoC procs; ≥200 JoC and ≥50 JoR judgements.
 - **Changes:** Ret hit tables and resist averaging.
 - **Docs:** [paladin § SoC](classes/paladin.md#seal-of-command-soc),

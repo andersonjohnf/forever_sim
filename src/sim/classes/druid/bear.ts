@@ -235,6 +235,21 @@ export function bearPresetText(m: BearPresetMeasures, maul: { maxTps: number; ba
 }
 const PRESET_TEXT = bearPresetText(BEAR_PRESET_MEASURES)
 
+/**
+ * What leaving Lacerate out while the raid's warriors keep the boss bleeding does in the default setup
+ * (Lacerate only when nothing else bleeds, druid.md §6.3's table; JL-2): TPS and DPS in percent against
+ * the default, measured on seed 28401 over 200,000 paired fights with scripts/tune/rotation.mjs on the
+ * boss melee of 2026-09-26 with Eye of Rend and the Defiler's boots (991.76 → 923.85 TPS, 510.91 →
+ * 453.39 DPS). bear-presets.test.ts measures it again, so the setting's help never quotes a stale figure.
+ */
+export const LACERATE_ALONE_MEASURES = { tpsPct: -6.85, dpsPct: -11.26 }
+/** A measured change in whole percent with its direction for a setting's help: "7% less", "the same". */
+const aboutPct = (x: number) => (Number(Math.abs(x).toFixed(0)) === 0 ? 'the same' : `${Math.abs(x).toFixed(0)}% ${x < 0 ? 'less' : 'more'}`)
+/** The Lacerate-alone setting's help, its figures from `m` (LACERATE_ALONE_MEASURES, or a re-measure's). */
+export function lacerateAloneHelp(m: { tpsPct: number; dpsPct: number }): string {
+  return `Leave Lacerate out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss, which turns on Rend and Tear without it. Its rage then goes to Maul: about ${aboutPct(m.tpsPct)} threat and ${aboutPct(m.dpsPct)} damage in the default setup, with Lacerate’s “high amount of threat” at 206 an application (untested). Off by default.`
+}
+
 /** Lacerate's refresh, 12 s left, for every priority (§6.3 "T3's re-check of the defaults"). */
 export const LACERATE_REFRESH_SEC = 12
 
@@ -394,7 +409,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.lacerateAlone,
     group: 'Core abilities',
     label: 'Lacerate only when nothing else bleeds',
-    help: 'Leave Lacerate out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss, which turns on Rend and Tear without it. Its rage then goes to Maul: about 14% less threat and 16% less damage in the default setup, with Lacerate’s “high amount of threat” at 206 an application (untested). Off by default.',
+    help: lacerateAloneHelp(LACERATE_ALONE_MEASURES),
     default: false,
     dependsOn: ID.lacerateEnabled,
   },

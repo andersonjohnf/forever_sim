@@ -11,7 +11,7 @@ import { buildPlan } from '../../plan/build'
 import { emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
 import type { RotationValue } from '../../types'
 import { aplPresets } from '../apl'
-import { BEAR_APL, BEAR_IDS as ID, BEAR_PRESET_MEASURES as M, BEAR_PRIORITY, bearPresetText } from './bear'
+import { BEAR_APL, BEAR_IDS as ID, BEAR_OPTIONS, BEAR_PRESET_MEASURES as M, BEAR_PRIORITY, bearPresetText, LACERATE_ALONE_MEASURES, lacerateAloneHelp } from './bear'
 
 const FIGHTS = 4000
 
@@ -68,5 +68,22 @@ describe('the Feral bear presets’ help numbers (CU-1)', () => {
     const behind = bearPresetText({ ...M, maxTpsOverBalanced: { tpsPct: -0.3, dpsPct: 0.2, damageTakenPct: 0.8 } }, { maxTps: 14, balanced: 20 })
     expect(behind.maxTps.summary).toContain(': −0.3% TPS, +0.2% DPS, 0.8% more damage taken (')
     expect(behind.maxTps.help).toContain('In the default setup Balanced makes more threat.')
+  })
+})
+
+describe('the Lacerate-alone setting’s help numbers (JL-2)', () => {
+  const balanced = measure({})
+  const alone = measure({ [ID.lacerateAlone]: true })
+  const pctOf = (x: number, base: number) => (x / base - 1) * 100
+
+  it('its TPS and DPS against the default are within 0.5 points of the measured ones', () => {
+    expect(Math.abs(pctOf(alone.tps, balanced.tps) - LACERATE_ALONE_MEASURES.tpsPct)).toBeLessThan(0.5)
+    expect(Math.abs(pctOf(alone.dps, balanced.dps) - LACERATE_ALONE_MEASURES.dpsPct)).toBeLessThan(0.5)
+  })
+
+  it('the help quotes them, every direction from its value', () => {
+    const help = BEAR_OPTIONS.find((o) => o.id === ID.lacerateAlone)!.help
+    expect(help).toContain('Its rage then goes to Maul: about 7% less threat and 11% less damage in the default setup')
+    expect(lacerateAloneHelp({ tpsPct: 0.3, dpsPct: 2.6 })).toContain('about the same threat and 3% more damage')
   })
 })

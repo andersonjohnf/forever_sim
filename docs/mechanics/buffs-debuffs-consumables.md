@@ -312,6 +312,9 @@ which doesn't matter inside one fight [F] [[fc-camping]].
   (1.5 s in Classic Era, DurationIndex 65 in 1.15.9), and each auto attack while it's up gets the
   +246 and uses a charge: the extra attack, then the next auto attack of either hand within the
   second. Abilities in that second get it and use none (its proc mask is auto attacks, 0x4) [?].
+  The Buffs entry says it in a phrase: "20% chance on a main-hand hit for an extra attack; it,
+  and whatever you swing or cast in the next 1 s, gets +246 attack power", where "whatever you
+  swing" is the one auto attack the second charge covers.
   [warrior.md §2.7](../classes/warrior.md#27-weaponmaster-extra-attacks-and-windfury) owns the
   details.
 - **Consequence [?]:** in Forever, a main-hand sharpening stone or weightstone should

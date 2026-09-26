@@ -308,7 +308,7 @@ shaman in the raid and Self only brings them
 | Strength of Earth (rank 4) | +42 Strength | on |
 | Grace of Air (rank 2) | +77 Agility | on (the air totem) |
 | Mana Spring | 10 mana every 2 s | on |
-| Windfury Totem | 20% on a main-hand hit, 1 extra attack, then +246 AP for 1 s on it, your next auto attack and your abilities | **off**: Windfury Weapon disables it for you |
+| Windfury Totem | 20% chance on a main-hand hit for an extra attack; it, and whatever you swing or cast in the next 1 s, gets +246 AP (the next auto attack only, [buffs doc](../mechanics/buffs-debuffs-consumables.md#windfury-totem)) | **off**: Windfury Weapon disables it for you |
 
 Values, durations (5 min, [F]) and exclusivity are the
 [buffs doc](../mechanics/buffs-debuffs-consumables.md#11-attack-power-stats-and-crit)'s: one air

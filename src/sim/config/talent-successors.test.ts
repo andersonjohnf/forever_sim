@@ -86,7 +86,15 @@ describe('migrateOlderCode', () => {
   it('says nothing when the successor is what the name mapping gives: Holy, Elemental and the trees that didn’t change', () => {
     expect(migrateOlderCode(TALENT_DATA.paladin, OLD, '005320213225131051-5032-05')).toEqual({ code: '05320213225131051-5032-05', refunds: [] })
     expect(migrateOlderCode(TALENT_DATA.shaman, OLD, '5504301500103031-04-053250000001')).toEqual({ code: defaultTalents('shaman-elemental'), refunds: [] })
-    expect(migrateOlderCode(TALENT_DATA.warrior, OLD, '30305013002-050530035150010051-')).toEqual({ code: defaultTalents('warrior-fury'), refunds: [] })
+  })
+
+  it('reads the old trees’ Fury default as today’s default, which W4 moved to 13/38/0, and says so', () => {
+    expect(migrateOlderCode(TALENT_DATA.warrior, OLD, '30305013002-050530035150010051-')).toEqual({
+      code: defaultTalents('warrior-fury'),
+      refunds: [],
+      successor: { label: 'the Fury default', now: 'today’s default', spec: 'warrior-fury' },
+    })
+    expect(defaultTalents('warrior-fury')).not.toBe('30305013002-050530035150010051-')
   })
 
   it('maps a player’s own build by name, with its refunds: only the exact shipped codes have successors', () => {

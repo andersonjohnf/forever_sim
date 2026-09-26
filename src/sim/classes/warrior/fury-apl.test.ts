@@ -47,8 +47,8 @@ describe('Fury’s priority list (D31)', () => {
   it('gives the same list in the default order as with none', () => {
     const none = furyRotation({}, TALENTS, noAura, CONTEXT)
     expect(furyRotation({}, TALENTS, noAura, CONTEXT, defaultAplOrder(FURY_APL))).toEqual(none)
-    // warrior.md §5.2's order: rows 1–13 and 15 (Berserker Rage needs a talent the default build
-    // skips), then the potion (16).
+    // warrior.md §5.2's order: rows 1–13 and 15, the Rend dance (10b) among them (Berserker Rage needs
+    // a talent the default build skips), then the potion (16).
     expect(ids(none)).toEqual([
       'battleShout',
       'deathWish',
@@ -64,6 +64,7 @@ describe('Fury’s priority list (D31)', () => {
       'overpower',
       'overpower',
       'overpower',
+      'rend',
       'heroicStrike',
       'mightyRagePotion',
       'mightyRagePotion',
@@ -80,8 +81,14 @@ describe('Fury’s priority list (D31)', () => {
     // (warrior.md §1, §2.8): Slam's 18 s cooldown less Improved Slam's 1.5 s a rank, and Bloodthrill's
     // 4% a rank from main-hand attacks into the 5 s window, moved 43 cases, each one using Slam or
     // Bloodthrill; the 6 others that use them have Improved Slam 2/2 (15 s, as before) and no Bloodthrill.
-    const before = FURY_OPTIONS.filter((o) => o.id !== 'warrior.fury.execute.bloodthirst')
-    const hashes = furyCases(before, 200).map(({ values, talents, context }) => {
+    // W4 added the Rend dance (row 10b), off here as it didn't exist, and moved two defaults, the
+    // Overpower dance's rage limit (40 to 45) and Bloodthirst over Execute (2,220 to 2,434 AP), held
+    // at their old values where a case doesn't set them: the cases play as they did before the list.
+    const w4 = ['warrior.fury.rend.enabled', 'warrior.fury.rend.refreshBelowSec', 'warrior.fury.rend.maxRage']
+    const before = FURY_OPTIONS.filter((o) => o.id !== 'warrior.fury.execute.bloodthirst' && !w4.includes(o.id))
+    const beforeW4 = { 'warrior.fury.overpower.maxRage': 40, 'warrior.fury.execute.btOverExecuteAp': 2220 }
+    const cases = furyCases(before, 200).map((c) => ({ ...c, values: { ...beforeW4, ...c.values, 'warrior.fury.rend.enabled': false } }))
+    const hashes = cases.map(({ values, talents, context }) => {
       const none = furyRotation(values, talents, noAura, context)
       expect(furyRotation(values, talents, noAura, context, defaultAplOrder(FURY_APL))).toEqual(none)
       return fingerprint(JSON.stringify(none))

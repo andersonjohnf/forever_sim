@@ -146,7 +146,8 @@ describe('bleed rows', () => {
 
   it('leaves every other row without bleed information', () => {
     const result = run(defaultConfig('warrior-fury'), 250)
-    expect(result.abilities.filter((a) => a.bleed).map((a) => a.id)).toEqual(['deepWounds'])
+    // Fury's bleeds: Deep Wounds, and Rend, which it dances for since W4.
+    expect(result.abilities.filter((a) => a.bleed).map((a) => a.id)).toEqual(['deepWounds', 'rend'])
   })
 })
 

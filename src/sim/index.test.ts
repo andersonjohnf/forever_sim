@@ -282,7 +282,9 @@ describe('rotationValues', () => {
     // Fury's are its plain defaults; Protection's Charge follows Vanguard (warrior.md §5.4 row 0).
     expect(rotationValues(defaultConfig('warrior-fury'))['warrior.fury.bloodthirst.enabled']).toBe(true)
     const prot = defaultConfig('warrior-protection')
-    expect(rotationValues(prot)['warrior.protection.prepull.charge']).toBe(true)
+    // The default build has no Vanguard since W4; the build before it (8/5/38) did.
+    expect(rotationValues(prot)['warrior.protection.prepull.charge']).toBe(false)
+    expect(rotationValues({ ...prot, talents: '35-05-552101233301210531' })['warrior.protection.prepull.charge']).toBe(true)
     expect(rotationValues({ ...prot, talents: '' })['warrior.protection.prepull.charge']).toBe(false)
     // Its priority moves switches and a number: Max TPS drops the duties whose upkeep costs threat and
     // keeps Shield Block and Shield Slam (§5.4, D26).

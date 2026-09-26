@@ -529,7 +529,7 @@ describe('optimize', () => {
     expect(lead.candidate).toBe(report.race.leader)
     expect(lead.vsBaseline.taken.mean).toBeLessThan(0)
     expect(lead.vsBaseline.score.mean).toBeCloseTo(-lead.vsBaseline.taken.mean, 9)
-    expect(describeBuildChange(TALENT_DATA.warrior, warrior.talents, report.candidates[lead.candidate].talents)).toContain('Toughness 1→5')
+    expect(describeBuildChange(TALENT_DATA.warrior, warrior.talents, report.candidates[lead.candidate].talents)).toContain('Toughness 0→5')
     // Confirmed on a fresh seed, less damage taken clears the bar: the sign is the goal's.
     const check = await confirm({ config: warrior, candidate: report.candidates[lead.candidate], goal: 'defense', seed: 77, fights: 400, runner: localFightRunner() })
     expect(check.vsBaseline.score.mean).toBeCloseTo(-check.vsBaseline.taken.mean, 9)

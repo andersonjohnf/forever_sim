@@ -13,6 +13,7 @@ import type { SimConfig } from '../../types'
 import { activeAplPreset, aplPresets, applyAplPreset, CUSTOM_APL_PRESET, DEFAULT_APL_PRESET, defaultAplOrder, moveAplRow, normalizeAplOrder } from '../apl'
 import { planJson } from './fury-apl-cases'
 import { fingerprint, protectionCases } from './protection-apl-cases'
+import { withPopularTalents } from './popular-builds'
 import { PROTECTION_APL, PROTECTION_OPTIONS, protectionRotation } from './protection'
 
 const PRIORITY = 'warrior.protection.priority'
@@ -22,9 +23,12 @@ const CASES = protectionCases(200)
 /** The case's settings with Priority forced, or left as drawn with a missing one as the old default, duties (Defensive). */
 const withPriority = (values: Record<string, string | number | boolean>, priority?: string) => ({ ...values, [PRIORITY]: priority ?? values[PRIORITY] ?? 'duties' })
 
-/** The whole setup's config for a case: the default Protection setup with its race, settings, phase, rules and consumables. */
+/**
+ * The whole setup's config for a case: the default Protection setup with its race, settings, phase, rules and
+ * consumables, and the default talents until W4 (8/5/38, popular-builds.ts), which the snapshots were taken with.
+ */
 function configOf(c: (typeof CASES)[number], priority?: string): SimConfig {
-  const base = defaultConfig('warrior-protection')
+  const base = withPopularTalents(defaultConfig('warrior-protection'))
   const buffs = base.buffs.enabled.filter((id) => id !== 'mightyRagePotion' && id !== 'jujuFlurry')
   return {
     ...base,

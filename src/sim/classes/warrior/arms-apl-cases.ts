@@ -4,6 +4,7 @@
 import { defaultConfig } from '../../defaults'
 import type { RotationOption, RotationValue, SimConfig } from '../../types'
 import { fingerprint } from './fury-apl-cases'
+import { withPopularTalents } from './popular-builds'
 
 export { fingerprint }
 
@@ -53,6 +54,33 @@ const SETTINGS_BEFORE = [
   'jujuFlurry.enabled',
 ].map((id) => `${P}.${id}`)
 
+/**
+ * What W4 changed in the defaults, held as it was so the cases play as they did before the list: the
+ * row order (W4 moved Overpower to the top, just after Battle Shout) and Hamstring from 40 (W4's 30).
+ * The popular build, the default talents until W4, is their base too.
+ */
+export const ARMS_ORDER_BEFORE_W4 = [
+  'prepull',
+  'battleShout',
+  'rend',
+  'deathWish',
+  'racial',
+  'trinkets',
+  'recklessness',
+  'bloodrage',
+  'executeSlam',
+  'executeMortalStrike',
+  'execute',
+  'mortalStrike',
+  'overpower',
+  'slam',
+  'spearingStrike',
+  'whirlwind',
+  'heroicStrike',
+  'hamstring',
+]
+const DEFAULTS_BEFORE_W4: Record<string, RotationValue> = { [`${P}.hamstring.minRage`]: 40 }
+
 /** Every race with a racial cooldown the rotation presses, a Gnome's Eureka!, and two without. */
 const RACES = ['horde-orc', 'horde-troll', 'alliance-night-elf', 'alliance-gnome', 'alliance-human', 'horde-undead']
 /** The Fury tree: the default's, or Fury's own (Death Wish, Flurry, Improved Execute, Improved Berserker Rage). */
@@ -66,7 +94,7 @@ const TRINKETS: [slot: 'trinket1' | 'trinket2', itemId: number][] = [
 ]
 
 /**
- * `count` setups from the default Arms warrior: about half the settings set at random, talents with
+ * `count` setups from the default Arms warrior as it was before W4 (ARMS_ORDER_BEFORE_W4): about half the settings set at random, talents with
  * random ranks taken off (and Fury's tree for Death Wish), the race, the on-use trinkets, a two-hander
  * or Fury's two one-handers (Spearing Strike needs the two-hander), the consumables and Battle Shout
  * in Buffs, the fight (length, execute phase, Giants and Dragonkin for Spearing Strike) and the rules.
@@ -77,7 +105,7 @@ export function armsCases(options: readonly RotationOption[], count: number, see
   const rnd = () => (state = (state * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
   const pick = <T>(a: readonly T[]) => a[Math.floor(rnd() * a.length)]
   const byId = new Map(options.map((o) => [o.id, o]))
-  const base = defaultConfig('warrior-arms')
+  const base: SimConfig = { ...withPopularTalents(defaultConfig('warrior-arms')), rotation: DEFAULTS_BEFORE_W4, rotationOrder: ARMS_ORDER_BEFORE_W4 }
   const fury = defaultConfig('warrior-fury')
   const out: SimConfig[] = [base]
   while (out.length < count) {
@@ -104,7 +132,7 @@ export function armsCases(options: readonly RotationOption[], count: number, see
       talents,
       gear,
       buffs: { ...base.buffs, enabled },
-      rotation,
+      rotation: { ...DEFAULTS_BEFORE_W4, ...rotation },
       fight: {
         ...base.fight,
         durationSec: pick([30, 90, 180, 300]),

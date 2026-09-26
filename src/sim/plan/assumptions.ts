@@ -713,7 +713,7 @@ const REGISTRY = {
   },
   rogueFlatInside: {
     text: 'Backstab’s flat 150 is inside its 150% of weapon damage, so it adds 225, as Classic Era’s tooltip reads; Forever’s tooltip says 150. Untested.',
-    docRef: `${ROGUE}#32-backstab-r9-25300`,
+    docRef: `${ROGUE}#32-backstab-r8-11281`,
   },
   lethality: {
     text: 'Lethality makes Sinister Strike, Backstab, Hemorrhage, Ghostly Strike and Mutilate crit for 2.2× at 5/5 (the +100% bonus becomes +120%), as the warrior’s Impale; untested.',
@@ -729,7 +729,7 @@ const REGISTRY = {
   },
   deadlyPoisonTicks: {
     text: 'Deadly Poison’s stacks tick on their own timer, which a new stack doesn’t restart, and its ticks can crit in Forever, as the client’s flag says. Untested.',
-    docRef: `${ROGUE}#42-deadly-poison-v`,
+    docRef: `${ROGUE}#42-deadly-poison-iv`,
   },
   hackAndSlash: {
     text: 'Hack and Slash’s extra attack is a main-hand swing whichever sword procs it, at most one each 0.2 s, as the warrior’s sword Weaponmaster; its dagger and fist crit counts only for that weapon’s attacks. Untested.',
@@ -1020,7 +1020,7 @@ const REGISTRY = {
   },
   serpentStingCrits: {
     text: 'Serpent Sting’s ticks can crit, as the Forever client’s flag says, at your spell crit when it lands, for 1.5 times the damage (Mortal Shots raises it). Untested in combat.',
-    docRef: `${HUNTER}#34-serpent-sting-r9-25295`,
+    docRef: `${HUNTER}#34-serpent-sting-r8-13555`,
   },
   arcaneShotResists: {
     text: 'Arcane Shot and Serpent Sting lose the boss’s average resist of their school (6% at level 63), as spells do; untested for shots.',

@@ -68,8 +68,9 @@ describe('normalizeConfig', () => {
       expect(config.talents).toBe(defaultConfig('shaman-elemental').talents)
       expect(warnings).toEqual([])
       expect(talentChange).toBeUndefined()
-      // A tree no build moved: the same code, in canonical form.
-      expect(normalizeConfig({ version: 1, spec: 'warrior-fury', talents: '30305013002-050530035150010051' }).config.talents).toBe('30305013002-050530035150010051-')
+      // A tree no build moved: the same code, in canonical form (a player's own build; the shipped
+      // defaults read as today's, talent-successors.ts).
+      expect(normalizeConfig({ version: 1, spec: 'warrior-fury', talents: '3200521-250500035152310051' }).config.talents).toBe('3200521-250500035152310051-')
     })
 
     it('reads version 2 on today’s trees: the same digits can be another build, or none', () => {

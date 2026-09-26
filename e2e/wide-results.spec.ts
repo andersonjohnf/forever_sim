@@ -93,7 +93,7 @@ test.describe('the wide right panel, 1440 px', () => {
     // Your setup, under the sheet: a line a section, in the Fury warrior's defaults, and Simulate with them.
     const setup = setupOf(panel)
     expect((await box(setup)).y).toBeGreaterThan((await box(sheet)).y + (await box(sheet)).height - 1)
-    for (const name of ['Character Human', 'Talents 17/34/0', 'Gear Pre-raid best in slot', 'Buffs Standard raid', 'Rotation Default', 'Fight 3:00']) {
+    for (const name of ['Character Human', 'Talents 13/38/0', 'Gear Pre-raid best in slot', 'Buffs Standard raid', 'Rotation Default', 'Fight 3:00']) {
       await expect(setup.getByRole('button', { name, exact: true })).toBeVisible()
     }
     // Simulate sits in the card's action row under the lines, on the right, with the status on its left.

@@ -155,21 +155,23 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why
 
 /**
  * What the presets' help and short lines say, measured in the default setup (warrior.md §5.4 "Build
- * 1.60.1.70009"; seed 31101, 100,000 paired fights, 2026-09-25): Defensive's TPS, DPS and damage taken
- * a second, Balanced and Max TPS against it in percent, and Max TPS against Balanced, since the two
- * share their rows. protection-presets.test.ts measures them again, so a change that moves them fails
- * until they're re-measured here.
+ * 1.60.1.70009"; seed 31101, 100,000 paired fights, re-measured 2026-09-25 with W4's talents, D36):
+ * Defensive's TPS, DPS and damage taken a second, Balanced and Max TPS against it in percent, and Max
+ * TPS against Balanced, since the two share their rows. protection-presets.test.ts measures them again,
+ * so a change that moves them fails until they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 882.83, dps: 351.55, damageTaken: 610.74 },
-  balanced: { tpsPct: 7.0, dpsPct: 6.27, damageTakenPct: 21.05 },
-  maxTps: { tpsPct: 8.03, dpsPct: 6.73, damageTakenPct: 21.11 },
-  maxTpsOverBalanced: { tpsPct: 0.96, dpsPct: 0.44, damageTakenPct: 0.05 },
+  defensive: { tps: 925.39, dps: 386.07, damageTaken: 616.34 },
+  balanced: { tpsPct: 6.44, dpsPct: 5.82, damageTakenPct: 20.99 },
+  maxTps: { tpsPct: 6.91, dpsPct: 5.56, damageTakenPct: 21.11 },
+  maxTpsOverBalanced: { tpsPct: 0.44, dpsPct: -0.24, damageTakenPct: 0.09 },
 } as const
 
 const M = PROTECTION_PRESET_MEASURES
 /** A measured percent for the help, whole (7%) or to a tenth (7.3%), unsigned. */
 const helpPct = (x: number, digits = 0) => `${Math.abs(x).toFixed(digits)}%`
+/** A measured change for the help, to a tenth, with its direction: "0.4% more", "0.2% less". */
+const moreOrLess = (x: number) => `${helpPct(x, 1)} ${x < 0 ? 'less' : 'more'}`
 
 /**
  * The presets' help, which the preset picker's info lists, and their short lines, which the picker
@@ -181,8 +183,8 @@ const DEFENSIVE_SUMMARY = 'Shield Block, Thunder Clap and Demoralizing Shout kep
 const DEFENSIVE_HELP = `Keeps Shield Block up, and Thunder Clap’s slow and Demoralizing Shout on the boss from the pull, so you take the least damage, and is tuned on threat: ${Math.round(M.defensive.tps)} TPS, ${Math.round(M.defensive.dps)} DPS and ${Math.round(M.defensive.damageTaken)} damage taken a second in the default setup. Pick it for progression fights.`
 const BALANCED_SUMMARY = `Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +${helpPct(M.balanced.tpsPct)} TPS, +${helpPct(M.balanced.dpsPct)} DPS, ${helpPct(M.balanced.damageTakenPct)} more damage taken than Defensive.`
 const BALANCED_HELP = `The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from ${BALANCED_FILLER_PCT}% of your max rage (${BALANCED_FILLER_PCT} rage without Boundless Rage), and Heroic Strike from ${BALANCED_HS_PCT}%. Against Defensive in the default setup: ${helpPct(M.balanced.tpsPct, 1)} more TPS, ${helpPct(M.balanced.dpsPct, 1)} more DPS and ${helpPct(M.balanced.damageTakenPct)} more damage taken. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
-const MAX_TPS_SUMMARY = `Sunder Armor filler from its cost, Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage: about +${helpPct(M.maxTpsOverBalanced.tpsPct)} TPS over Balanced for the same damage taken.`
-const MAX_TPS_HELP = `Balanced’s rotation spending more rage on threat: the Sunder Armor filler from its cost (9 rage with the default talents) rather than ${BALANCED_FILLER_PCT}% of your max rage, and Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage rather than ${BALANCED_HS_PCT}% of your max rage. Like Balanced, it drops Thunder Clap and Demoralizing Shout and keeps Shield Block and Shield Slam, which make more threat than they cost. Against Balanced in the default setup: ${helpPct(M.maxTpsOverBalanced.tpsPct, 1)} more TPS, ${helpPct(M.maxTpsOverBalanced.dpsPct, 1)} more DPS and the same damage taken; against Defensive, ${helpPct(M.maxTps.tpsPct, 1)} more TPS, ${helpPct(M.maxTps.dpsPct, 1)} more DPS and ${helpPct(M.maxTps.damageTakenPct)} more damage taken. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
+const MAX_TPS_SUMMARY = `Sunder Armor filler from its cost, Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage: about +${helpPct(M.maxTpsOverBalanced.tpsPct, 1)} TPS over Balanced for the same damage taken.`
+const MAX_TPS_HELP = `Balanced’s rotation spending more rage on threat: the Sunder Armor filler from its cost (12 rage with the default talents, 9 with Improved Sunder Armor 3/3) rather than ${BALANCED_FILLER_PCT}% of your max rage, and Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage rather than ${BALANCED_HS_PCT}% of your max rage. Like Balanced, it drops Thunder Clap and Demoralizing Shout and keeps Shield Block and Shield Slam, which make more threat than they cost. Against Balanced in the default setup: ${moreOrLess(M.maxTpsOverBalanced.tpsPct)} TPS, ${moreOrLess(M.maxTpsOverBalanced.dpsPct)} DPS and the same damage taken; against Defensive, ${moreOrLess(M.maxTps.tpsPct)} TPS, ${moreOrLess(M.maxTps.dpsPct)} DPS and ${helpPct(M.maxTps.damageTakenPct)} more damage taken. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
 
 /**
  * Defaults from warrior.md §5.4's table, in priority order. The duties' timing is D26's fixed rule;
@@ -310,8 +312,8 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     maintainsBuff: 'sunderArmor',
   },
   {
-    ...rageOption(ID.fillerMinRage, 'Sunder Armor filler from', 'Use it only at or above this much rage. It costs 9 with the default talents.', 9, ID.fillerEnabled, 'Fillers'),
-    help: `Use it only at or above this much rage. It costs 9 with the default talents. With Balanced it’s ${BALANCED_FILLER_PCT}% of your max rage by default (${BALANCED_FILLER_PCT} of 100, ${Math.round(1.3 * BALANCED_FILLER_PCT)} with Boundless Rage 3/3), so the filler spends only rage you have to spare.`,
+    ...rageOption(ID.fillerMinRage, 'Sunder Armor filler from', 'Use it only at or above this much rage. It costs 12 with the default talents and 9 with Improved Sunder Armor 3/3, so the default 9 uses it from its cost with either.', 9, ID.fillerEnabled, 'Fillers'),
+    help: `Use it only at or above this much rage. It costs 12 with the default talents and 9 with Improved Sunder Armor 3/3, so the default 9 uses it from its cost with either. With Balanced it’s ${BALANCED_FILLER_PCT}% of your max rage by default (${BALANCED_FILLER_PCT} of 100, ${Math.round(1.3 * BALANCED_FILLER_PCT)} with Boundless Rage 3/3), so the filler spends only rage you have to spare.`,
     defaultWhen: [{ ...BALANCED, default: BALANCED_FILLER_PCT, pctOfMaxRage: true }],
   },
   {

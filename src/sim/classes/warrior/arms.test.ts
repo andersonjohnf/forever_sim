@@ -8,12 +8,17 @@ import { COND, STANCE } from '../../plan/types'
 import { CLASSIC_ERA } from '../../rules/profiles'
 import type { RotationOption, RotationValue } from '../../types'
 import { talentRanksByName } from '..'
-import { TALENT_DATA, defaultConfig } from '../../defaults'
+import { TALENT_DATA, defaultConfig as todaysDefaultConfig } from '../../defaults'
+import { withPopularTalents } from './popular-builds'
 import { resolveRotationValues } from '../options'
 import { overpowerWindowProcs } from './abilities'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './arms'
 import { FURY_OPTIONS } from './fury'
 import { potionFallbackMaxRage, rageCap } from './shared'
+
+/** Today's default setup with the popular warrior builds, the defaults until W4, which these tests were written
+ * for (popular-builds.ts; warrior.md §6.1). */
+const defaultConfig = (...args: Parameters<typeof todaysDefaultConfig>) => withPopularTalents(todaysDefaultConfig(...args))
 
 /** The default Arms build's talents by name (37/14/0, warrior.md §6.1). */
 const TALENTS = talentRanksByName(TALENT_DATA.warrior, defaultConfig('warrior-arms').talents)
@@ -118,7 +123,7 @@ describe('Arms rotation options (warrior.md §5.1, §5.3)', () => {
       'warrior.arms.heroicStrike.minRage': 125,
       'warrior.arms.heroicStrike.unqueue': false,
       'warrior.arms.hamstring.enabled': true,
-      'warrior.arms.hamstring.minRage': 40,
+      'warrior.arms.hamstring.minRage': 30,
       'warrior.arms.ragePotion.enabled': true,
       'warrior.arms.ragePotion.maxRage': 0,
       'warrior.arms.jujuFlurry.enabled': true,
@@ -152,6 +157,7 @@ describe('armsRotation (warrior.md §5.3)', () => {
     const r = armsRotation({}, TALENTS, noAura, { race: 'horde-orc', consumables: [MIGHTY_RAGE_POTION] })
     expect(ids(r)).toEqual([
       'battleShout', // 1
+      ...['overpower', 'overpower', 'overpower', 'overpower'], // 9, first since W4: Mortal Strike GCD-safe or rage for both, in each phase
       'rend', // 2
       'bloodFury', // 3: on cooldown, with no Death Wish
       ...['recklessness', 'recklessness'], // 4: before the execute phase, or by the clock, whichever first
@@ -160,7 +166,6 @@ describe('armsRotation (warrior.md §5.3)', () => {
       'mortalStrike', // 7: mortalStrikeInExecute, ahead of Execute
       'execute', // 7
       'mortalStrike', // 8
-      ...['overpower', 'overpower', 'overpower', 'overpower'], // 9: Mortal Strike GCD-safe or rage for both, in each phase
       'slam', // 10
       'spearingStrike', // 11
       'hamstring', // 14
@@ -303,11 +308,11 @@ describe('armsRotation (warrior.md §5.3)', () => {
     expect(b.abilities[at(b, 'whirlwind')].offHand).toBe(false)
   })
 
-  it('rows 13 and 14: Heroic Strike (off by default) at 125 outside the phase; Hamstring at 40, GCD-safe for every ability above it with a cooldown', () => {
+  it('rows 13 and 14: Heroic Strike (off by default) at 125 outside the phase; Hamstring at 30, GCD-safe for every ability above it with a cooldown', () => {
     const r = armsRotation({ 'warrior.arms.heroicStrike.enabled': true, 'warrior.arms.whirlwind.enabled': true, 'warrior.arms.heroicStrike.unqueue': true }, TALENTS, noAura)
     expect(linesOf(r, 'heroicStrike')).toEqual([{ ability: at(r, 'heroicStrike'), conditions: [notExec, minRage(1250)], unqueueBelowTenths: 200 }])
     const mask = (1 << at(r, 'mortalStrike')) | (1 << at(r, 'slam')) | (1 << at(r, 'spearingStrike')) | (1 << at(r, 'whirlwind'))
-    expect(linesOf(r, 'hamstring').map((e) => e.conditions)).toEqual([[notExec, minRage(400), safe(mask)]])
+    expect(linesOf(r, 'hamstring').map((e) => e.conditions)).toEqual([[notExec, minRage(300), safe(mask)]])
     expect(ids(r).at(-1)).toBe('hamstring')
     expect(ids(armsRotation({ 'warrior.arms.hamstring.enabled': false }, TALENTS, noAura))).not.toContain('hamstring')
   })
@@ -378,7 +383,7 @@ describe('armsRotation (warrior.md §5.3)', () => {
   it('row 16: with the talent, Death Wish before the racial, which waits for it as Fury’s does', () => {
     const talents = new Map([...TALENTS, ['Death Wish', 1]])
     const r = armsRotation({}, talents, noAura, { race: 'horde-orc' })
-    expect(ids(r).slice(0, 7)).toEqual(['battleShout', 'rend', 'deathWish', 'deathWish', 'bloodFury', 'bloodFury', 'bloodFury'])
+    expect(ids(r).slice(0, 11)).toEqual(['battleShout', 'overpower', 'overpower', 'overpower', 'overpower', 'rend', 'deathWish', 'deathWish', 'bloodFury', 'bloodFury', 'bloodFury'])
     expect(linesOf(r, 'bloodFury')[0].conditions).toEqual([{ code: COND.abilityAuraUp, a: at(r, 'deathWish'), b: 0 }])
     // On-use trinkets too.
     const analyzer = ITEM_EFFECTS[272438].use!

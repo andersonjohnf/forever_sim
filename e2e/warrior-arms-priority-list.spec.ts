@@ -6,10 +6,11 @@ import { expect, test } from './fixtures.ts'
 // row moved by the keyboard and by Move up and Move down, the order kept by a reload and a share link,
 // and a run with it.
 
-/** §5.3's rows in the list's default order. */
+/** §5.3's rows in the list's default order: Overpower first since W4. */
 const DEFAULT_ORDER = [
   'prepull',
   'battleShout',
+  'overpower',
   'rend',
   'deathWish',
   'racial',
@@ -20,7 +21,6 @@ const DEFAULT_ORDER = [
   'executeMortalStrike',
   'execute',
   'mortalStrike',
-  'overpower',
   'slam',
   'spearingStrike',
   'whirlwind',
@@ -65,7 +65,7 @@ for (const width of [1280, 390]) {
       await expect(stance.getByRole('radio', { name: 'Battle', exact: true })).toBeChecked()
       expect((await stance.boundingBox())!.y).toBeLessThan((await list.boundingBox())!.y)
       // Row summaries read their settings; rows off by default say so.
-      await expect(list.locator('[data-apl-row="hamstring"]')).toContainText('From 40 rage · not in the execute phase · while your strikes cool down')
+      await expect(list.locator('[data-apl-row="hamstring"]')).toContainText('From 30 rage · not in the execute phase · while your strikes cool down')
       await expect(list.locator('[data-apl-row="slam"]')).toContainText('5 rage reserve · not in the execute phase · while Mortal Strike cools down')
       await expect(list.locator('[data-apl-row="whirlwind"]')).toContainText('Off')
       await expect(list.locator('[data-apl-row="heroicStrike"]')).toContainText('Off')
@@ -84,14 +84,14 @@ for (const width of [1280, 390]) {
 
     test('moves a row with the keyboard and with Move up and Move down', async ({ page }) => {
       const list = await openArmsRotation(page)
-      // The keyboard: Slam's handle, up one, above Overpower.
+      // The keyboard: Slam's handle, up one, above Mortal Strike.
       await list.getByRole('button', { name: /^Move Slam,/ }).focus()
       await page.keyboard.press('Space')
       await expect(liveRegion(page)).toContainText(new RegExp(`Slam is over position 14 of ${COUNT}|Picked up Slam`))
       await page.keyboard.press('ArrowUp')
       await expect(liveRegion(page)).toHaveText(`Slam is over position 13 of ${COUNT}.`)
       await page.keyboard.press('Space')
-      await expect.poll(() => order(page)).toEqual(moved('slam', 'overpower'))
+      await expect.poll(() => order(page)).toEqual(moved('slam', 'mortalStrike'))
       await expect(preset(page)).toHaveText('Custom')
 
       // Move up and Move down in Hamstring's settings: beside the list, or in a sheet.
@@ -101,7 +101,7 @@ for (const width of [1280, 390]) {
       await settings.getByRole('button', { name: 'Move up', exact: true }).click()
       await expect(page.locator('[data-announcer]')).toHaveText(`Hamstring filler moved to position ${COUNT - 1} of ${COUNT}.`)
       await settings.getByRole('button', { name: 'Move up', exact: true }).click()
-      const expected = moved('slam', 'overpower').filter((id) => id !== 'hamstring')
+      const expected = moved('slam', 'mortalStrike').filter((id) => id !== 'hamstring')
       expected.splice(expected.indexOf('whirlwind'), 0, 'hamstring')
       expect(await order(page)).toEqual(expected)
       await settings.getByRole('button', { name: 'Move down', exact: true }).click()
@@ -127,7 +127,7 @@ test.describe('Arms: a run, a share link and a reload', () => {
     await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
     const before = await results.getByRole('group', { name: 'DPS' }).innerText()
 
-    // Hamstring to the top: at 40 rage it takes global cooldowns and rage Mortal Strike and Slam had.
+    // Hamstring to the top: at 30 rage it takes global cooldowns and rage Mortal Strike and Slam had.
     await list.getByRole('button', { name: 'Hamstring filler', exact: true }).click()
     const settings = page.getByRole('complementary', { name: 'Hamstring filler settings' })
     for (let i = 0; i < COUNT - 2; i++) await settings.getByRole('button', { name: 'Move up', exact: true }).click()

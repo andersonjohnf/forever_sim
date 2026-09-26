@@ -4,6 +4,7 @@
 import { expect } from 'vitest'
 import { rotationOptions } from '../classes/rotation'
 import { type TalentRanks, withTalents } from '../classes/warrior/modifiers'
+import { withPopularTalents } from '../classes/warrior/popular-builds'
 import { addSample, emptyMoments, stdev } from '../core/welford'
 import { defaultConfig } from '../defaults'
 import type { AuraSpec } from '../effects/types'
@@ -37,7 +38,8 @@ export const W = 131
  * build's, relative to its base stance.
  */
 export function armsPlan(durationMs: number, spec: SpecId = 'warrior-arms'): Plan {
-  const d = defaultConfig(spec)
+  // The popular builds, the defaults until W4, which these tests were written for (popular-builds.ts).
+  const d = withPopularTalents(defaultConfig(spec))
   const plan = buildPlan({
     ...d,
     rotation: spec === 'warrior-fury' ? Object.fromEntries(FURY_ROWS_OFF.map((id) => [id, false])) : d.rotation,

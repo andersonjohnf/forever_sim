@@ -199,8 +199,6 @@ table: weapon-damage ones once, the others (Eviscerate, Expose Armor) twice [?] 
 `(W_norm + 68) × Aggression`, 45 Energy − Improved Sinister Strike 5 = **40**, 1 CP; crit ×2.2 with
 Lethality 5/5 [F] [client] (SpellEffect, SpellPower, 1.60.1.69913).
 
-<a id="32-backstab-r9-25300"></a>
-
 ### 3.2 Backstab (r8, 11281)
 
 `1.5 × (W_norm + 140) × Aggression × Opportunity`, 60 Energy, 1 CP, from behind, dagger in the main
@@ -314,8 +312,6 @@ and Venom multiply the share is [?] ([Q16](#10-open-questions)): they raise the 
 and the test doesn't separate the two. Classic Era's poison has no share [C]. The proc is an item
 effect (`src/sim/effects/buffs.ts`, `INSTANT_POISON_AP`) whose `spellDamage` action carries an
 `apCoefficient`.
-
-<a id="42-deadly-poison-v"></a>
 
 ### 4.2 Deadly Poison IV
 

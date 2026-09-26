@@ -278,7 +278,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       expect(await contrast(page.getByRole('button', { name: /^Spec: / }).getByText('Warrior', { exact: true }))).toBeGreaterThanOrEqual(4.5)
 
       await page.getByRole('tab', { name: 'Talents', exact: true }).click()
-      const maxed = page.getByRole('button', { name: /^Improved Heroic Strike, 3 of 3/ }).getByText('3/3', { exact: true })
+      const maxed = page.getByRole('button', { name: /^Improved Rend, 3 of 3/ }).getByText('3/3', { exact: true })
       expect(await contrast(maxed)).toBeGreaterThanOrEqual(4.5)
       await page.getByRole('button', { name: 'Clear' }).click()
       await page.getByRole('button', { name: /^Cruelty, 0 of 5/ }).click()

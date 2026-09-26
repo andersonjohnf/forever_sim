@@ -1,12 +1,12 @@
 # The optimizer
 
-The sim finds the best talents (and rotation settings) for a setup itself, rather than assuming
+The sim finds the best talents, gear and rotation settings for a setup itself, rather than assuming
 them, as Raidbots' Top Gear does for gear
 ([D30](decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)).
 The player tells it what to optimize for, [Defense, DPS, TPS or Balanced](#goals), and it takes
 the best by that goal, measured. This doc owns its method: how candidates are compared, what each
-goal scores, which constraints it keeps, how the talent space is built, and how a spec's defaults
-come from its results.
+goal scores, which constraints it keeps, how the talent space and the gear search are built, and
+how a spec's defaults come from its results.
 
 **Status (O1, 2026-09-24):** the search core, the talent space, rotation settings as candidates,
 the four goals, constraints with effective health and crit and crush immunity, and the command
@@ -16,10 +16,18 @@ answer (user decision); the leader is the answer, and the race takes no result l
 the review, D30); a search has a hard ceiling on fights and builds, and past it narrows to max
 ranks and says so (D30, user decision; [budgets](#budgets)). **No talent-specific rules** (user decision after the fifth review round, D30):
 there's no survival floor and no preferred filler, and no talent is kept, dropped or ordered by its
-name; every talent is judged by what the screen measures it doing for the goal. Gear is O2, the
-app's Optimize flow O3, and defaults set from the results O4 ([milestones](milestones.md)). The
-code is `src/sim/optimize/` (pure TypeScript, seeded, no DOM) and
+name; every talent is judged by what the screen measures it doing for the goal. The app's Optimize
+flow is O3, and defaults set from the results O4 ([milestones](milestones.md)). The code is
+`src/sim/optimize/` (pure TypeScript, seeded, no DOM) and
 [`scripts/tune/optimize.mjs`](../scripts/tune/optimize.mjs).
+
+**Status (O2, 2026-09-25):** [the gear search](#gear), D30's build plan of 2026-09-25: each slot's
+candidates from the pool under the player's filters (item level, sources, faction, locked slots),
+ranked by the setup's own stat weights or a measured swap; enchants with their slot, Unique rules,
+a two-hander against a main and an off hand, a shield tank's shield, set pieces swapped in together;
+coordinate ascent with O1's race, restarts from the default preset and a greedy set, and a final
+race; and [talents, gear and rotation in turns](#talents-gear-and-rotation-together) until stable
+(`--search gear`, `--search all`). Not yet reviewed.
 
 **Data build.** O1 was built and reviewed on 1.60.1.69913's data and talent trees, then merged onto
 1.60.1.70009's: the paladin's Improved Holy Strike and Crusade gone, the shaman's Elemental swap,
@@ -39,12 +47,14 @@ the review round that measured it.
 7. [Which talents matter](#which-talents-matter)
 8. [The talent space](#the-talent-space)
 9. [Talents and rotation together](#talents-and-rotation-together)
-10. [Budgets](#budgets)
-11. [Confirmation](#confirmation)
-12. [Defaults from the results](#defaults-from-the-results)
-13. [Reading the results](#reading-the-results)
-14. [Limits of the method](#limits-of-the-method)
-15. [Worked examples](#worked-examples)
+10. [Gear](#gear)
+11. [Talents, gear and rotation together](#talents-gear-and-rotation-together)
+12. [Budgets](#budgets)
+13. [Confirmation](#confirmation)
+14. [Defaults from the results](#defaults-from-the-results)
+15. [Reading the results](#reading-the-results)
+16. [Limits of the method](#limits-of-the-method)
+17. [Worked examples](#worked-examples)
 
 ## The steps
 
@@ -539,6 +549,157 @@ rotation.mjs's `id=value` form (`scripts/tune/lib.mjs`), each variant on top of 
 In turns, the CLI prints each pass's header (`=== pass 2: rotation ===`) before its space and
 rounds.
 
+## Gear
+
+`optimizeGear` (`src/sim/optimize/gear-search.ts`, with the candidates and rules in
+`src/sim/optimize/gear.ts`) searches the paper doll by **coordinate ascent**: one slot, or a pair of
+slots, at a time, each step's gear sets raced with O1's paired race beside the current gear, the
+leader kept, until a pass over the paper doll changes nothing. It doesn't claim the global best
+(D30's build plan): restarts and the fresh-seed check guard it. A candidate carries its whole gear
+(`Candidate.gear`), so a gear set races, meets the sheet constraints and confirms exactly as a
+talent build does: every step is an `optimize()` call whose start is the current gear and whose
+other candidates are the step's gear sets (`gears`); the baseline stays the setup as it is.
+
+### Candidates and filters
+
+A slot's candidates are the pool's items (`src/data/items/pre-bis.json`; D11 decides what's in it)
+that the character can wear there (`slotPool`):
+
+- **The class:** `fitsSlot` (src/sim/equip.ts): armor types, weapon types by hands, dual wield for an
+  off-hand weapon, a relic in the ranged slot for the classes that have one.
+- **The faction:** the race's (`fitsFaction`); the CLI's `--faction` picks the class's default race of
+  that faction.
+- **The item level range** (`--ilvl 58-66`, `60-`, `-63`), inclusive.
+- **Sources** (`--sources`), from what the client says, since its Encounter Journal ships empty
+  ([items.md](data/items.md)): `pvp` (a PvP rank requirement, a battleground's reputation, or an Alterac
+  Valley or Warsong Gulch reward's name), `reputation` (another faction's standing), `profession` (a
+  profession skill: Engineering's goggles) and `other` (drops, quests and crafts together). A result
+  names each new piece's source when it's one of the first three ("[PvP rank 10]").
+- **Locked slots** (`--lock head,trinket1`) stay as they are, in every start.
+- **A shield tank keeps a one-hander and a shield** (`SHIELD_SPECS`, D30's build plan: "shields for
+  tanks"): the Protection warrior's Shield Slam and Shield Block and the Protection paladin's Holy
+  Shield need one. A bear has none to keep.
+- A hunter's ammo and quiver aren't searched: they follow the ranged weapon (`matchSupplies`, the
+  Gear tab's rule).
+
+Enchants are the catalogue's (buffs doc §5) that fit the item (the Gear tab's `enchantFits`: a
+weapon's, a two-hander's, a shield's). **The Zandalar and Scourge shoulder enchants are left out by
+default** (`UNCONFIRMED_ENCHANTS`): the default presets leave the shoulders empty until the guild
+confirms that content is in Forever (buffs doc §6.4), so the optimizer's defaults must too;
+`--enchants all` searches them.
+
+### Stat weights
+
+A step can't race the whole pool (a warrior's head slot has 66 items, its main hand 171), so each
+slot keeps its **top 6 by value** (`--per-slot`, D30's 5 to 8) plus the current item. An item's value
+is what it's worth against the slot empty, in the goal's score:
+
+- **Flat stats are priced by the setup's own stat weights** (`measureStatWeights`): each stat block
+  field's score per point, measured as a central difference, the plan with the field raised by Δ
+  against the plan with it lowered by Δ, paired fight by fight (1,000 fights each, `WEIGHT_FIGHTS`).
+  Δ is the median of what the slots' items and enchants give (a warrior's Strength 11, its hit rating
+  8). A cap between the two plans shows as the average slope across it. The item stats map to the
+  fields as the plan builder's do (`ITEM_STAT` and `addGearStat` in src/sim/plan/build.ts): "+x Attack
+  Power" is melee and ranged attack power both, a shield's Classic Era block value is block value, and
+  stats the builder ignores (resistances, healing) are worth nothing. The field is raised in the
+  plan's stat block, which the engine derives its numbers from, and each druid form's; and what the
+  plan builder derives once, before the fight (armor against the boss, the max health rage from hits
+  divides by, the mana pool), by the change the same derivation makes (`perturbPlan`). Only for
+  ranking: every candidate the race runs is its own plan, built from its gear. Each field's plans run
+  a pilot of 50 fights first (`WEIGHT_PILOT`); a field whose two plans give the same numbers on every
+  one (spell damage for a warrior: the engine never reads it) weighs 0 and runs no more.
+- **What the weights can't price is measured by a swap** (`rankGear`): weapons (their damage and
+  speed), relics (their effect on an ability), items whose equip or use effect the engine models
+  (`ITEM_EFFECTS`: Hand of Justice, Earthstrike), and items with a weapon skill or a stat the plan
+  applies outside the stat block (a weapon's "+x damage"). Each is the gear with the slot empty
+  against the gear with the item in it, 300 fights each (`MEASURE_FIGHTS`): a ring or trinket with
+  both of the pair's slots empty; a two-hander, or a one-hander in the main hand, with no weapons; an
+  off hand beside the current one-hander (the best measured one when the main hand holds a
+  two-hander). So a two-hander's value and a main and an off hand's sum are comparable. A base the
+  sim can't run (a hunter with no ranged weapon) is replaced by the current gear, the same for the
+  whole list.
+- **Enchants** are valued the same way: a flat-stat enchant by the weights, any other (Crusader,
+  Arcanum of Rapidity's haste, the threat gloves) by a swap on the slot's current item, unenchanted
+  against enchanted. One that doesn't fit the current item can't be measured there, and is tried on
+  every item it fits.
+
+**Hit caps: re-weighted every pass.** The weights are measured again at the current gear at the
+start of every pass (D30's build plan: stat weights change past the cap), so once the ascent reaches
+the hit cap, hit is worth less and the next pass ranks by that. The swaps, which cost the most, are
+measured once a search, at the setup's gear on its start's first pass, and kept (a weapon's value
+moves little with the rest of the gear, and the race decides among the top 6 anyway).
+
+### A step's gear sets
+
+The groups, in paper-doll order: head, neck, shoulder, back, chest, wrist, hands, waist, legs, feet,
+**rings**, **trinkets**, **weapons**, ranged, **sets** (`GEAR_GROUPS`; `groupGears`):
+
+- **A single slot:** its top items and the current one, each with its **top 2 enchants** by value
+  (`enchantsPerItem`) and every one that fits but couldn't be measured, and the current item with its
+  current enchant too. So an item and its enchant race together (D30's build plan: "enchants searched
+  with their slot").
+- **Rings and trinkets:** every pair of the top items and the current two.
+- **The weapons:** the top two-handers, each with its top enchants and the off hand empty, against
+  every pair of the top main hands and off hands, each with its best enchant, and the current pair
+  with each hand's top enchants. A dual wielder's off hands are one-handed weapons (and held-in-off-hand
+  items); a shield class's are shields.
+- **Sets:** for each set whose bonus the plan applies (flat stats or a weapon skill; a bonus it can't
+  apply is worth nothing to the sim), its best pieces not yet worn in as many slots as each bonus
+  needs, swapped in together, so the bonus can show where one piece alone would lose its race. Each
+  piece goes in its slot, or for a ring, trinket or one-hander the pair's slot whose item is worth
+  less. The 12 with the most estimated gain race (`SET_CANDIDATES`): each changed slot's values, and
+  the bonuses' flat stats priced by the weights (Dal'Rend's Arms: +50 attack power for the pair).
+
+**The rules** every gear set keeps (`gearProblems`), checked on the slots that change, so a setup that
+already breaks one elsewhere can still be searched: the item fits its slot for the class and faction;
+no **Unique or Unique-Equipped** rule is broken (`uniqueConflicts`: two Don Julio's Bands, or two of
+the Watcher's Signets, which share a group of one); a **two-hander leaves the off hand empty**; a shield
+tank keeps a one-hander and a shield; each enchant fits its item. Locked slots never change.
+
+### The ascent, restarts and the answer
+
+1. **Rank** the slots at the current gear (above).
+2. **Step through the groups**: each group's gear sets race beside the current gear (and the setup
+   itself, as every O1 race has it). The leader is kept, whether it's a new set or the current one.
+   Every candidate meets every sheet constraint first ([constraints](#constraints)); a step where none
+   does keeps the current gear.
+3. **Pass again** until a pass changes nothing (**stable**), or after 4 passes (`GEAR_PASSES`,
+   `--gear-passes`).
+
+**Restarts** (D30's build plan): the ascent runs from the setup's gear, then from the **default
+preset** for the race (`defaultGear`: the spec's measured interim set where it has one, else its
+pre-raid list's) and from a **greedy set** (`greedyGear`: each slot's best by the setup's first
+ranking, the best two rings and trinkets that go together, and the better of the best two-hander and
+the best main and off hand), each when it differs from the ones before. Coordinate ascent stops at
+the first set no single step improves; a start elsewhere can end at a better one. `--no-restarts`
+runs only the first.
+
+**The answer** is the leader of a final race among where the starts ended, with the setup, on the
+same seed; `--confirm` then checks it on a fresh one ([confirmation](#confirmation)). A tank's
+effective-health floor is a share of its class's **survival preset**, the v1 tank gear (the pre-raid
+list's, `preRaidListGear`; D30), not of the setup's gear (`survivalReference`).
+
+**The budget** (`--budget`) is the whole gear search's fights: the rankings, every step and the final
+race, within the hard ceiling ([budgets](#budgets)). The final race keeps 15% (`FINAL_SHARE`); the
+setup's start gets a third of the rest, and each restart an even share of what's left. A step gets
+its start's remaining fights divided by the groups left in the pass plus one more pass; a step whose
+gear sets can't run a first round of 20 fights each in what it gets ends its start there, and the
+report says so. A ranking takes at most 40% of what its start has: past that, its fights shrink
+(to 50 a plan at least) and a note says so.
+
+## Talents, gear and rotation together
+
+`optimizeTogether` (the CLI's `--search all`) alternates: **a talent pass** with the start's gear and
+rotation (O1's search, its screen under the rotation variants too), **a gear pass** with the winning
+build ([gear](#gear)), and **a rotation pass** with both when there are variants (`--sweep`,
+`--rotation`), then again, until a whole cycle moves nothing, a pass has no answer, or 3 cycles have
+run (`--cycles`). Each pass starts from the last pass's answer and races it, so the answer never gets
+worse from one pass to the next, up to the race's error. Every pass holds every candidate to every
+constraint; a tank's effective-health floor is a share of its survival preset throughout, the gear
+pass's reference, so the passes agree on it. The hard ceiling holds for the whole search: each pass
+but the last gets what the passes before it left of the cap less a tenth held back (`TURNS_RESERVE`,
+as a search in turns); a pass that no longer fits ends the cycles on the last answer.
+
 ## Budgets
 
 A budget is the race's fights, all candidates' together, the baseline's included. The screen's
@@ -606,6 +767,13 @@ so one pass can't spend the whole cap and leave the next nothing: a talent pass 
 budget used to spend all of it, and the rotation pass, which costs little, never ran. A pass's
 `budget.cap` is what it could run. A pass that no longer fits what it's given ends the turns on the
 last answer, and the last report's `turnsStopped` says so.
+
+**A gear search's budget** is its own: `--budget` is every fight of the gear search (the rankings,
+the steps and the final race), clamped to the cap ([gear](#gear)). On 1.60.1.70009, Fury's first
+ranking is 104,600 fights, most of them the 300-fight swaps of its weapons and effect items (the
+pilot sets 25 of its 33 stat fields aside), and a later one about 18,500, its weights alone; a step
+races 5 to 60 gear sets, 1,000 to 15,000 fights on `quick`. Fury's `quick` search ran two starts (4
+passes, then 2 to stable) and the final race in 890,917 fights, 18 s on 8 threads.
 
 So `quick` suits a space of up to about 9,000 plans, `standard` 36,000 and `thorough` 144,000; a
 larger one costs more than its budget (to 100 fights a plan) up to the cap, and past about 432,000
@@ -685,7 +853,28 @@ default, paired over the leader's fights:
 
 The logs and reports are in `.cache/demos/70009/` of the merge's worktree.
 
+**Gear on 1.60.1.70009 so far** (O2, `--search gear`, `quick`, seed 1, not O4's `thorough`, so no
+default has changed). Fury, from its default set: the greedy start's end led the final race by
+**+49.7 DPS** (+46.1 to +53.3) and **confirmed at +48.3 DPS** (+47.5 to +49.1, +6.0%) on a fresh
+seed at 20,000 fights each, with the unmeasured ratings applied or ignored alike. Its changes: Arcanum
+of Rapidity on the head and legs, Fury of the Forgotten Swarm, Truestrike Shoulders, Earthweave
+Cloak, Forest Stalker's Bracers, Sacrificial Gauntlets with Superior Strength, Belt of Preserved
+Heads, Sentinel's Chain Leggings (a Warsong Gulch reward), Slime Kickers, Band of Earthen Might,
+Earthstrike with Hand of Justice, and Bloodseeker; the weapons stayed. The setup’s own start ended
+at +29.5, **20.1 DPS behind it** (16.5 to 23.8), after 4 passes without settling (Adaptive Combat
+Assistant in place of Hand of Justice, Mark of Fordring kept): the restart is what found the better
+set. The report is
+`.cache/optimize/o2-fury-quick.json` of the O2 worktree.
+
 ## Reading the results
+
+**A gear search** prints each start's rankings and steps as they finish ("hands: 14 candidates,
+CHANGED"), then each start's end as changes from the setup ("Hands: Devilsaur Gauntlets (+Greater
+Strength) → Sacrificial Gauntlets (+Superior Strength)", with a new piece's source in brackets), the
+notes, the fights it ran, the setup's stat weights, and the final race's standings, whose changes list
+the talents, the rotation and the gear that differ from the setup (`describeGearChange`). The JSON
+report adds each start's steps, passes and weights, and the winner's gear.
+
 
 The CLI prints the goal and the ceiling, the screen, the space (and, plainly, when the ceiling
 narrowed it), the estimate before the race, each round, a table of standings and the result, and
@@ -747,7 +936,49 @@ compares the leader, the answer, with the default.
   searched ranks are 0 and max, so a build that needs, say, Toughness 3 to meet a floor gets it
   only where the fill's leftover points land there.
 
+- **Coordinate ascent is local.** A pass changes one group at a time; a better set that needs two
+  groups to change at once, and that no step's leader leads to, is found only by a restart or a set
+  step. The restarts and the final race guard against it; they don't rule it out.
+- **The top 6 by value decide what races.** An item ranked 7th by the weights or its swap never races
+  in that pass. The weights are linear and the swaps are 300 fights, so two items within a few points
+  of each other can swap places; the race decides among the ones that make it. `--per-slot 8` widens
+  it.
+- **Stat weights come from a perturbed plan.** The field and what the builder derives from it once
+  (armor, max health, the mana pool) move; anything else the builder computes from the stats before
+  the fight (a proc's size read from the sheet) doesn't. Only the ranking reads the weights.
+- **Swaps are measured once a search**, at the setup's gear: a weapon's value past the hit cap is its
+  value at the setup's hit. The weights are measured again every pass.
+- **Set bonuses the plan doesn't apply are worth nothing** (not flat stats or a weapon skill: most
+  PvP sets' 4-piece procs); the set step leaves those sets out, and the race gives them nothing.
+- **Sources are what the client says.** Drops, quests and crafts are one group (`other`); a rare drop
+  can't be told from a common one. Random-enchantment items ("of the Bear") are in the pool as their
+  bases, as the Gear tab lists them.
+- **Ammo and quivers aren't searched**: they follow the ranged weapon.
+
 ## Worked examples
+
+- **The pool a slot takes** (`gear.test.ts`). A mage's chest holds only cloth; a rogue's main hand no
+  two-hander and its off hand no shield; a Balance druid's off hand only held-in-off-hand items and its
+  ranged slot only idols. A Human's feet include Knight-Lieutenant's Plate Greaves and an Orc's don't,
+  and no slot holds the other faction's items. With `--ilvl 60-63` every item is 60 to 63; with
+  `--sources pvp` every one is PvP. A Protection warrior's main hands are one-handers and its off hands
+  shields, in every weapons step.
+- **The rules.** Two Don Julio's Bands, or the Ferocious and Stalwart Watcher's Signets, break a Unique
+  rule, and the rings step never pairs them; a two-hander with an off hand breaks the two-hander's
+  rule; a locked head has no step, a locked main hand stays in every weapons set, and the greedy set
+  keeps a locked head and trinket.
+- **Enchants with their slot.** Fury's hands step tries an item with more than one enchant, among them
+  Superior Strength, and the threat and Minor Haste gloves, which the weights can't price; its shoulders
+  never take the Zandalar or Scourge enchants unless every enchant is searched; a shield's enchants go
+  on shields only.
+- **A set raced together.** Fury's sets step swaps in Dal'Rend's Sacred Charge and Tribal Guardian
+  together, and its estimate counts the pair's +50 attack power (25 points at 0.5 a point).
+- **A stat weight's plan.** A Protection warrior's plan with 10 more Stamina has more than 100 more
+  max health for its rage from hits, and the same armor; with 100 more item armor, 100 more armor.
+- **The search end to end** (`gear-search.test.ts`). Fury with the lowest-level item the pool has in
+  its head, neck and rings, the other slots locked, on 24,000 fights: the answer changes an open slot
+  for a higher-level item, clears the bad set at 95%, spends no more than its budget, and is the same,
+  step for step, on a second run with the same seed.
 
 These are unit tests (`src/sim/optimize/*.test.ts`).
 

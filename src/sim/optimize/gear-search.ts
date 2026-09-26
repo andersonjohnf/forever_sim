@@ -74,8 +74,10 @@ export const MEASURE_FIGHTS = 300
 export const GEAR_PASSES = 4
 /** The share of a gear search's budget kept for the final race among the restarts' ends. */
 export const FINAL_SHARE = 0.15
-/** The fewest fights a measured plan runs when the budget scales the rankings down. */
-const MIN_RANK_FIGHTS = 50
+/** The fewest fights a measured plan runs when the budget scales the rankings down (fewer only when the caller asks for fewer). */
+export const MIN_RANK_FIGHTS = 50
+/** The most of what it has that a ranking spends before its fights scale down. */
+export const RANK_SHARE = 0.4
 
 // --- Running plans ---------------------------------------------------------------------------
 
@@ -133,6 +135,8 @@ export function perturbPlan(plan: Plan, field: FlatStat, delta: number, config: 
 
 export interface WeightsMeasured {
   weights: StatWeights
+  /** The fields that ran past the pilot: the engine reads them (the rest weigh 0). */
+  live: FlatStat[]
   /** Each weight's 95% interval, score per point. */
   intervals: Partial<Record<FlatStat, Interval>>
   /** The change each field was measured with, up and down. */
@@ -162,7 +166,7 @@ export async function measureStatWeights(options: {
 }): Promise<WeightsMeasured> {
   const { config, candidate, fights } = options
   const fields = (Object.keys(options.deltas) as FlatStat[]).sort()
-  if (fields.length === 0) return { weights: {}, intervals: {}, deltas: {}, fights: 0 }
+  if (fields.length === 0) return { weights: {}, live: [], intervals: {}, deltas: {}, fights: 0 }
   const base = candidatePlan(config, candidate)
   const sources = planSources(fields.flatMap((field) => [1, -1].map((sign) => () => perturbPlan(base, field, sign * options.deltas[field]!, config))))
   const pilot = Math.min(fights, WEIGHT_PILOT)
@@ -202,7 +206,7 @@ export async function measureStatWeights(options: {
     weights[field] = interval.mean
     intervals[field] = interval
   })
-  return { weights, intervals, deltas: options.deltas, fights: sources.length * pilot + liveSources.length * Math.max(0, fights - pilot) }
+  return { weights, live, intervals, deltas: options.deltas, fights: sources.length * pilot + liveSources.length * Math.max(0, fights - pilot) }
 }
 
 /** The change each weighed field is measured with: the median of what the slots' items and enchants give, at least 1. */
@@ -451,6 +455,7 @@ export interface GearStart {
   steps: GearStep[]
   /** The last pass's stat weights. */
   weights?: WeightsMeasured
+  /** The start's fights: its rankings and steps (the setup's start's first ranking is the search's, `GearReport.ranking`). */
   fights: number
 }
 
@@ -461,6 +466,11 @@ export interface GearReport {
   seed: number
   filters: GearFilters
   starts: GearStart[]
+  /**
+   * The first ranking, at the setup's gear: its stat weights with their intervals, the most fights any
+   * ranking runs, and its fights. Its swaps serve every start, so it's budgeted from the whole search (O2L-3).
+   */
+  ranking: { weights: WeightsMeasured; fights: number; weightFights: number; measureFights: number }
   /** The race among the starts' ends (and the setup), whose leader is the answer. */
   final: OptimizeReport | null
   /** The answer: the final race's leader, the setup's talents and rotation with the gear it found. Null when no gear set meets the constraints. */
@@ -502,61 +512,97 @@ export async function optimizeGear(options: GearSearchOptions): Promise<GearRepo
   const ctx = gearContext(config, filters)
   const pools = gearPools(ctx)
   const cap = options.maxFights ?? MAX_SEARCH_FIGHTS
-  const total = Math.min(options.budget.fights, cap)
   const notes: string[] = []
-  if (options.budget.fights > cap) notes.push(`The budget of ${fmt(options.budget.fights)} fights passes the cap of ${fmt(cap)}: the gear search runs at most ${fmt(cap)}.`)
   const reference = options.reference ?? (meta.role === 'tank' ? survivalReference(config) : undefined)
   const constraints = options.constraints ?? []
   const base = options.start ?? setupCandidate(config)
   const passes = options.passes ?? GEAR_PASSES
   let spent = 0
 
-  // The rankings' fights, scaled to at most 40% of what a start has when the budget is small.
+  // The rankings' fights (O2L-3, O2L-8). A ranking runs every stat field's two plans through the pilot,
+  // the fields the engine reads (the last ranking's live ones) the rest of the way, and, the first
+  // time, every measured swap. It spends at most RANK_SHARE of what it has; past that its fights
+  // scale down, to MIN_RANK_FIGHTS a plan at least (or the caller's fewer).
+  const wf0 = options.weightFights ?? WEIGHT_FIGHTS
+  const mf0 = options.measureFights ?? MEASURE_FIGHTS
   const { weightPlans, measurePlans } = rankingPlans(ctx, pools)
-  const rankFights = (budget: number, weightsOnly: boolean) => {
-    const wf = options.weightFights ?? WEIGHT_FIGHTS
-    const mf = options.measureFights ?? MEASURE_FIGHTS
-    const cost = weightPlans * wf + (weightsOnly ? 0 : measurePlans * mf)
-    const scale = cost > 0.4 * budget ? (0.4 * budget) / cost : 1
-    return { wf: Math.max(MIN_RANK_FIGHTS, Math.floor(wf * scale)), mf: Math.max(MIN_RANK_FIGHTS, Math.floor(mf * scale)), scaled: scale < 1 }
+  const rankCost = (wf: number, mf: number, livePlans: number, swaps: boolean) =>
+    weightPlans * Math.min(wf, WEIGHT_PILOT) + livePlans * Math.max(0, wf - WEIGHT_PILOT) + (swaps ? measurePlans * mf : 0)
+  const least = (x: number) => Math.min(x, MIN_RANK_FIGHTS)
+  const minRankCost = (livePlans: number, swaps: boolean) => rankCost(least(wf0), least(mf0), livePlans, swaps)
+  const rankFights = (budget: number, livePlans: number, swaps: boolean) => {
+    const full = rankCost(wf0, mf0, livePlans, swaps)
+    if (full <= RANK_SHARE * budget) return { wf: wf0, mf: mf0, scaled: false }
+    const lo = minRankCost(livePlans, swaps)
+    const share = full > lo ? Math.max(0, Math.min(1, (RANK_SHARE * budget - lo) / (full - lo))) : 0
+    return { wf: least(wf0) + Math.floor(share * (wf0 - least(wf0))), mf: least(mf0) + Math.floor(share * (mf0 - least(mf0))), scaled: true }
   }
 
-  // The values measured by a swap, once a search: at the setup's gear, on its start's first pass. Every
-  // later ranking, in any start, re-measures only the stat weights and keeps these.
-  let measured: Rankings | undefined
+  // The hard ceiling (D30, O2L-3): the first ranking's fewest fights must fit the cap, before any run.
+  const firstMin = minRankCost(weightPlans, true)
+  if (firstMin > cap)
+    throw new SearchTooLargeError(
+      `The gear search's first ranking needs at least ${fmt(firstMin)} fights (${fmt(weightPlans)} stat-weight plans and ${fmt(measurePlans)} measured swaps at ${MIN_RANK_FIGHTS} each), more than the cap of ${fmt(cap)}: lock slots, narrow the item level or the sources, or raise the cap.`,
+    )
+  let total = Math.min(options.budget.fights, cap)
+  if (options.budget.fights > cap) notes.push(`The budget of ${fmt(options.budget.fights)} fights passes the cap of ${fmt(cap)}: the gear search runs at most ${fmt(cap)}.`)
+  if (firstMin > total) {
+    notes.push(`The budget of ${fmt(total)} fights doesn't cover the first ranking's ${fmt(firstMin)}: it grows to that, within the cap, and leaves the steps nothing.`)
+    total = firstMin
+  }
+  const ascentBudget = Math.floor(total * (1 - FINAL_SHARE))
 
-  const ascend = async (name: StartName, startGear: Gear, budget: number): Promise<GearStart & { firstRankings?: Rankings }> => {
+  // The first ranking, at the setup's gear: its swaps are measured once a search and serve every start
+  // (every later ranking re-measures only the stat weights), so it's budgeted from the whole search,
+  // not from the setup's start's share (O2L-3).
+  const setupGear = base.gear ?? config.gear
+  const firstFights = rankFights(ascentBudget, weightPlans, true)
+  if (firstFights.scaled)
+    notes.push(`The budget scales the first ranking down to ${fmt(firstFights.wf)} fights a stat weight's plan and ${fmt(firstFights.mf)} a measured swap.`)
+  const first = await rankGear({ config, candidate: { ...base, gear: setupGear }, ctx, pools, goal: scored, runner, weightFights: firstFights.wf, measureFights: firstFights.mf, signal })
+  spent += first.fights
+  options.onProgress?.({ phase: 'rank', start: 'setup', pass: 1, fights: first.fights, spent, budget: total })
+  const measured = first.rankings
+
+  const ascend = async (name: StartName, startGear: Gear, budget: number, ranked?: Awaited<ReturnType<typeof rankGear>>): Promise<GearStart> => {
     let gear = startGear
     let used = 0
     const steps: GearStep[] = []
-    let weights: WeightsMeasured | undefined
-    let firstRankings: Rankings | undefined
+    let weights: WeightsMeasured | undefined = ranked?.weights
     let stable = false
     let pass = 0
+    const out = (): GearStart => ({ name, gear: startGear, end: gear, passes: Math.min(pass, passes), stable, steps, ...(weights ? { weights } : {}), fights: used })
     const groups = GEAR_GROUPS.filter((g) => g === 'sets' || GROUP_SLOTS[g].some((s) => !(filters.locked ?? []).includes(s)))
     for (pass = 1; pass <= passes; pass++) {
-      const candidate: Candidate = { ...base, gear }
-      const fights = rankFights(budget - used, measured !== undefined)
-      if (fights.scaled && !measured) notes.push(`${name}: the budget scales the rankings down to ${fmt(fights.wf)} fights a stat weight's plan and ${fmt(fights.mf)} a measured swap.`)
-      const ranked = await rankGear({ config, candidate, ctx, pools, goal: scored, runner, weightFights: fights.wf, measureFights: fights.mf, ...(measured ? { reuse: measured } : {}), signal })
-      const rankings = ranked.rankings
-      weights = ranked.weights
-      used += ranked.fights
-      spent += ranked.fights
-      options.onProgress?.({ phase: 'rank', start: name, pass, fights: ranked.fights, spent, budget: total })
-      measured ??= rankings
-      firstRankings ??= rankings
+      let rankings: Rankings
+      if (pass === 1 && ranked) rankings = ranked.rankings
+      else {
+        // A later ranking re-measures the stat weights only, priced from the last one's live fields (O2L-8).
+        const livePlans = 2 * (weights?.live.length ?? Object.keys(measured.weights).length)
+        const needs = minRankCost(livePlans, false)
+        if (needs > budget - used) {
+          notes.push(`${name}: the budget ran out at pass ${pass}'s ranking: it needs ${fmt(needs)} fights, and the start has ${fmt(Math.max(0, budget - used))} left.`)
+          return out()
+        }
+        const fights = rankFights(budget - used, livePlans, false)
+        const again = await rankGear({ config, candidate: { ...base, gear }, ctx, pools, goal: scored, runner, weightFights: fights.wf, measureFights: fights.mf, reuse: measured, signal })
+        rankings = again.rankings
+        weights = again.weights
+        used += again.fights
+        spent += again.fights
+        options.onProgress?.({ phase: 'rank', start: name, pass, fights: again.fights, spent, budget: total })
+      }
       let changed = false
       for (let g = 0; g < groups.length; g++) {
         const group = groups[g]
         const gears = groupGears(ctx, group, gear, rankings, pools, options)
         if (gears.length === 0) continue
         // Each step gets its share of what the start has left: this pass's remaining groups and one more pass.
-        const stepBudget = Math.floor((budget - used) / (groups.length - g + groups.length))
+        const stepBudget = Math.max(0, Math.floor((budget - used) / (groups.length - g + groups.length)))
         // Too few for the step's gear sets, the current one and the baseline to run a first round: the start ends here.
         if ((gears.length + 2) * MIN_FIRST_ROUND > 0.9 * stepBudget) {
           notes.push(`${name}: the budget ran out at pass ${pass}, ${group}: its ${fmt(gears.length)} gear sets need more than the ${fmt(stepBudget)} fights left for the step.`)
-          return { name, gear: startGear, end: gear, passes: pass, stable: false, steps, weights, fights: used, firstRankings }
+          return out()
         }
         let report: OptimizeReport
         try {
@@ -576,7 +622,7 @@ export async function optimizeGear(options: GearSearchOptions): Promise<GearRepo
         } catch (error) {
           if (!(error instanceof SearchTooLargeError)) throw error
           notes.push(`${name}: the budget ran out at pass ${pass}, ${group} (${error.message})`)
-          return { name, gear: startGear, end: gear, passes: pass, stable: false, steps, weights, fights: used, firstRankings }
+          return out()
         }
         used += report.fights
         spent += report.fights
@@ -595,19 +641,17 @@ export async function optimizeGear(options: GearSearchOptions): Promise<GearRepo
         break
       }
     }
-    return { name, gear: startGear, end: gear, passes: Math.min(pass, passes), stable, steps, weights, fights: used, firstRankings }
+    return out()
   }
 
-  const ascentBudget = Math.floor(total * (1 - FINAL_SHARE))
   const starts: GearStart[] = []
-  const setupGear = base.gear ?? config.gear
   const restarts = options.restarts ?? true
-  // The setup's start: a third of the ascents' budget, or all of it without restarts.
-  const first = await ascend('setup', setupGear, restarts ? Math.floor(ascentBudget / 3) : ascentBudget)
-  starts.push(first)
+  const afterRanking = Math.max(0, ascentBudget - first.fights)
+  // The setup's start: a third of what the first ranking left the ascents, or all of it without restarts.
+  starts.push(await ascend('setup', setupGear, restarts ? Math.floor(afterRanking / 3) : afterRanking, first))
   if (restarts) {
     const presetGear = preRaidDefault(config)
-    const greedy = first.firstRankings ? greedyGear(ctx, setupGear, first.firstRankings, pools) : setupGear
+    const greedy = greedyGear(ctx, setupGear, measured, pools)
     const tried = new Set([gearKey(setupGear)])
     const next: [StartName, Gear][] = []
     if (!tried.has(gearKey(presetGear)) && gearProblems(ctx, presetGear).length === 0) {
@@ -625,12 +669,11 @@ export async function optimizeGear(options: GearSearchOptions): Promise<GearRepo
       starts.push(await ascend(name, g, Math.floor(left / (next.length - i))))
     }
   }
-  for (const s of starts) delete (s as { firstRankings?: Rankings }).firstRankings
 
   // The final race: every start's end, beside the setup.
   const ends = [...new Map(starts.map((s) => [gearKey(s.end), s.end])).values()]
   options.onProgress?.({ phase: 'final', ends: ends.length, spent, budget: total })
-  const finalBudget = Math.max(0, Math.min(total, cap) - spent)
+  const finalBudget = Math.max(0, total - spent)
   let final: OptimizeReport | null = null
   try {
     final = await optimize({
@@ -659,6 +702,7 @@ export async function optimizeGear(options: GearSearchOptions): Promise<GearRepo
     seed: config.run.seed,
     filters,
     starts,
+    ranking: { weights: first.weights, fights: first.fights, weightFights: firstFights.wf, measureFights: firstFights.mf },
     final,
     answer,
     budget: { fights: total, cap },

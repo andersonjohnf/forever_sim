@@ -682,8 +682,10 @@ is what it's worth against the slot empty, in the goal's score:
 **Hit caps: re-weighted every pass.** The weights are measured again at the current gear at the
 start of every pass (D30's build plan: stat weights change past the cap), so once the ascent reaches
 the hit cap, hit is worth less and the next pass ranks by that. The swaps, which cost the most, are
-measured once a search, at the setup's gear on its start's first pass, and kept (a weapon's value
-moves little with the rest of the gear, and the race decides among the top 6 anyway).
+measured once a search, in **the first ranking**, at the setup's gear, and kept (a weapon's value
+moves little with the rest of the gear, and the race decides among the top 6 anyway). The first
+ranking's weights, with the most fights, are the ones the CLI prints, each with its 95% interval
+(`GearReport.ranking`; O2L-8): at 1,000 fights Fury's hit weighs 7.4 ± 1.7, at 8,000 8.6 ± 0.6.
 
 ### A step's gear sets
 
@@ -740,12 +742,23 @@ effective-health floor is a share of its class's **survival preset**, the v1 tan
 list's, `preRaidListGear`; D30), not of the setup's gear (`survivalReference`).
 
 **The budget** (`--budget`) is the whole gear search's fights: the rankings, every step and the final
-race, within the hard ceiling ([budgets](#budgets)). The final race keeps 15% (`FINAL_SHARE`); the
-setup's start gets a third of the rest, and each restart an even share of what's left. A step gets
-its start's remaining fights divided by the groups left in the pass plus one more pass; a step whose
-gear sets can't run a first round of 20 fights each in what it gets ends its start there, and the
-report says so. A ranking takes at most 40% of what its start has: past that, its fights shrink
-(to 50 a plan at least) and a note says so.
+race, within the hard ceiling ([budgets](#budgets)). The final race keeps 15% (`FINAL_SHARE`). The
+first ranking serves every start, so it's budgeted from the whole of the rest (O2L-3); the setup's
+start gets a third of what it leaves, and each restart an even share of what's left after the starts
+before it. A step gets its start's remaining fights divided by the groups left in the pass plus one
+more pass; a step whose gear sets can't run a first round of 20 fights each in what it gets ends its
+start there, and the report says so. A ranking takes at most 40% of what it has (`RANK_SHARE`): past
+that, its fights shrink, to 50 a plan at least (`MIN_RANK_FIGHTS`, or the caller's fewer; the CLI
+takes no fewer than 50), and a note says so. A later ranking re-measures the weights only, and its
+cost is priced from the last ranking's live fields, the ones the pilot didn't set aside (O2L-8), so a
+pass's weights keep their fights rather than shrinking for fields that never run.
+
+**The ceiling holds for the gear search too** (O2L-3). Before any fight, the first ranking's fewest
+fights (every plan at 50) must fit the cap, or the search doesn't run (`SearchTooLargeError`, which
+says to lock slots, narrow the pool or raise the cap). A budget below that minimum grows to it and
+leaves the steps nothing, and says so; a later ranking that no longer fits what its start has left
+ends the start. So the rankings, the steps and the final race together never pass the cap (on Fury,
+a budget and cap of 10,000 used to spend 17,650 on the first ranking alone).
 
 ## Talents, gear and rotation together
 

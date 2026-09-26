@@ -73,8 +73,8 @@
 //   --per-slot <n>        items each slot races by value, beside its current one (default 6; D30: 5 to 8)
 //   --no-restarts         only the ascent from the setup's gear (default: also from the default preset and a greedy set)
 //   --gear-passes <n>     most passes over the paper doll a start runs (default 4)
-//   --weight-fights <n>   fights a plan when the stat weights are measured (default 1000)
-//   --measure-fights <n>  fights a plan when an item or enchant is measured by a swap (default 300)
+//   --weight-fights <n>   fights a plan when the stat weights are measured (default 1000; at least 50)
+//   --measure-fights <n>  fights a plan when an item or enchant is measured by a swap (default 300; at least 50)
 //   --cycles <n>          --search all: most cycles of talents, gear and rotation (default 3)
 //
 // Constraints on the character sheet (docs/optimizer.md#constraints), repeatable:
@@ -481,8 +481,9 @@ async function main() {
     ...(args['per-slot'] !== undefined ? { perSlot: flagNumber('per-slot', args['per-slot'], { min: 1, max: 20, whole: true }) } : {}),
     ...(args['no-restarts'] ? { restarts: false } : {}),
     ...(args['gear-passes'] !== undefined ? { passes: flagNumber('gear-passes', args['gear-passes'], { min: 1, whole: true }) } : {}),
-    ...(args['weight-fights'] !== undefined ? { weightFights: flagNumber('weight-fights', args['weight-fights'], { min: 10, whole: true }) } : {}),
-    ...(args['measure-fights'] !== undefined ? { measureFights: flagNumber('measure-fights', args['measure-fights'], { min: 10, whole: true }) } : {}),
+    // At least a ranking's floor (MIN_RANK_FIGHTS, 50): fewer would leave the weights' and swaps' intervals too wide to rank by (O2L-12).
+    ...(args['weight-fights'] !== undefined ? { weightFights: flagNumber('weight-fights', args['weight-fights'], { min: engine.MIN_RANK_FIGHTS, whole: true }) } : {}),
+    ...(args['measure-fights'] !== undefined ? { measureFights: flagNumber('measure-fights', args['measure-fights'], { min: engine.MIN_RANK_FIGHTS, whole: true }) } : {}),
   }
 
   if (args.turns)
@@ -542,11 +543,13 @@ async function main() {
     }
     for (const note of g.notes) console.log(`  note: ${note}`)
     console.log(`gear search: ${plural(g.fights, 'fight')} of its budget of ${count(g.budget.fights)}, in ${(g.ms / 1000).toFixed(1)} s`)
-    const w = g.starts[0]?.weights
-    if (w) {
-      const shown = Object.entries(w.weights).filter(([, v]) => Math.abs(v) > 1e-9).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 12)
-      console.log(`stat weights (the setup's start, its last pass; score per point): ${shown.map(([k, v]) => `${k} ${fmt(v, 3)}`).join(', ')}`)
-    }
+    // The first ranking's weights, at the setup's gear with the most fights, each with its 95% interval (O2L-8).
+    const w = g.ranking.weights
+    const shown = Object.entries(w.weights).filter(([, v]) => Math.abs(v) > 1e-9).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 12)
+    if (shown.length)
+      console.log(
+        `stat weights (the first ranking, at the setup's gear, ${plural(g.ranking.weightFights, 'fight')} a plan; score per point, 95%): ${shown.map(([k, v]) => `${k} ${fmt(v, 3)} ± ${fmt(w.intervals[k]?.halfWidth ?? 0, 3)}`).join(', ')}`,
+      )
     if (g.final) printStandings(g.final)
     else console.log('the final race did not run')
   }
@@ -756,7 +759,9 @@ async function main() {
       {
         setup: { spec: specId, seed, goal, scoredGoal: scored, budget, maxFights, args, config, ...(filters ? { filters } : {}) },
         passes: reports.map(annotate),
-        ...(gearReports.length ? { gear: gearReports.map((g) => ({ starts: g.starts.map((s) => ({ ...s, endChanges: engine.describeGearChange(config.gear, s.end, filters) })), notes: g.notes, budget: g.budget, fights: g.fights })) } : {}),
+        ...(gearReports.length
+          ? { gear: gearReports.map((g) => ({ ranking: g.ranking, starts: g.starts.map((s) => ({ ...s, endChanges: engine.describeGearChange(config.gear, s.end, filters) })), notes: g.notes, budget: g.budget, fights: g.fights })) }
+          : {}),
         winner,
         ...(winner?.gear ? { winnerGearChanges: engine.describeGearChange(config.gear, winner.gear, filters) } : {}),
         confirmation,

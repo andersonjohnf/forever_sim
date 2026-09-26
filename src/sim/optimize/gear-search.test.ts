@@ -2,11 +2,11 @@
 import { describe, expect, it } from 'vitest'
 import { defaultConfig } from '../defaults'
 import type { GearSlot, SimConfig } from '../types'
-import { localFightRunner } from './fights'
+import { localFightRunner, SearchTooLargeError } from './fights'
 import { gearContext, type Gear, groupGears, POOL, SEARCHED_SLOTS, slotPool } from './gear'
 import { decodeTalentCode, talentsInCodeOrder } from '@/data/talents/types'
 import { TALENT_DATA } from '../defaults'
-import { type GearSearchOptions, gearPools, optimizeGear, optimizeTogether, rankGear } from './gear-search'
+import { type GearSearchOptions, gearPools, MIN_RANK_FIGHTS, optimizeGear, optimizeTogether, rankGear, rankingPlans } from './gear-search'
 import { gearKey, setupCandidate } from './optimize'
 
 const OPEN: GearSlot[] = ['head', 'neck', 'finger1', 'finger2']
@@ -110,5 +110,32 @@ describe('a pair with one slot locked (O2L-2)', () => {
       expect(gears.length).toBeGreaterThanOrEqual(5)
       for (const g of gears) expect(g[lock]).toEqual(config.gear[lock])
     }
+  })
+})
+
+describe('the hard ceiling (O2L-3)', () => {
+  it('refuses a cap the first ranking can’t fit, and never passes one it can', { timeout: 120_000 }, async () => {
+    const config: SimConfig = { ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 0, seed: 3 } }
+    const filters = { locked: SEARCHED_SLOTS.filter((s) => !['head', 'neck', 'trinket1', 'trinket2'].includes(s)) }
+    const ctx = gearContext(config, filters)
+    const { weightPlans, measurePlans } = rankingPlans(ctx, gearPools(ctx))
+    const least = (weightPlans + measurePlans) * MIN_RANK_FIGHTS
+    const run = (budget: number, maxFights: number) => optimizeGear({ config, filters, budget: { fights: budget }, maxFights, runner: localFightRunner(), passes: 1, perSlot: 3, enchantsPerItem: 1 })
+    // Below the first ranking's fewest fights: refused before any fight.
+    await expect(run(1_000_000, least - 1)).rejects.toThrow(SearchTooLargeError)
+    // A small budget under a small cap: the ranking scales down to its floor, grows the budget to fit, and the whole search stays under the cap.
+    const cap = least + 4_000
+    const small = await run(1_000, cap)
+    expect(small.ranking.weightFights).toBe(MIN_RANK_FIGHTS)
+    expect(small.ranking.measureFights).toBe(MIN_RANK_FIGHTS)
+    expect(small.fights).toBeLessThanOrEqual(cap)
+    expect(small.notes.join(' ')).toMatch(/grows to that/)
+    // No note reports a negative number of fights.
+    expect(small.notes.join(' ')).not.toMatch(/-\d/)
+    // A budget that fits: the first ranking is the whole search's (at most 40% of it), and the setup's start still steps.
+    const fits = await run(80_000, 200_000)
+    expect(fits.ranking.fights).toBeLessThanOrEqual(0.4 * 80_000 * 0.85 + 1)
+    expect(fits.starts[0].steps.length).toBeGreaterThan(0)
+    expect(fits.fights).toBeLessThanOrEqual(80_000)
   })
 })

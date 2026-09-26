@@ -39,6 +39,9 @@ test.describe('reduced motion, phone', () => {
     await page.getByRole('button', { name: /^Head: / }).click({ position: { x: 24, y: 24 } })
     const picker = page.getByRole('dialog', { name: 'Choose head' })
     await expect(picker).toBeVisible()
+    // The drawer doesn't slide: its open animation lasts 1 ms (review QC-1).
+    const duration = await page.locator('[data-vaul-drawer]').evaluate((el) => getComputedStyle(el).animationDuration)
+    expect(duration).toBe('0.001s')
     await page.keyboard.press('Escape')
     await expect(picker).toBeHidden()
   })

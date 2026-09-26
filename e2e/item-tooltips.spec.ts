@@ -279,9 +279,11 @@ test.describe('the item picker', () => {
     await expect(tooltip(page)).toBeVisible()
     await expect(tooltip(page)).toContainText(name)
     await expect(tooltip(page)).toContainText(STAT_LINE)
-    // Beside the dialog, which leaves 16 rem at 1280 px: it covers none of the list.
-    const [dialogBox, tipBox] = [(await picker.boundingBox())!, (await tooltip(page).boundingBox())!]
-    expect(tipBox.x).toBeGreaterThanOrEqual(dialogBox.x + dialogBox.width)
+    // Beside the dialog, which leaves 16 rem at 1280 px: it covers none of the list. Polled: the panel
+    // is measured before it's placed beside the dialog, so its first box can be off (review QC-2).
+    const dialogBox = (await picker.boundingBox())!
+    await expect.poll(async () => (await tooltip(page).boundingBox())?.x ?? -1).toBeGreaterThanOrEqual(dialogBox.x + dialogBox.width)
+    const tipBox = (await tooltip(page).boundingBox())!
     expect(tipBox.x + tipBox.width).toBeLessThanOrEqual(1280)
     // The tooltip lets the pointer through, so the row under it still picks.
     await row.click()

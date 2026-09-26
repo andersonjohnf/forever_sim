@@ -307,6 +307,9 @@
     --tw-exit-blur: 0 !important;
   }
   [data-vaul-drawer] {
+    /* Vaul opens and closes with keyframes (slideFromBottom/slideToBottom) and settles a drag with a
+       transition: 1 ms for both keeps the animationend a close waits on (review QC-1). */
+    animation-duration: 1ms !important;
     transition-duration: 1ms !important;
   }
 }

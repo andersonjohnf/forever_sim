@@ -33,7 +33,7 @@ export const ROADMAP: readonly RoadmapEntry[] = [
       'Warriors’ Revenge, Thunder Clap, Rend, Unbridled Wrath and off-hand rage, and Hunters’ Arcane Shot and Serpent Sting, follow the game’s data and combat logs.',
       'Casters’ epic weapons, the Warlock’s Improved Imp, the Shaman’s Maelstrom Weapon and Earth Shock, and a Druid’s Thorns on the tank are checked against the game’s data.',
       'Every class’s Dungeon Set 2 joins the gear, and the bear’s helm is picked again for threat.',
-      'Tanks take boss hits sized from Classic Era logs of Golemagg.',
+      'Tanks take boss hits sized from a Classic Era log of Golemagg.',
     ],
   },
   {

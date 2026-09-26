@@ -84631,6 +84631,7 @@
         "weaponSkill": null
       },
       "classicName": null,
+      "classicStats": ["spellPower"],
       "equipSlots": ["mainHand"],
       "flavor": null,
       "foreverData": true,
@@ -84736,6 +84737,7 @@
         "weaponSkill": null
       },
       "classicName": null,
+      "classicStats": ["spellPower"],
       "equipSlots": ["mainHand"],
       "flavor": null,
       "foreverData": true,
@@ -87647,6 +87649,7 @@
         "weaponSkill": null
       },
       "classicName": null,
+      "classicStats": ["spellPower"],
       "equipSlots": ["mainHand"],
       "flavor": null,
       "foreverData": true,
@@ -87770,6 +87773,7 @@
         "weaponSkill": null
       },
       "classicName": null,
+      "classicStats": ["spellPower"],
       "equipSlots": ["mainHand"],
       "flavor": null,
       "foreverData": true,

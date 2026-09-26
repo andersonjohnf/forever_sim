@@ -28,7 +28,7 @@ import path from "node:path";
 import { committedJson, describeRef } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { buildPool, itemsLeavingPool, measureRatingConversions } from "./lib/item-pool.mjs";
-import { ITEM_GAMETABLES, ITEM_TABLES, casterWeapon, createItemContext } from "./lib/item-stats.mjs";
+import { ITEM_GAMETABLES, ITEM_TABLES, casterWeaponProblem, createItemContext } from "./lib/item-stats.mjs";
 import { compareText, stableStringify } from "./lib/json.mjs";
 import { checkConflicts, createOutput, recordedSource } from "./lib/output.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
@@ -181,7 +181,7 @@ async function load(key, build, { lookups = false } = {}) {
 
 const forever = await load("forever", version, { lookups: true });
 const classic = await load("classic", opts.baseline);
-// An Epic Forever caster weapon takes its spell stats from its Classic Era item (casterWeapon in
+// A Forever caster weapon off the fitted quality (an Epic) takes its spell stats from its Classic Era item (casterWeapon in
 // lib/item-stats.mjs; docs/data/client.md#weapon-damage).
 forever.ctx.classic = classic.ctx;
 
@@ -332,10 +332,11 @@ async function write() {
     if (i.tab !== "new" && i.id >= MAX_CLASSIC_ITEM_ID) fail(`SoD guard: ${i.id} ${i.name} (${i.tab}) has a Classic Era row and id >= ${MAX_CLASSIC_ITEM_ID}`);
     if (!i.icon) warn(`${i.id} ${i.name}: no icon`);
     if (i.weapon && (i.weapon.min === null || i.weapon.max === null)) fail(`${i.id} ${i.name}: weapon without damage`);
-    // docs/data/client.md#weapon-damage: an Epic caster weapon's spell stats are its Classic Era
-    // item's. One Forever added has none to take, so say so rather than give it no spell power.
+    // docs/data/client.md#weapon-damage: a caster weapon off the fitted quality (Rare) takes its
+    // spell stats from its Classic Era item. One with nothing to take fails rather than get none.
     const row = forever.ctx.sparse.get(i.id);
-    if (row && casterWeapon(forever.ctx, row)?.fromClassic && !classic.ctx.sparse.has(i.id)) fail(`${i.id} ${i.name}: an Epic caster weapon without a Classic Era item, so it has no spell power to take (docs/data/client.md#weapon-damage)`);
+    const problem = row && casterWeaponProblem(forever.ctx, row);
+    if (problem) fail(`${i.id} ${i.name}: a caster weapon of quality ${row.OverallQualityID} with no spell stats of its own, and ${problem} (docs/data/client.md#weapon-damage)`);
   }
   for (const [id, s] of Object.entries(sets)) if (!s.name) fail(`set ${id}: no ItemSet row in either client`);
   // docs/data/items.md#pre-raid-bis-lists (Kept items): no item leaves the pool without a reason.

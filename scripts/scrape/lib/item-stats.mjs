@@ -582,31 +582,49 @@ export function damageTable(row, item) {
 /**
  * Forever caster weapons (Flags[4] & 0x100, with 0x200 spell power or 0x400 healing), per
  * docs/data/client.md#weapon-damage ("Caster weapons"). Returns null for other items.
- * - Rare and below: the weapon trades DPS for spell power worth 2 × the group-0 budget of its
- *   quality at its item level, whatever its slot (healing weapons: 3.75 × healing + 1.25 × spell
- *   damage). A weapon whose stats already carry spell power, healing or spell damage keeps those
- *   instead (Crackling Staff: +25 Spell Power from its stats, and the DPS cut all the same).
- *   `spellPower` is the spell-power equivalent the DPS cut is based on.
- * - Epic and above: the rule was fitted on Rare weapons only, so it isn't extrapolated. The
- *   weapon's spell stats are its Classic Era item's (`ctx.classic`, the Classic Era context the
- *   scraper links; none without one), and its damage takes no cut (`spellPower` 0): Mindfang
- *   and Sageclaw +30 Spell Power, Ironbark Staff +41. `fromClassic` marks these.
+ * - Rare (quality 3), the only quality the rule was fitted on: the weapon trades DPS for spell
+ *   power worth 2 × the group-0 budget of its quality at its item level, whatever its slot
+ *   (healing weapons: 3.75 × healing + 1.25 × spell damage). A weapon whose stats already carry
+ *   spell power, healing or spell damage keeps those instead (Crackling Staff: +25 Spell Power
+ *   from its stats, and the DPS cut all the same). `spellPower` is the spell-power equivalent the
+ *   DPS cut is based on.
+ * - Any other quality (Uncommon, Epic, …): the fit isn't extrapolated. The weapon's spell stats are
+ *   its Classic Era item's (`ctx.classic`, the Classic Era context the scraper links; none without
+ *   one), and its damage takes no cut (`spellPower` 0): Mindfang and Sageclaw +30 Spell Power,
+ *   Ironbark Staff +41. `fromClassic` marks these, and `classicStats` names the stats taken.
+ *   `ownSpellStats` says the weapon's Forever stats carry spell stats of their own (then it takes
+ *   none); casterWeaponProblem says when one has nothing to take.
  */
 export function casterWeapon(ctx, row) {
   const flags = row.Flags?.[4] ?? 0;
   if (storesAmounts(row) || !(flags & CASTER_WEAPON) || !(flags & (CASTER_SPELL_POWER | CASTER_HEALING))) return null;
   const hasSpellStats = row.StatModifier_bonusStat.some((type, i) => SPELL_STAT_TYPES.has(type) && row.StatPercentEditor[i]);
-  if (row.OverallQualityID >= 4) {
-    const classic = ctx.classic?.sparse.has(row.ID) ? deriveItem(ctx.classic, row.ID).stats : {};
+  if (row.OverallQualityID !== CASTER_FIT_QUALITY) {
+    const hasClassic = Boolean(ctx.classic?.sparse.has(row.ID));
+    const classic = hasClassic ? deriveItem(ctx.classic, row.ID).stats : {};
     const stats = hasSpellStats ? [] : Object.entries(classic).filter(([k]) => CLASSIC_SPELL_STAT.test(k));
-    return { spellPower: 0, stats, fromClassic: true };
+    return { spellPower: 0, stats, fromClassic: true, hasClassic, ownSpellStats: hasSpellStats, classicStats: stats.map(([k]) => k) };
   }
   const p0 = ctx.randPropPoints.get(row.ItemLevel)?.[budgetColumn(row.OverallQualityID)]?.[0];
   if (!p0) return null;
   const stats = hasSpellStats ? [] : flags & CASTER_HEALING ? [["healing", round(3.75 * p0)], ["spellDamage", round(1.25 * p0)]] : [["spellPower", 2 * p0]];
   return { spellPower: 2 * p0, stats };
 }
-/** The Classic Era stats an Epic caster weapon takes: spell power, healing and spell damage (any school). */
+/** The one quality the caster-weapon rule was fitted on: Rare (docs/data/client.md#weapon-damage). */
+const CASTER_FIT_QUALITY = 3;
+
+/**
+ * Why a caster weapon off the fitted quality can't be derived, or null: it has no spell stats of
+ * its own and takes none from Classic Era, either because it has no Classic Era item or because
+ * that item carries no spell stat. The scraper fails on one in the pool rather than give it no
+ * spell power (docs/data/client.md#weapon-damage).
+ */
+export function casterWeaponProblem(ctx, row) {
+  const c = casterWeapon(ctx, row);
+  if (!c?.fromClassic || c.ownSpellStats || c.stats.length) return null;
+  return c.hasClassic ? "its Classic Era item carries no spell power, healing or spell damage to take" : "it has no Classic Era item to take spell power from";
+}
+/** The Classic Era stats a caster weapon off the fitted quality takes: spell power, healing and spell damage (any school). */
 const CLASSIC_SPELL_STAT = /^(spellPower|healing|spellDamage|(holy|fire|nature|frost|shadow|arcane)SpellDamage)$/;
 const SPELL_STAT_TYPES = new Set([41, 42, 45]); // healing, spell damage, spell power
 
@@ -855,7 +873,8 @@ export function deriveItem(ctx, id) {
 
   add("armor", baseArmor(ctx, row, item));
   if (storesAmounts(row)) row.Resistances.forEach((v, i) => RESISTANCE_INDEX[i] && add(RESISTANCE_INDEX[i], v));
-  for (const [k, v] of casterWeapon(ctx, row)?.stats ?? []) add(k, v);
+  const caster = casterWeapon(ctx, row);
+  for (const [k, v] of caster?.stats ?? []) add(k, v);
 
   const fx = itemEffects(ctx, id);
   for (const [k, v] of Object.entries(fx.stats)) add(k, v);
@@ -884,6 +903,8 @@ export function deriveItem(ctx, id) {
     setId,
     other,
     unknownStatTypes,
+    // The stats a caster weapon took from its Classic Era item (casterWeapon), when it took any.
+    ...(caster?.classicStats?.length ? { classicStats: caster.classicStats } : {}),
   };
 }
 

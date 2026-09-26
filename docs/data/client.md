@@ -932,16 +932,21 @@ whose stats have no spell power, healing or spell damage. That rule rests on a s
 
 **Epic caster weapons `[C]`, Forever's value `[?]`.** The rule above was fitted on Rare weapons only, and no Epic
 caster weapon's Forever tooltip is on record, so it isn't extrapolated to Epic quality (2 × the
-Epic budget would give +94). An Epic caster weapon takes **its Classic Era item's spell stats**
+Epic budget would give +94), nor to Uncommon (44 Uncommon caster weapons in the client, none in
+the pool): the rule applies to quality 3 only, and any other quality takes this path. An Epic caster weapon takes **its Classic Era item's spell stats**
 ([Classic Era 1.15.9 ItemSparse and item effects](#items-from-the-client)): Mindfang and Sageclaw
 **+30 Spell Power**, both Ironbark Staffs **+41**, the casters' pre-raid main hands and two-hander
 ([warlock.md §7.3](../classes/warlock.md#73-gear)). Its damage takes no cut, so it is the
 `ItemDamage` table's value as is (Mindfang 56–105, 47.4 DPS, what Classic Era stores; Ironbark
 Staff 167–251 at Forever's damage variance): the cut's size on an Epic is unknown too, and no sim
 result reads a caster weapon's melee damage. The Forever stats the budget gives stay (Mindfang's
-14 crit rating, Ironbark Staff's 28). An Epic caster weapon with no Classic Era item would have no
-spell power to take, so the scraper fails on one in the pool rather than give it none
-(`casterWeapon` in `scripts/scrape/lib/item-stats.mjs`). Before this, the extrapolated +94 made
+14 crit rating, Ironbark Staff's 28). The item records the stats it took as `classicStats`
+(Mindfang's `["spellPower"]`), and the results' assumptions name a worn one: its spell power is
+Classic Era's value until its Forever tooltip is seen. A caster weapon on this path with no spell
+stats of its own and none to take, because it has no Classic Era item (the 6 Forever-new Epic PvP
+caster weapons, none in the pool) or because that item carries no spell stat, would get no spell
+power, so the scraper fails on one in the pool rather than give it none (`casterWeaponProblem` in
+`scripts/scrape/lib/item-stats.mjs`). Before this, the extrapolated +94 made
 the casters' main hand worth 5–8% more DPS than Classic Era's item.
 
 ### Block value

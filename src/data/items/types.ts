@@ -578,6 +578,13 @@ export interface Item {
    * bullets for guns (docs/data/items.md#ammo-and-quivers). Only on ammo.
    */
   ammo?: { dps: number; projectile: "arrow" | "bullet" };
+  /**
+   * The stats a Forever caster weapon took from its Classic Era item, because the caster-weapon
+   * rule was fitted on Rare weapons only and no Forever tooltip of it is on record (Mindfang's
+   * `["spellPower"]`; docs/data/client.md#weapon-damage). Only on those weapons; the results'
+   * assumptions name them.
+   */
+  classicStats?: string[];
   /** What the generator noticed about the item (fallback, unknown stat types). */
   notes: string[];
 }

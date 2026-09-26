@@ -188,6 +188,11 @@ const REGISTRY = {
     text: 'Some of your items have no Forever data yet and use their Classic Era stats.',
     docRef: 'docs/decisions.md#d6-items-with-no-forever-data-use-classic-era-stats-flagged-2026-09-22-confirmed-by-the-guild',
   },
+  classicCasterWeaponStats: {
+    // docs/data/client.md#weapon-damage ("Epic caster weapons"); the plan names the weapons ({detail}).
+    text: '{detail}: the weapon’s spell power is Classic Era’s value, because no one has recorded its Forever tooltip yet.',
+    docRef: 'docs/data/client.md#weapon-damage',
+  },
   unmodelledProcs: {
     text: 'Some item effects aren’t simulated yet',
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,

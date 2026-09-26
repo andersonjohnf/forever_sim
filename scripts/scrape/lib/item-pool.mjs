@@ -629,6 +629,8 @@ export function buildPool({ forever, classic, filter, bis, watch }) {
       weapon: d.weapon,
       weaponSkill: d.weaponSkill,
       ...(d.derived.ammo ? { ammo: d.derived.ammo } : {}),
+      // A Forever caster weapon's stats taken from its Classic Era item (docs/data/client.md#weapon-damage).
+      ...(f && f.derived.classicStats ? { classicStats: f.derived.classicStats } : {}),
       statSpellIds: d.statSpellIds,
       statEquip: d.statEquip,
       procs: d.procs,

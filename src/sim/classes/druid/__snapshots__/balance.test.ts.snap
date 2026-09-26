@@ -50,6 +50,7 @@ exports[`golden run and determinism (docs/doctrine.md#4-engine) > keeps the defa
     "ratingsInCombat",
     "baseStatPlaceholders",
     "classicItems",
+    "classicCasterWeaponStats",
     "unmodelledProcs",
     "draconicEmblemChance",
     "preAqRanks",

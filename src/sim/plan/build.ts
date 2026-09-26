@@ -520,6 +520,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // Gear stats, set bonuses and item effects.
   const setCounts = new Map<string, number>()
   const classicItems: string[] = []
+  /** Forever caster weapons whose spell power is their Classic Era item's (docs/data/client.md#weapon-damage). */
+  const classicCasterWeapons: string[] = []
   const unmodelled: string[] = []
   /** Equipped on-use items the sim can't press, and the use effects it can (effects/items.ts). */
   const onUseItems: string[] = []
@@ -548,6 +550,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     const setId = setOf(item)
     if (setId) setCounts.set(setId, (setCounts.get(setId) ?? 0) + 1)
     if (!item.foreverData) classicItems.push(item.name)
+    else if (item.classicStats?.length) classicCasterWeapons.push(item.name)
     const override = ITEM_EFFECTS[item.id]
     if (override) apply(typeof override.effects === 'function' ? override.effects(profile) : override.effects, origin)
     // An effect that names only another spec's abilities (Totem of Rebirth's Riptide for a damage
@@ -1644,6 +1647,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // A caster's Blood Fury: its spell power multiplies spell damage live, unrounded [?] (warlock.md §7.2).
   if (auras.some((a) => a.id === 'bloodFury' && a.spellDamagePct)) notes.add('bloodFurySpellPower')
   if (classicItems.length) notes.add('classicItems', classicItems.join(', '))
+  if (classicCasterWeapons.length) notes.add('classicCasterWeaponStats', classicCasterWeapons.join(', '))
   // docs/mechanics/ranged-and-pets.md §1: ammo the ranged weapon doesn't fire (arrows in a gun) adds nothing.
   if (meta.ranged && ammoItem && !ammoFired) notes.add('ammoNotFired', ammoItem.name)
   if (unmodelled.length) notes.add('unmodelledProcs', unmodelled.join(', '))

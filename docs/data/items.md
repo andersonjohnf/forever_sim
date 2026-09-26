@@ -368,7 +368,8 @@ Item
   otherEquip[{ raw, spellId, generated? }]                     // rendered tooltip lines
   setId, source (always null), preRaidBis [{ spec, slot, rank }]
   sellPrice (copper), flavor, classic { stats, weapon, weaponSkill } | null
-  classicShieldBlockValue?, notes[]
+  classicShieldBlockValue?, classicStats?[]                   // classicStats: a Forever caster weapon's stats taken from Classic Era (client.md#weapon-damage)
+  notes[]
 ```
 
 The browser build drops `classic`, `flavor`, `sellPrice`, `notes`, `statSpellIds` (not `statEquip`) and the bulky

@@ -38,6 +38,7 @@ export const ASSUMPTION_GROUP = {
   noWeaponSomeUsed: 'gear',
   weaponlessAttacks: 'gear',
   classicItems: 'gear',
+  classicCasterWeaponStats: 'gear',
   unmodelledProcs: 'gear',
   unmodelledSetBonuses: 'gear',
   onUseConsumables: 'gear',

@@ -6,7 +6,7 @@
 // docs/data/client.md#items-from-the-client.
 import { describe, expect, it } from "vitest";
 import fixture from "./__fixtures__/item-stats.json";
-import { AURA_STAT, NOT_STAT_AURAS, baseArmor, createFallbackContext, createItemContext, deriveItem, deriveSet, statAmount, statBudget, statEquip } from "./item-stats.mjs";
+import { AURA_STAT, NOT_STAT_AURAS, baseArmor, casterWeapon, casterWeaponProblem, createFallbackContext, createItemContext, deriveItem, deriveSet, statAmount, statBudget, statEquip } from "./item-stats.mjs";
 
 const forever = createItemContext(fixture.forever.tables, fixture.forever.gameTables);
 const classic = createItemContext(fixture.classic.tables, fixture.classic.gameTables);
@@ -80,6 +80,35 @@ describe("weapons (docs/data/client.md#weapon-damage)", () => {
     expect(mindfang.weapon).toMatchObject({ min: 56, max: 105, dps: 47.4, dpsSource: "ItemDamageOneHand" });
     // Without a linked Classic Era context there's nothing to take: no spell power.
     expect(deriveItem(forever, 20214).stats.spellPower).toBeUndefined();
+    // The item says which stats came from Classic Era (the results' assumption reads it); a Rare doesn't.
+    expect(mindfang.classicStats).toEqual(["spellPower"]);
+    expect(deriveItem(linked, 19101).classicStats).toBeUndefined();
+    expect(casterWeaponProblem(linked, row(forever, 20214))).toBeNull();
+  });
+
+  it("a caster weapon off the fitted quality with nothing to take is a problem the scraper fails on (both paths)", () => {
+    const mindfang = row(forever, 20214);
+    // No Classic Era item at all.
+    const noClassic = { ...forever, classic: { ...classic, sparse: new Map() } };
+    expect(casterWeaponProblem(noClassic, mindfang)).toBe("it has no Classic Era item to take spell power from");
+    // A Classic Era item with no spell stat: Lionheart Helm's row under Mindfang's id.
+    const helm = { ...row(classic, 12640), ID: 20214 };
+    const noSpellStats = { ...forever, classic: { ...classic, sparse: new Map([[20214, helm]]), itemEffects: new Map() } };
+    expect(casterWeapon(noSpellStats, mindfang)).toMatchObject({ fromClassic: true, hasClassic: true, stats: [] });
+    expect(casterWeaponProblem(noSpellStats, mindfang)).toBe("its Classic Era item carries no spell power, healing or spell damage to take");
+    // A weapon with spell stats of its own takes none and needs none (Crackling Staff's +25, were it Epic).
+    const crackling = { ...row(forever, 19102), OverallQualityID: 4 };
+    expect(casterWeaponProblem(noClassic, crackling)).toBeNull();
+    // Not a caster weapon: never a problem.
+    expect(casterWeaponProblem(noClassic, row(forever, 12640))).toBeNull();
+  });
+
+  it("the Rare-fitted rule isn't extrapolated to Uncommon either: an Uncommon caster weapon takes the Classic Era path", () => {
+    const uncommon = { ...row(forever, 19101), OverallQualityID: 2 };
+    const c = casterWeapon({ ...forever, classic }, uncommon);
+    expect(c).toMatchObject({ spellPower: 0, fromClassic: true });
+    expect(casterWeapon(forever, row(forever, 19101))).toMatchObject({ spellPower: 74, stats: [["spellPower", 74]] });
+    expect(casterWeapon(forever, row(forever, 19101)).fromClassic).toBeUndefined();
   });
 
   it("Classic Era extra damage counts toward DPS; its school is Item.DamageType[1]", () => {

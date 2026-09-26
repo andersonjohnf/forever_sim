@@ -197,18 +197,18 @@ describe('encounter.md worked examples (formula level)', () => {
     expect(executePhaseStart(180000, 35)).toBe(117000)
     expect(executePhaseStart(180001, 0)).toBe(180001)
   })
-  it('WE-3: a boss swing on a 10,000-armor tank', () => {
+  it('WE-3: a boss swing of the default’s mean 2,700 on a 10,000-armor tank', () => {
     const dr = armorReduction(10000, 63, FOREVER)
-    const hit = 5000 * (1 - dr)
-    expect(hit).toBeCloseTo(1826.4, 1)
-    expect(hit * 2).toBeCloseTo(3652.8, 1)
-    expect(hit * 1.5).toBeCloseTo(2739.6, 1)
-    expect(hit - 150).toBeCloseTo(1676.4, 1)
+    const hit = 2700 * (1 - dr)
+    expect(hit).toBeCloseTo(986.26, 2)
+    expect(hit * 2).toBeCloseTo(1972.52, 2)
+    expect(hit * 1.5).toBeCloseTo(1479.39, 2)
+    expect(hit - 150).toBeCloseTo(836.26, 2)
     // The engine's reference function (damage-and-timing §2.6, boss → tank).
-    expect(bossHitHealthLost(5000, 'hit', dr, 1, 150)).toBeCloseTo(1826.4, 1)
-    expect(bossHitHealthLost(5000, 'crit', dr, 1, 150)).toBeCloseTo(3652.8, 1)
-    expect(bossHitHealthLost(5000, 'crush', dr, 1, 150)).toBeCloseTo(2739.6, 1)
-    expect(bossHitHealthLost(5000, 'block', dr, 1, 150)).toBeCloseTo(1676.4, 1)
+    expect(bossHitHealthLost(2700, 'hit', dr, 1, 150)).toBeCloseTo(986.26, 2)
+    expect(bossHitHealthLost(2700, 'crit', dr, 1, 150)).toBeCloseTo(1972.52, 2)
+    expect(bossHitHealthLost(2700, 'crush', dr, 1, 150)).toBeCloseTo(1479.39, 2)
+    expect(bossHitHealthLost(2700, 'block', dr, 1, 150)).toBeCloseTo(836.26, 2)
   })
   it('combat-tables WE-14: one swing on an 8,000-armor tank in Defensive Stance, and its rage', () => {
     const dr = armorReduction(8000, 63, FOREVER)

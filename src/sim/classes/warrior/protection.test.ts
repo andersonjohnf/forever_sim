@@ -268,7 +268,7 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
   /** The duties whose upkeep costs threat, which Max TPS drops (D26's rule). */
   const DUTIES = [ID.tcEnabled, ID.demoEnabled]
 
-  it('drops Thunder Clap and Demoralizing Shout by default, keeps Shield Block and Shield Slam, and queues Heroic Strike from 45', () => {
+  it('drops Thunder Clap and Demoralizing Shout by default, keeps Shield Block and Shield Slam, and queues Heroic Strike from 85', () => {
     const duties = resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)
     const max = resolveRotationValues(PROTECTION_OPTIONS, MAX, TALENTS)
     for (const id of DUTIES) expect([id, duties[id], max[id]]).toEqual([id, true, false])
@@ -276,7 +276,8 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
     // blocks make more threat than its rage would since Sunder Armor's fell (1.60.1.70009), so it stays.
     expect([duties[ID.sbEnabled], max[ID.sbEnabled]]).toEqual([true, true])
     expect([duties[ID.slamEnabled], max[ID.slamEnabled]]).toEqual([true, true])
-    expect([duties[ID.hsMinRage], max[ID.hsMinRage]]).toEqual([76, 45])
+    // Heroic Strike from 85 since the boss melee of 2026-09-26 (45 before; §5.4 "Max TPS").
+    expect([duties[ID.hsMinRage], max[ID.hsMinRage]]).toEqual([76, 85])
     // Nothing else moves: the search found no other setting better (§5.4 "Max TPS").
     const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
     expect(moved.sort()).toEqual([ID.priority, ...DUTIES, ID.hsMinRage].sort())
@@ -306,7 +307,7 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
       'heroicStrike',
       'heroicStrike',
     ])
-    expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 450, b: 0 }])
+    expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 850, b: 0 }])
   })
 })
 
@@ -405,7 +406,7 @@ describe('Balanced (warrior.md §5.4 "Balanced", D28)', () => {
     it('only Balanced’s defaults scale: a value you set, and Defensive’s and Max TPS’s, stay in rage points', () => {
       expect(thresholds(protectionRotation({ [ID.fillerMinRage]: 60, [ID.hsMinRage]: 84 }, BOUNDLESS, noAura, { race: 'alliance-gnome' }))).toEqual(minRages(60, 84))
       expect(resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, BOUNDLESS, { maxRage: 136.5 })).toMatchObject({ [ID.fillerMinRage]: 9, [ID.hsMinRage]: 76 })
-      expect(resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.maxTps }, BOUNDLESS, { maxRage: 136.5 })).toMatchObject({ [ID.hsMinRage]: 45 })
+      expect(resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.maxTps }, BOUNDLESS, { maxRage: 136.5 })).toMatchObject({ [ID.hsMinRage]: 85 })
     })
 
     it('the Rotation tab reads the same values as the sim, and a Gnome at the defaults is still on Balanced', () => {

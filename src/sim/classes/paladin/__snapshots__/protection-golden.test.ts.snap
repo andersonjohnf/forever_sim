@@ -252,9 +252,9 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     "stdev": 16.995200098670647,
   },
   "dtps": {
-    "ci95": 3.500374746388015,
-    "mean": 900.2517882073357,
-    "stdev": 56.4763278816982,
+    "ci95": 1.9042633396813928,
+    "mean": 471.8489856712092,
+    "stdev": 30.72408200176821,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -540,9 +540,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     "stdev": 16.995200098670647,
   },
   "dtps": {
-    "ci95": 3.500374746388015,
-    "mean": 900.2517882073357,
-    "stdev": 56.4763278816982,
+    "ci95": 1.9042633396813928,
+    "mean": 471.8489856712092,
+    "stdev": 30.72408200176821,
   },
   "durationSec": 179.690222,
   "mana": {

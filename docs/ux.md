@@ -1173,7 +1173,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     and a screen reader hears "down 12.3 from the last run, better".
   - A line says what it counts and what drove it: "The health the boss's melee swings cost you,
     after avoidance, armor, block and other reductions. It swung 80.5 times a fight on average,
-    set to 4,500 to 5,500 a swing before armor (Fight → Advanced). Debuffs on it, such as
+    set to 2,200 to 3,200 a swing before armor (Fight → Advanced). Debuffs on it, such as
     Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours
     (Rotation) or the raid's (Buffs)." For another tank, whose rotation never uses a warrior
     tank's debuffs, its last sentence reads "Debuffs on it, such as a warrior tank's Demoralizing

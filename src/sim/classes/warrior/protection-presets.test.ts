@@ -51,16 +51,16 @@ describe('the Protection warrior presets’ help numbers (FU-3)', () => {
   it('the help and the short lines quote them', () => {
     const presets = Object.fromEntries(aplPresets(PROTECTION_APL).map((p) => [p.id, p]))
     const help = (id: string) => `${presets[id].summary ?? ''} ${presets[id].help}`
-    expect(help('defensive')).toContain('861 TPS, 389 DPS and 616 damage taken a second in the default setup')
-    expect(presets.default.summary).toBe('Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +6% TPS, +6% DPS, 21% more damage taken than Defensive.')
-    expect(help('default')).toContain('Against Defensive in the default setup: 6.3% more TPS, 5.9% more DPS and 21% more damage taken.')
-    expect(help('maxTps')).toContain('Against Balanced in the default setup: 0.4% more TPS, 0.2% less DPS and the same damage taken')
-    expect(help('maxTps')).toContain('against Defensive, 6.7% more TPS, 5.6% more DPS and 21% more damage taken')
-    expect(presets.maxTps.summary).toContain('about +0.4% TPS over Balanced for the same damage taken')
+    expect(help('defensive')).toContain('811 TPS, 368 DPS and 322 damage taken a second in the default setup')
+    expect(presets.default.summary).toBe('Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +7% TPS, +7% DPS, 21% more damage taken than Defensive.')
+    expect(help('default')).toContain('Against Defensive in the default setup: 6.8% more TPS, 7.4% more DPS and 21% more damage taken.')
+    expect(help('maxTps')).toContain('Against Balanced in the default setup: 1.3% more TPS, 0.1% more DPS and the same damage taken')
+    expect(help('maxTps')).toContain('against Defensive, 8.1% more TPS, 7.5% more DPS and 22% more damage taken')
+    expect(presets.maxTps.summary).toContain('about +1.3% TPS over Balanced for the same damage taken')
     // Heroic Strike's two thresholds in the units each is set in (FU-4).
-    expect(help('maxTps')).toContain('Heroic Strike from 45 rage rather than 84% of your max rage')
+    expect(help('maxTps')).toContain('Heroic Strike from 85 rage rather than 84% of your max rage')
     // Its advice matches its numbers: no more damage taken than Balanced (W4U-8).
-    expect(help('maxTps')).toContain('It takes no more damage than Balanced for about 0.4% more threat: pick it when every bit of threat counts.')
+    expect(help('maxTps')).toContain('It takes no more damage than Balanced for about 1.3% more threat: pick it when every bit of threat counts.')
   })
 
   it('takes every word of direction from the value (W4U-6): more, less, or the same under 0.5% damage taken', () => {
@@ -78,10 +78,10 @@ describe('the Protection warrior presets’ help numbers (FU-3)', () => {
     // Less damage taken than Balanced reads as less, and the advice is threat's.
     const less = protectionPresetText({ ...M, maxTpsOverBalanced: { tpsPct: 0.44, dpsPct: -0.24, damageTakenPct: -0.7 } })
     expect(less.maxTps.help).toContain('It takes 1% less damage than Balanced for about 0.4% more threat: pick it when every bit of threat counts.')
-    // Today's measures: every direction as measured, and 0.09% damage taken is the same.
+    // Today's measures: every direction as measured, and 0.3% damage taken is the same.
     const today = protectionPresetText(M)
-    expect(today.balanced.summary).toContain('+6% TPS, +6% DPS, 21% more damage taken than Defensive.')
-    expect(today.maxTps.summary).toBe('Sunder Armor filler from its cost, Heroic Strike from 45 rage: about +0.4% TPS over Balanced for the same damage taken.')
+    expect(today.balanced.summary).toContain('+7% TPS, +7% DPS, 21% more damage taken than Defensive.')
+    expect(today.maxTps.summary).toBe('Sunder Armor filler from its cost, Heroic Strike from 85 rage: about +1.3% TPS over Balanced for the same damage taken.')
   })
 })
 

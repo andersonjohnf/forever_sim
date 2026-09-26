@@ -244,7 +244,8 @@ describe('a tank’s gear search (O2L-12)', () => {
     })
     expect(r.goal).toBe('balanced')
     expect(r.answer).not.toBeNull()
-    const answer = r.answer!.gear!
+    // An answer with no gear keeps the setup's (since the default boss melee of 2026-09-26 the search finds nothing better here).
+    const answer = r.answer!.gear ?? config.gear
     // The shield stays: a one-hander in the main hand, a shield in the off hand, at every start's end too.
     for (const gear of [answer, ...r.starts.map((s) => s.end)]) {
       expect(isTwoHand(POOL.get(gear.mainHand!.itemId)!)).toBe(false)

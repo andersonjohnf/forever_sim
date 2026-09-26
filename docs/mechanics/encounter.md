@@ -125,8 +125,8 @@ and their values are in [buffs-debuffs-consumables.md](buffs-debuffs-consumables
 
 | Property | Default | Tag / source |
 | --- | --- | --- |
-| Swing speed | **2.0 s** | [?] (typical raid-boss swing; no Forever data; tune from logs) |
-| Pre-armor damage per swing | **uniform 4,500–5,500** (mean 5,000) | [?], see below |
+| Swing speed | **2.0 s** | [?] (Golemagg's steady swing timer in a Classic Era log, [below](#how-the-default-boss-melee-was-measured-)) |
+| Pre-armor damage per swing | **uniform 2,200–3,200** (mean 2,700) | [?] (Golemagg's melee in the same log, [below](#how-the-default-boss-melee-was-measured-)) |
 | Attack table vs the tank | [combat-tables §8](combat-tables.md#8-boss--player-tanks): miss, dodge, parry, block, crit 5.6% at 300 defense, crushing 15% | [F]/[C] |
 | Direction | from the front: the tank faces the boss, so it can dodge, parry and block. The tank's own position setting (in front or behind) is where it attacks from, and doesn't change this | [F] tooltip; [C] ([combat-tables §8](combat-tables.md#8-boss--player-tanks)) |
 | Crit / crushing multiplier | ×2.0 / ×1.5 | [F] tooltip ([gs][gs-forever]); in combat [C] (unchanged) |
@@ -136,13 +136,42 @@ and their values are in [buffs-debuffs-consumables.md](buffs-debuffs-consumables
 | AP debuffs (Demoralizing Shout/Roar) | `damage −= APreduction / 14 × swingSpeed` | [?] (creature damage modeled as base + AP/14 × speed) |
 | Spells or special attacks | not modeled; `bossExtraDtps` is planned, not yet a setting | modelling choice |
 
-**Why 5,000 pre-armor per swing** [?]. Classic-era raid bosses hit a well-geared tank for
-about 1,500–2,500 after armor. At 10,000 armor vs a level-63 attacker, mitigation is 63.5%, so
-5,000 pre-armor ≈ 1,826 after armor. The value matters for tank survivability outputs and for
-tank rage. [rage.md](rage.md#rage-from-damage-taken) owns the damage-taken rage model. Its
-Forever default is `10 × damage before armor, block and absorbs ÷ max health` [?], fitted to
-beta logs, so tank rage follows this pre-armor number directly: armor, block and Defensive
-Stance don't change it. Replace the stand-in with measured values once Forever raid logs exist.
+#### How the default boss melee was measured [?]
+
+No Forever raid boss has been logged yet (Forever's raids open on 2026-12-09), so the default is a
+Classic Era analog measured from a public log, physical melee only (user decision,
+[D38 #11](../decisions.md#d38-the-values-audits-calls-2026-09-26)): **Golemagg the Incinerator**
+in Molten Core, whose tank takes only its melee. It's `[?]`: a closest similar value from an
+allowed source, used as is ([doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)'s
+fallback order).
+
+- **Source.** A Classic Era public log on Warcraft Logs: a rank-100 normal-mode Golemagg kill of
+  0:40, its tank Mangox, shared by the user on 2026-09-26 ([wcl-golemagg]).
+- **Method.** Each landed melee swing's unmitigated amount, the log's "U": the swing before armor
+  and before the crit or crushing multiplier. Two swings check it at the fight's 58.2% armor
+  reduction: a crit of 2,008 = 2 × 2,402 × 0.418, and a crushing blow of 1,467 = 1.5 × 2,304 ×
+  0.4244. The boss had Curse of Recklessness on it, whose attack power adds about 13 a swing by the
+  `AP / 14 × swing speed` rule above, and no Thunder Clap or Demoralizing Shout.
+- **Sample.** 24 landed swings: 2,556, 2,617, 2,362, 2,700, 2,275, 2,249, 2,713, 2,820, 2,504,
+  3,167, 3,033, 3,033, 2,520, 2,496, 2,335, 2,304, 2,274, 2,738, 2,938, 2,807, 2,402, 2,820, 2,889
+  and 2,696. Mean 2,635, standard deviation 270, lowest 2,249, highest 3,167. The steady swing
+  timer is 2.0 s: seven gaps in a row of 1.99–2.04 s.
+- **Result: uniform 2,200–3,200 every 2.0 s.** The sim rolls a uniform range, so its ends come from
+  the sample's: the observed 2,249–3,167, widened at each end by one average gap between the sorted
+  swings, (3,167 − 2,249) ÷ 23 ≈ 40, the usual estimate of a uniform's ends from its draws: 2,209–3,207,
+  to the nearest hundred **2,200–3,200** (mean 2,700). Curse of Recklessness's 13 is inside the
+  rounding. It replaces a stand-in of 4,500–5,500 (mean 5,000, from "Classic-era raid bosses hit a
+  well-geared tank for about 1,500–2,500 after armor").
+- **Left out.** The log also shows extra swings 15–35 ms after a swing, near its double, and a
+  faster run late in the fight. The user reads both as Golemagg's own (user decision, 2026-09-26:
+  the normal 2.0 s timer is "a safe assumption until we know more about the WoW Forever bosses"),
+  so they're open questions ([OQ 3](#open-questions)), not modelled.
+
+After 10,000 armor the mean hit costs about 986 health (WE-3). The value matters for tank
+survivability outputs and for tank rage. [rage.md](rage.md#rage-from-damage-taken) owns the
+damage-taken rage model. Its Forever default is `10 × damage before armor, block and absorbs ÷ max
+health` [?], fitted to beta logs, so tank rage follows this pre-armor number directly: armor, block
+and Defensive Stance don't change it. Replace it with measured values once Forever raid logs exist.
 
 **What a tank's results show** (beside TPS and DPS,
 [D18](../decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22); the engine's
@@ -221,7 +250,7 @@ What the UI exposes, with defaults. All are part of `SimConfig.encounter`.
 | `bossCanDodge` | true | bool | [?] §1 |
 | `bossParryHaste` | true | bool | [C]/[F] §5 |
 | `bossSwingSpeedSec` (tanks) | 2.0 | 1.0–4.0 | [?] §5 |
-| `bossDamageMin` / `bossDamageMax` (tanks, pre-armor) | 4500 / 5500 | 0–20,000 | [?] §5 |
+| `bossDamageMin` / `bossDamageMax` (tanks, pre-armor) | 2200 / 3200 | 0–20,000 | [?] §5 |
 | `bossCanCrush` | true | bool | [F] §5 |
 | `bossExtraDtps` (tanks) | 0 | 0–2,000 | modelling choice §5; planned, not yet a setting |
 | `dpsDamageTakenPerSec` (before your mitigation) | 0 | 0–500 | [?] §4 |
@@ -284,20 +313,20 @@ threshold as a boss property.
 **WE-2: fight-length draw.** L = 180 s, v = 10%, u = 0.25: L_i = 180 × (1 + 0.1 × (−0.5)) =
 **171.0 s**.
 
-**WE-3: a boss swing on a 10,000-armor tank** (5,000 pre-armor, armor DR = 10000/15755 =
-63.472%):
+**WE-3: a boss swing on a 10,000-armor tank** (2,700 pre-armor, the default's mean; armor DR =
+10000/15755 = 63.472%):
 
 | Outcome | Damage |
 | --- | --- |
-| Hit | 5000 × 0.36528 = **1826.4** |
-| Crit (×2) | **3652.8** |
-| Crushing (×1.5) | **2739.6** |
-| Blocked hit, block value 150 | 1826.4 − 150 = **1676.4** |
+| Hit | 2700 × 0.36528 = **986.26** |
+| Crit (×2) | **1972.52** |
+| Crushing (×1.5) | **1479.39** |
+| Blocked hit, block value 150 | 986.26 − 150 = **836.26** |
 
 **WE-4: Demoralizing Shout on the boss (`forever`).** −204 AP (the Forever rank-5 tooltip at
 level 60 [F]; whether combat applies it is [?]; value owned by the [buffs
-doc](buffs-debuffs-consumables.md#42-other-debuffs)) × 2.0 / 14 = **−29.14** per swing →
-**4,970.86** pre-armor. (`classicEra`, −146 at 60: −20.86 → 4,979.14.)
+doc](buffs-debuffs-consumables.md#42-other-debuffs)) × 2.0 / 14 = **−29.14** per swing: the
+default's mean 2,700 → **2,670.86** pre-armor. (`classicEra`, −146 at 60: −20.86 → 2,679.14.)
 
 **WE-5: Thunder Clap slow.** 2.0 s × (1 + 0.20) = **2.4 s** between swings
 ([damage-and-timing §3.2](damage-and-timing.md#32-attack-speed-debuffs-on-the-boss-tank-modeling),
@@ -312,9 +341,20 @@ convention [?]).
    gives armor, as Classic players did.
 2. **Default fight length** [?]: 180 s is a judgment call for pre-raid guilds. Revisit with
    the guild's first Forever kill times.
-3. **Boss pre-armor damage** [?]: 5,000 per 2.0 s is a stand-in. Tank rage depends on it
-   under every rage model: directly in rage.md's Forever default, and through health lost in
-   the others ([rage.md open questions](rage.md#open-questions)).
+3. **Boss pre-armor damage** [?]: 2,200–3,200 every 2.0 s is Golemagg's melee in one Classic Era
+   log ([§5](#how-the-default-boss-melee-was-measured-)). Tank rage depends on it under every rage
+   model: directly in rage.md's Forever default, and through health lost in the others
+   ([rage.md open questions](rage.md#open-questions)). Open:
+   - **Forever's own bosses:** their swing size and speed, from the first Forever raid logs
+     (2026-12-09): each landed swing's unmitigated amount, and the gaps between swings with no
+     parry by the tank before them. 100 or more swings a boss.
+   - **The extra swings:** the Golemagg log's near-double swings 15–35 ms after a swing, and its
+     faster late run, are left out as Golemagg's own. A Forever boss that shows them would need
+     them modelled.
+   - **Parry haste on the boss:** the sim hastens the boss's next swing when the tank parries
+     ([damage-and-timing §3.4](damage-and-timing.md#parry-haste), [C]); the 2.0 s gaps above were
+     read where the timer was steady, so the log doesn't test it. Compare the gap after a tank's
+     parry with the steady 2.0 s in a Forever log.
 4. **Level-based magic resistance of a +3 boss** [?]: 24 vs ~15; see
    [combat-tables open questions](combat-tables.md#open-questions).
 5. **Onyxia's armor** [?]: assumed 3,731 (a common Classic value); not directly sourced.
@@ -341,6 +381,7 @@ convention [?]).
 | [fc-items] | foreverchanges.pro items, <https://foreverchanges.pro/items> | creature-type and zone-gated effects | [F] |
 | [bz-deepdive] | Blizzard, Deep Dive recap, <https://news.blizzard.com/en-us/article/24303313/world-of-warcraft-forever-deep-dive-panel-recap> | biome/creature effects, Consecration targets, racials | [F] official |
 | [bz-whatsnext] | Blizzard, What's Next recap, <https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap> | roadmap and raids | [F] official |
+| [wcl-golemagg] | Warcraft Logs, a Classic Era rank-100 normal-mode Golemagg the Incinerator kill (0:40), tank Mangox, shared by the user on 2026-09-26. **TODO: add the report link.** | the default boss melee: 24 landed swings' unmitigated amounts and the 2.0 s swing timer (§5) | [C] public log |
 | [cwgg-raids] | classicwow.gg, "World of Warcraft: Forever Raids", <https://classicwow.gg/forever/raids> | sizes, unlock date, no flex | [F] reported |
 | [wowsod] | wowsod.pro, "WoW Forever vs Classic: Every Key Change", <https://wowsod.pro/articles/wow-forever-vs-classic-every-key-change> | tanks hold 3–4 enemies; raid lineup | [F] reported |
 

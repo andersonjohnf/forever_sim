@@ -323,9 +323,10 @@ rage is unchanged by this analysis ([above](#forever-normalized-rage-per-swing-)
   ([D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23),
   [character-stats OQ-2](character-stats.md#oq-2-base-health)). Since `forever` divides by it,
   its rage per hit moves with that placeholder until base health is measured. The result says so.
-- **At level 60** this gives much less than Classic Era. A 5,000 boss hit before armor gives a
-  7,000-health tank `10 × 5000 / 7000` = 7.1 rage. Classic Era's model gives 19.8 for the same hit
-  after 10,000 armor (1,826 lost).
+- **At level 60** this gives much less than Classic Era. A 2,700 boss hit before armor (the
+  default's mean, [encounter §5](encounter.md#how-the-default-boss-melee-was-measured-)) gives a
+  7,000-health tank `10 × 2700 / 7000` = 3.9 rage. Classic Era's model gives 10.7 for the same hit
+  after 10,000 armor (986 lost).
 
 **Engine models** (`damageTakenRage` in `src/sim/core/formulas.ts`). A setup can pick any of them
 in its rules (`rules.damageTakenRage`), though the app has no control for it yet:
@@ -710,8 +711,8 @@ For a bear, replace `R_block` and `R_avoid` with Natural Reaction `P(dodge) × 5
 add Blood Frenzy `P(crit on your attacks) × 5 × 0.5 × rank` for each attack you make.
 
 **What this means.** A Forever prot warrior gets much of its rage from avoidance and blocks
-(5 per proc) and much less from damage taken: a 5,000 boss hit before armor gives a 7,000-health
-tank 7.1 rage, where Classic Era gives 19.8 after 10,000 armor. Block, dodge and parry now raise
+(5 per proc) and much less from damage taken: a 2,700 boss hit before armor (the default's mean)
+gives a 7,000-health tank 3.9 rage, where Classic Era gives 10.7 after 10,000 armor. Block, dodge and parry now raise
 rage income directly, and a block no longer costs the hit's rage. Stamina lowers rage per hit.
 For a Classic tank, rage income is dominated by damage taken.
 
@@ -876,7 +877,7 @@ Each of these becomes a unit test. Use level 60 and `c = 230.6` unless stated ot
 | R12b | Forever default: a hit of 8 before mitigation, blocked down to 1, maximum health 200 | 10 × 8 / 200 = **0.4**, the rage of all 8 (the unblocked 1 alone would give 0.05) |
 | R12c | Forever default: a hit of 50 before mitigation, fully absorbed, maximum health 1,000 | 10 × 50 / 1000 = **0.5**. The health-lost models give **0**. |
 | R12d | Any model: an attack you miss, dodge or parry | **0** |
-| R12e | Forever default at 60: a boss hit of 5,000 before armor (1,826.4 after 10,000 armor), maximum health 7,000; then its crit and crushing blow | **7.143**; crit (10,000) **14.286**; crushing (7,500) **10.714** |
+| R12e | Forever default at 60: a boss hit of 5,000 before armor (1,826.4 after 10,000 armor), maximum health 7,000; then its crit and crushing blow. The 5,000 is illustrative (the boss's default before 2026-09-26; today's default averages 2,700, [encounter §5](encounter.md#how-the-default-boss-melee-was-measured-)) | **7.143**; crit (10,000) **14.286**; crushing (7,500) **10.714** |
 | R13 | Heroic Strike queued with rage = 14 and cost = 15 at swing time | HS dequeued; white swing resolves and gives normal white rage |
 | R14 | Heroic Strike (cost 12) dodged | Rage after = rage before − 12 + 9.6 (net −2.4); no white rage |
 | R15 | Cleave (cost 20) parried | Net −20 (no refund) |

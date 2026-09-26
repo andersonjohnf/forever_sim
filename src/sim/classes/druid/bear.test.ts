@@ -399,10 +399,10 @@ describe('Balanced and Max TPS (druid.md §6.3 "Balanced", "Max TPS"; D26, D28)'
     // Max TPS, tuned on TPS alone, Mauls from less rage (T5): otherwise the same rows.
     const max = resolveRotationValues(BEAR_OPTIONS, MAX, TALENTS)
     expect(Object.keys(max).filter((id) => max[id] !== balanced[id])).toEqual([BEAR_IDS.priority, BEAR_IDS.maulMinRage])
-    expect([balanced[BEAR_IDS.maulMinRage], max[BEAR_IDS.maulMinRage]]).toEqual([20, 14])
+    expect([balanced[BEAR_IDS.maulMinRage], max[BEAR_IDS.maulMinRage]]).toEqual([20, 16])
   })
 
-  it('Max TPS drops the roar by default, keeps Faerie Fire and its filler, refreshes Lacerate as Defensive does, and Mauls from 14', () => {
+  it('Max TPS drops the roar by default, keeps Faerie Fire and its filler, refreshes Lacerate as Defensive does, and Mauls from 16', () => {
     const duties = resolveRotationValues(BEAR_OPTIONS, DEFENSIVE, TALENTS)
     const max = resolveRotationValues(BEAR_OPTIONS, MAX, TALENTS)
     expect([duties[BEAR_IDS.roarEnabled], max[BEAR_IDS.roarEnabled]]).toEqual([true, false])
@@ -410,13 +410,13 @@ describe('Balanced and Max TPS (druid.md §6.3 "Balanced", "Max TPS"; D26, D28)'
     for (const id of [BEAR_IDS.ffEnabled, BEAR_IDS.ffFiller]) expect([id, duties[id], max[id]]).toEqual([id, true, true])
     expect(LACERATE_REFRESH_SEC).toBe(12)
     expect([duties[BEAR_IDS.lacerateRefresh], max[BEAR_IDS.lacerateRefresh]]).toEqual([12, 12])
-    // Maul from 14 on TPS alone (§6.3 "Max TPS", T5); nothing else moves: T3's first-pass search
+    // Maul from 16 on TPS alone (§6.3 "Max TPS", T5; 14 before the boss melee of 2026-09-26); nothing else moves: T3's first-pass search
     // found no other setting better (D27).
     const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
     expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled, BEAR_IDS.maulMinRage].sort())
     // Each setting's help says how it follows the choice.
     const help = (id: string) => BEAR_OPTIONS.find((o) => o.id === id)!.help
-    expect(help(BEAR_IDS.maulMinRage)).toContain('With Max TPS it’s 14 by default')
+    expect(help(BEAR_IDS.maulMinRage)).toContain('With Max TPS it’s 16 by default')
     expect(help(BEAR_IDS.roarEnabled)).toContain('On with Defensive; off by default with Balanced and Max TPS.')
     expect(help(BEAR_IDS.ffEnabled)).toContain('Every preset keeps it')
   })
@@ -577,7 +577,7 @@ describe('the default bear’s plan', () => {
     // Its duties are its own, in no preset, and its preset has no warrior tank's Demoralizing Shout
     // (D26's amendment, BU3).
     for (const id of ['demoralizingRoar', 'faerieFire', 'demoralizingShout']) expect(defaultConfig('druid-feral-bear').buffs.enabled).not.toContain(id)
-    expect(plan.fight.bossSwing!.minDamage).toBe(4500)
+    expect(plan.fight.bossSwing!.minDamage).toBe(2200)
   })
 
   it('its assumptions follow the setup: what it uses, the raid and the profile’s numbers (BL4, BU12)', () => {
@@ -624,7 +624,7 @@ describe('the default bear’s plan', () => {
     const shout = buildPlan({ ...d, buffs }).plan
     expect(shout.abilities.map((a) => a.id)).not.toContain('demoralizingRoar')
     expect(shout.auras.map((a) => a.id)).not.toContain('demoralizingRoar')
-    expect(shout.fight.bossSwing!.minDamage).toBeCloseTo(4500 - (204 / 14) * 2, 9)
+    expect(shout.fight.bossSwing!.minDamage).toBeCloseTo(2200 - (204 / 14) * 2, 9)
     // The Rotation tab says why.
     const unused = (config: SimConfig) => unusedRotationSettings(config)[BEAR_IDS.roarEnabled]
     expect(unused(d)).toBeUndefined()

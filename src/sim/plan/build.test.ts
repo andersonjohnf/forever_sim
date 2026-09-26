@@ -295,15 +295,15 @@ describe('encounter worked examples on the plan', () => {
   const tank = (enabled: string[], profile: 'forever' | 'classicEra' = 'forever') => {
     const d = defaultConfig('warrior-protection')
     const config = withRules(
-      { ...bare('warrior-protection'), buffs: { raid: d.buffs.raid, enabled }, fight: { ...d.fight, boss: { ...d.fight.boss, damageMin: 5000, damageMax: 5000 } } },
+      { ...bare('warrior-protection'), buffs: { raid: d.buffs.raid, enabled }, fight: { ...d.fight, boss: { ...d.fight.boss, damageMin: 2700, damageMax: 2700 } } },
       profile,
     )
     return buildPlan(config).plan.fight.bossSwing!
   }
   it('WE-4: Demoralizing Shout takes 29.14 (Classic 20.86) off each 2.0 s swing', () => {
-    // −204 × 2.0 / 14 and −146 × 2.0 / 14, the level-60 values (encounter.md WE-4).
-    expect(tank(['demoralizingShout']).minDamage).toBeCloseTo(4970.857, 3)
-    expect(tank(['demoralizingShout'], 'classicEra').maxDamage).toBeCloseTo(4979.143, 3)
+    // −204 × 2.0 / 14 and −146 × 2.0 / 14, the level-60 values, off the default's mean 2,700 (encounter.md WE-4).
+    expect(tank(['demoralizingShout']).minDamage).toBeCloseTo(2670.857, 3)
+    expect(tank(['demoralizingShout'], 'classicEra').maxDamage).toBeCloseTo(2679.143, 3)
   })
   it('WE-5: Thunder Clap slows the boss to 2.4 s (Classic 2.2 s)', () => {
     expect(tank(['thunderClap']).speedSec).toBeCloseTo(2.4, 9)
@@ -314,7 +314,7 @@ describe('encounter worked examples on the plan', () => {
     const d = { ...defaultConfig('warrior-protection'), rotation: { 'warrior.protection.priority': 'duties' } }
     const plan = buildPlan(d).plan
     // The boss starts unslowed and at full attack power; the rotation's debuffs are auras.
-    expect(plan.fight.bossSwing).toMatchObject({ speedSec: 2, unslowedSec: 2, slow: 0, minDamage: 4500, maxDamage: 5500 })
+    expect(plan.fight.bossSwing).toMatchObject({ speedSec: 2, unslowedSec: 2, slow: 0, minDamage: 2200, maxDamage: 3200 })
     expect(plan.fight.targetArmor).toBe(3731 - 505 - 505) // Faerie Fire and Curse of Recklessness only
     const debuffs = Object.fromEntries(plan.auras.filter((a) => ['sunderArmor', 'thunderClap', 'demoralizingShout'].includes(a.id)).map((a) => [a.id, a]))
     expect(debuffs.sunderArmor).toMatchObject({ targetArmor: 450, maxStacks: 5 })

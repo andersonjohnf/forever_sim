@@ -107,8 +107,12 @@ const PROT_MAX_RAGE = 100
 export const PROTECTION_PRIORITY = { defensive: 'duties', balanced: 'balanced', maxTps: 'maxTps' } as const
 const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
 const BALANCED = { option: ID.priority, is: PROTECTION_PRIORITY.balanced } as const
-/** Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 45, where Defensive's is 76. */
-const MAX_TPS_HS_MIN_RAGE = 45
+/**
+ * Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 85, where Defensive's is 76, re-searched on TPS
+ * for the boss melee of 2026-09-26 (Golemagg's, encounter.md §5): its smaller hits give less rage,
+ * and 45 made less threat than Balanced.
+ */
+const MAX_TPS_HS_MIN_RAGE = 85
 /**
  * Balanced's Sunder Armor filler threshold, a share of the rage bar in % (§5.4 "Balanced"; user
  * decision, D28: the filler only above 60% rage). It resolves against the build's max rage
@@ -156,16 +160,18 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why
  * What the presets' help and short lines say, measured in the default setup (warrior.md §5.4 "Build
  * 1.60.1.70009"; seed 31101, 100,000 paired fights, re-measured 2026-09-25 with W4's talents, D36,
  * and 2026-09-26 with a raid druid's Thorns at 22 + 0.08 × its pre-raid gear's 313 spell damage, buffs
- * doc §1.2, and with Shield Slam's +254 and Sunder Armor's flat 206, threat.md#warrior): Defensive's
+ * doc §1.2, and with Shield Slam's +254 and Sunder Armor's flat 206, threat.md#warrior; and again for
+ * the boss melee of Golemagg's Classic Era log, 2,200–3,200 every 2.0 s, encounter.md §5, with Max TPS's
+ * Heroic Strike from 85, §5.4 "Max TPS"): Defensive's
  * TPS, DPS and damage taken a second, Balanced and Max TPS against it in percent, and Max TPS against
  * Balanced, since the two share their rows. protection-presets.test.ts measures them again, so a
  * change that moves them fails until they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 860.6, dps: 388.64, damageTaken: 616.34 },
-  balanced: { tpsPct: 6.25, dpsPct: 5.9, damageTakenPct: 20.99 },
-  maxTps: { tpsPct: 6.71, dpsPct: 5.64, damageTakenPct: 21.1 },
-  maxTpsOverBalanced: { tpsPct: 0.428, dpsPct: -0.242, damageTakenPct: 0.094 },
+  defensive: { tps: 810.63, dps: 367.53, damageTaken: 322.44 },
+  balanced: { tpsPct: 6.79, dpsPct: 7.41, damageTakenPct: 21.49 },
+  maxTps: { tpsPct: 8.14, dpsPct: 7.52, damageTakenPct: 21.86 },
+  maxTpsOverBalanced: { tpsPct: 1.27, dpsPct: 0.099, damageTakenPct: 0.3 },
 } as const
 
 /** A preset measured against another: its TPS, DPS and damage taken a second, in percent. */
@@ -381,7 +387,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     o.id === ID.hsMinRage && o.kind === 'number'
       ? {
           ...o,
-          help: `Queue it at or above this much rage. With Balanced it’s ${BALANCED_HS_PCT}% of your max rage by default (${BALANCED_HS_PCT} of 100), and with Max TPS ${MAX_TPS_HS_MIN_RAGE}: with fewer abilities to pay for, there’s more rage to spend.`,
+          help: `Queue it at or above this much rage. With Balanced it’s ${BALANCED_HS_PCT}% of your max rage by default (${BALANCED_HS_PCT} of 100), and with Max TPS ${MAX_TPS_HS_MIN_RAGE}, the most threat in the default setup: rage kept for Sunder Armor makes more than Heroic Strike does.`,
           defaultWhen: [
             { ...BALANCED, default: BALANCED_HS_PCT, pctOfMaxRage: true },
             { ...MAX_TPS, default: MAX_TPS_HS_MIN_RAGE },

@@ -1944,7 +1944,7 @@ a value you set yourself still wins.
 | `demoShout.enabled` | on | off | off |
 | `sunder.refreshBelowSec` | 3 | 1.5 (the duty rule) | 3 |
 | `sunderFiller.minRage` | 9 (its cost) | 60% of max rage: 60 | 9 |
-| `heroicStrike.minRage` | 76 | 84% of max rage: 84 | 45 |
+| `heroicStrike.minRage` | 76 | 84% of max rage: 84 | 85 (45 before the boss melee of 2026-09-26) |
 
 **The duty rule.** The duties' timing follows one fixed rule, and the search never tunes it
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)'s amendment):
@@ -1976,7 +1976,7 @@ taken
 | 9 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends. It replaces the Buffs tab's Battle Shout | `warrior.protection.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
 | 10 | Sunder Armor | Fewer than 5 stacks on the boss, or at most `refreshBelowSec` left and they'd run out before the fight ends. It replaces the Buffs tab's Sunder Armor ×5 | `warrior.protection.sunder.enabled` (on), `.refreshBelowSec` (3; 1.5 with Balanced, the duty rule) | yes |
 | 11 | Sunder Armor (filler) | Rage ≥ `minRage`; with `waitForShieldSlam`, Shield Slam GCD-safe (without Shield Slam the setting changes nothing, and the Rotation tab dims it). It fills every GCD the rows above leave | `warrior.protection.sunderFiller.enabled` (on), `.minRage` (9: its cost; with Balanced 60% of the max rage, 60 at the default build's 100), `.waitForShieldSlam` (off) | yes |
-| 12 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`, or in the fight's last `anyRageLastSec` s whenever it can pay: rage left at the end is wasted; optional unqueue | `warrior.protection.heroicStrike.enabled` (on), `.minRage` (76; with Balanced 84% of the max rage, 84 at 100; 45 with Max TPS), `.anyRageLastSec` (12), `.unqueue` (off), `.unqueueBelow` (20) | yes |
+| 12 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`, or in the fight's last `anyRageLastSec` s whenever it can pay: rage left at the end is wasted; optional unqueue | `warrior.protection.heroicStrike.enabled` (on), `.minRage` (76; with Balanced 84% of the max rage, 84 at 100; 85 with Max TPS), `.anyRageLastSec` (12), `.unqueue` (off), `.unqueueBelow` (20) | yes |
 | 13 | Execute | Execute phase only: a dance to Battle Stance and back, which loses Defensive Stance's threat. The swap keeps at most 10 rage, +3 per Improved Tactical Mastery rank, and that must pay Execute's cost (12), so the default build can never use it | `warrior.protection.execute.enabled` (off) | no |
 
 Notes:
@@ -2223,6 +2223,19 @@ fight ends, which is what a high threshold cost in short fights.
 
 #### Max TPS (P2)
 
+**On the boss melee of 2026-09-26** (Golemagg's in a Classic Era log, 2,200–3,200 before armor
+every 2.0 s, for the 4,500–5,500 stand-in; [encounter §5](../mechanics/encounter.md#how-the-default-boss-melee-was-measured-)),
+the smaller hits give much less rage, and Heroic Strike from 45 made less threat than Balanced
+(−0.39% TPS, −1.87% DPS; seed 31101, 100,000 paired fights). Its threshold, searched again on TPS
+alone (seed 7474, 40,000 paired fights a candidate, 35 to 100 in steps of 5): **85** is best, +13.94
+TPS (+1.62%, 95% CI +13.43 to +14.45) over 45, with 80 to 95 within 0.8 of it; below 50 loses. With
+the Sunder Armor filler from 19 rather than its cost, 85 gains another +0.09%, within D27's
+resolution, so the filler stays at its cost, Max TPS's own. So Max TPS queues Heroic Strike from 85:
+with the boss's hits giving little rage, rage kept for Sunder Armor makes more threat than Heroic
+Strike does. Against Balanced that's **+1.27% TPS**, +0.10% DPS and the same damage taken (+0.3%);
+the presets' numbers are in [Build 1.60.1.70009](#build-160170009-protection) below. Everything else
+in this section is on the 5,000 boss.
+
 The **Max TPS** priority is the best rotation found on 2026-09-23 on TPS alone, per
 [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)
 (and its amendment) and [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23),
@@ -2427,19 +2440,23 @@ before Thorns scaled with spell power Defensive 926.27, 363.06 DPS; Balanced 993
 Defensive 925.39, 386.07 DPS; Balanced 984.94 (+6.44%); Max TPS 989.32 (+6.91%); and at that
 base 22 (until a raid druid's Thorns took its pre-raid gear's 313 spell damage, 47 a swing, later on
 2026-09-26) Defensive 918.43, 381.50 DPS; Balanced 976.69 (+6.34%); Max TPS 981.07 (+6.82%).
-`PROTECTION_PRESET_MEASURES` holds these for the Rotation tab's help, and
-`protection-presets.test.ts` measures them again:
+On Golemagg's boss melee (2026-09-26, [encounter §5](../mechanics/encounter.md#how-the-default-boss-melee-was-measured-)),
+with Max TPS's Heroic Strike from 85 ([Max TPS](#max-tps-p2)), on the same seed and fights; before it
+they were Defensive 860.60 TPS, 388.64 DPS, 616.34 taken; Balanced 914.41 (+6.25%), 411.57 DPS,
+745.71 taken; Max TPS 918.32 (+6.71%), 410.57 DPS, 746.42 taken. `PROTECTION_PRESET_MEASURES` holds
+these for the Rotation tab's help, and `protection-presets.test.ts` measures them again:
 
 | Preset | TPS | DPS | Damage taken a second |
 | --- | --- | --- | --- |
-| Defensive | 860.60 | 388.64 | 616.34 |
-| Balanced (the default) | 914.41, **+6.25%** (+53.45 to +54.17) | 411.57, +5.90% | 745.71, +21.0% |
-| Max TPS | 918.32, **+6.71%** (+57.37 to +58.09) | 410.57, +5.64% | 746.42, +21.1% |
+| Defensive | 810.63 | 367.53 | 322.44 |
+| Balanced (the default) | 865.62, **+6.79%** | 394.78, +7.41% | 391.74, +21.5% |
+| Max TPS | 876.62, **+8.14%** | 395.17, +7.52% | 392.93, +21.9% |
 
 **Max TPS against Balanced.** With Shield Block back, the two keep the same rows and differ only
 in thresholds: Max TPS uses the Sunder Armor filler from its cost (12 with the default build, 9
 with Improved Sunder Armor 3/3) rather than 60% of the max rage, and Heroic Strike from 45 rage
-rather than 84% of the max rage. On the same fights that's **+3.92 TPS (+0.43%, +3.62 to +4.21)**
+rather than 84% of the max rage (from 85 since the boss melee of 2026-09-26: **+1.27% TPS**, +0.10%
+DPS and the same damage taken, +0.3%). On the 5,000 boss, from 45, that was **+3.92 TPS (+0.43%, +3.62 to +4.21)**
 (+4.39, +0.44%, with +475 and 0.05 × AP),
 −1.00 DPS (−0.24%, −1.17 to −0.82) and +0.70 damage taken a second (+0.09%, +0.61 to +0.80): the
 same damage taken. On 8/5/38 it was +9.11 TPS (+0.96%) and +1.63 DPS (+0.44%) (before the

@@ -58,6 +58,6 @@ describe('the Protection presets’ help numbers (PR-5)', () => {
     const option = PROTECTION_OPTIONS.find((o) => o.id === ID.hammerOfTheRighteous)!
     expect(option.help).toContain('about 3.7% less DPS and 5.2% less TPS in the default setup')
     const seal = PROTECTION_OPTIONS.find((o) => o.id === ID.seal)!
-    expect(seal.help).toContain('about 7.6% less TPS in the default setup, for 2.1% more damage taken')
+    expect(seal.help).toContain('about 7.6% less TPS in the default setup, for 4.0% more damage taken')
   })
 })

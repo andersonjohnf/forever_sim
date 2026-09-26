@@ -1715,8 +1715,9 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 #### C5. Raid-boss melee and incoming damage
 **High · M3**
-- **Assumes:** 2.0 s boss swings for 4,500–5,500 pre-armor damage [?]; DPS players take no
-  damage (so no Enrage or damage rage for DPS) [?].
+- **Assumes:** 2.0 s boss swings for 2,200–3,200 pre-armor damage [?], Golemagg's melee in a
+  Classic Era log ([encounter §5](mechanics/encounter.md#how-the-default-boss-melee-was-measured-));
+  DPS players take no damage (so no Enrage or damage rage for DPS) [?].
 - **Test:** raid logs: boss swing interval and damage on tanks (before and after mitigation);
   damage events per minute on DPS warriors.
 - **Samples:** ≥100 boss swings per boss.

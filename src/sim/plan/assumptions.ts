@@ -287,8 +287,8 @@ const REGISTRY = {
     docRef: `${THREAT}#open-questions`,
   },
   bossMelee: {
-    text: 'Boss melee (swing speed, damage and table) is a stand-in: Forever raid bosses haven’t been logged yet.',
-    docRef: `${ENC}#5-boss-melee-tank-modeling`,
+    text: 'The boss’s melee by default is Golemagg’s in a Classic Era log: about 2,200–3,200 a hit every 2 s before armor. Forever’s bosses aren’t known yet.',
+    docRef: `${ENC}#how-the-default-boss-melee-was-measured-`,
   },
   bossFlags: {
     text: 'From the front the boss can dodge, parry and block like a Classic Era raid boss; a boss’s block removes nothing.',

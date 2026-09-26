@@ -665,10 +665,11 @@ export function defaultConfig(spec: SpecId, race = DEFAULT_RACE[SPEC_META[spec].
       creatureType: 'none',
       zone: 'hyjal',
       damageTakenPerSec: 0,
+      // encounter.md#how-the-default-boss-melee-was-measured-: Golemagg's melee in a Classic Era log [?].
       boss: {
         swingSpeedSec: 2,
-        damageMin: 4500,
-        damageMax: 5500,
+        damageMin: 2200,
+        damageMax: 3200,
         canDodge: true,
         canParry: true,
         canBlock: true,

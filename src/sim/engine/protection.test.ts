@@ -582,7 +582,7 @@ describe('Max TPS in the engine (warrior.md §5.4 "Max TPS", D26)', () => {
     const duties = buildPlan(config(DEFENSIVE)).plan
     const max = buildPlan(config(MAX)).plan
     // Nobody else's in the Standard raid preset: the boss starts unslowed, at full attack power.
-    for (const plan of [duties, max]) expect([plan.fight.bossSwing!.slow, plan.fight.bossSwing!.minDamage]).toEqual([0, 4500])
+    for (const plan of [duties, max]) expect([plan.fight.bossSwing!.slow, plan.fight.bossSwing!.minDamage]).toEqual([0, 2200])
     // Turned on in Buffs, another warrior's count with Max TPS: its Thunder Clap slows the boss 20%,
     // and its Demoralizing Shout takes 204 × 2.0 / 14 off each swing, from the pull (WE-4, WE-5).
     // Under Defensive your own replace them, so they change nothing.
@@ -591,8 +591,8 @@ describe('Max TPS in the engine (warrior.md §5.4 "Max TPS", D26)', () => {
       return buildPlan({ ...c, buffs: { ...c.buffs, enabled: [...c.buffs.enabled, 'thunderClap', 'demoralizingShout'] } }).plan
     }
     expect(others(MAX).fight.bossSwing!.slow).toBeCloseTo(0.2, 12)
-    expect(others(MAX).fight.bossSwing!.minDamage).toBeCloseTo(4500 - (204 * 2) / 14, 9)
-    expect([others(DEFENSIVE).fight.bossSwing!.slow, others(DEFENSIVE).fight.bossSwing!.minDamage]).toEqual([0, 4500])
+    expect(others(MAX).fight.bossSwing!.minDamage).toBeCloseTo(2200 - (204 * 2) / 14, 9)
+    expect([others(DEFENSIVE).fight.bossSwing!.slow, others(DEFENSIVE).fight.bossSwing!.minDamage]).toEqual([0, 2200])
     // Its rows: no Thunder Clap or Demoralizing Shout; Shield Block and Shield Slam stay (D26: each
     // makes more threat than it costs).
     const used = new Set(max.rotation.map((e) => max.abilities[e.ability].id))
@@ -603,8 +603,9 @@ describe('Max TPS in the engine (warrior.md §5.4 "Max TPS", D26)', () => {
   it('makes more threat and more damage than Defensive, on the same fights', () => {
     const duties = runFights(buildPlan(config(DEFENSIVE)).plan, 2000)
     const max = runFights(buildPlan(config(MAX)).plan, 2000)
-    // §5.4 "Max TPS": about +8.3% TPS and +6.9% DPS in the default setup, with nobody's Thunder Clap or
-    // Demoralizing Shout on the boss: the faster, harder boss gives more rage, and Shield Slam stays.
+    // §5.4 "Max TPS": about +8.1% TPS and +7.5% DPS in the default setup (Heroic Strike from 85 since the
+    // boss melee of 2026-09-26), with nobody's Thunder Clap or Demoralizing Shout on the boss: the faster,
+    // harder boss gives more rage, and Shield Slam stays.
     expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.065)
     expect(max.tps.mean / duties.tps.mean).toBeLessThan(1.1)
     expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.05)
@@ -639,7 +640,7 @@ describe('Balanced in the engine (warrior.md §5.4 "Balanced", D28)', () => {
     expect(casts('sunderArmor') / 2000).toBeLessThan(dSunders / 2)
     expect(casts('sunderArmor') / 2000).toBeGreaterThan(5)
     // The boss unslowed and at full attack power: nobody's Thunder Clap or Demoralizing Shout.
-    expect([bundle.plan.fight.bossSwing!.slow, bundle.plan.fight.bossSwing!.minDamage]).toEqual([0, 4500])
+    expect([bundle.plan.fight.bossSwing!.slow, bundle.plan.fight.bossSwing!.minDamage]).toEqual([0, 2200])
   })
 
   it('makes more threat and more damage than Defensive, and takes more (§5.4 "Balanced")', () => {

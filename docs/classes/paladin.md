@@ -1222,6 +1222,13 @@ one makes it "Custom" (D31). A setup that kept the old default gets Balanced.
     - **Re-measured with both** (the beta-log check and a raid druid's Thorns at 47.04, 2026-09-26;
       seed 31101, 100,000 fights): **701.20 TPS, 437.41 DPS and 900.4 damage taken a second** for Balanced and Defensive; Max TPS against it +7.25% TPS, +7.12% DPS and +5.83% damage taken;
       Hammer of the Righteous turned on −5.2% TPS, −3.69% DPS and +5.01% damage taken; Seal of Righteousness in Seal of Fury's place −7.59% TPS, −5.41% DPS and +2.13% damage taken.
+    - **Re-measured for the boss melee of 2026-09-26** (Golemagg's in a Classic Era log, 2,200–3,200
+      before armor every 2.0 s, for the 4,500–5,500 stand-in; [encounter §5](../mechanics/encounter.md#how-the-default-boss-melee-was-measured-);
+      seed 31101, 100,000 fights): only damage taken moves, since a paladin's threat and mana don't
+      come from the size of the hits it takes. **701.20 TPS, 437.41 DPS and 471.7 damage taken a
+      second** for Balanced and Defensive; Max TPS against it +7.25% TPS, +7.12% DPS and +6.01% damage
+      taken; Hammer of the Righteous turned on −5.16% TPS, −3.69% DPS and +5.16% damage taken; Seal of
+      Righteousness in Seal of Fury's place −7.59% TPS, −5.41% DPS and +4.03% damage taken.
       The presets' help quotes these (`PROTECTION_PRESET_MEASURES`, which
       `protection-presets.test.ts` measures again), each change with its direction.
 

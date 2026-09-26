@@ -686,20 +686,18 @@ describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TP
     const duties = run(config(DEFENSIVE))
     const balanced = run(config({}))
     const max = run(config(MAX))
-    // §6.3 "Max TPS": Balanced +2.8% TPS, +2.6% DPS and +0.7% damage taken in the default setup (200,000 fights; bear.ts BEAR_PRESET_MEASURES).
+    // §6.3 "Max TPS": Balanced +3.3% TPS, +3.1% DPS and +1.3% damage taken in the default setup (200,000 fights; bear.ts BEAR_PRESET_MEASURES).
     expect(balanced.tps!.mean / duties.tps!.mean).toBeGreaterThan(1.02)
     expect(balanced.tps!.mean / duties.tps!.mean).toBeLessThan(1.06)
     expect(balanced.dps.mean / duties.dps.mean).toBeGreaterThan(1.01)
     expect(balanced.dps.mean / duties.dps.mean).toBeLessThan(1.05)
     expect(balanced.tank!.dtps.mean / duties.tank!.dtps.mean).toBeGreaterThan(1)
     expect(balanced.abilities.find((a) => a.id === 'demoralizingRoar')).toBeUndefined()
-    // Max TPS drops the roar as Balanced does, and Mauls from 14 rather than 20, tuned on TPS alone
-    // (§6.3 "Max TPS", T5): about 0.2% more TPS for 0.2% less DPS (0.16% less with Shadowcraft Cap on
-    // the head, BEAR_PRESET_MEASURES). On 6,000 fights: 2,000 put the DPS gap within the noise once the
-    // default head changed (2026-09-26; 0.25% less over 50,000 fights, before the bear slice's values).
-    expect(max.tps!.mean / balanced.tps!.mean).toBeGreaterThan(1)
-    expect(max.tps!.mean / balanced.tps!.mean).toBeLessThan(1.006)
-    expect(max.dps.mean / balanced.dps.mean).toBeLessThan(1)
-    expect(max.dps.mean / balanced.dps.mean).toBeGreaterThan(0.994)
+    // Max TPS drops the roar as Balanced does, and Mauls from 16 rather than 20, tuned on TPS alone
+    // (§6.3 "Max TPS", T5). Since the boss melee of 2026-09-26 that's the same TPS as Balanced (+0.004%)
+    // for 0.5% less DPS (BEAR_PRESET_MEASURES; 14 made 0.2% more TPS for 0.2% less DPS on the 5,000 boss).
+    expect(Math.abs(max.tps!.mean / balanced.tps!.mean - 1)).toBeLessThan(0.003)
+    expect(max.dps.mean / balanced.dps.mean).toBeLessThan(0.999)
+    expect(max.dps.mean / balanced.dps.mean).toBeGreaterThan(0.99)
   }, 60_000)
 })

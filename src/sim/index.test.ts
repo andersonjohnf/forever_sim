@@ -293,7 +293,7 @@ describe('rotationValues', () => {
       'warrior.protection.thunderClap.enabled': false,
       'warrior.protection.demoShout.enabled': false,
       'warrior.protection.shieldSlam.enabled': true,
-      'warrior.protection.heroicStrike.minRage': 45,
+      'warrior.protection.heroicStrike.minRage': 85,
     })
     // The bear's too: Max TPS drops the roar, keeps Faerie Fire and Lacerate's refresh (druid.md §6.3).
     expect(rotationValues({ ...defaultConfig('druid-feral-bear'), rotation: { 'druid.bear.priority': 'maxTps' } })).toMatchObject({

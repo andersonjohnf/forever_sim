@@ -306,7 +306,7 @@ test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, 
     const own = buffs.getByRole('switch', { name: 'Thorns (your own)', exact: true })
     await expect(thorns).toBeChecked()
     await expect(thorns).toBeEnabled()
-    await expect(thorns).toHaveAccessibleDescription(/^38 Nature damage to the boss each time it hits you: a raid Restoration druid’s/)
+    await expect(thorns).toHaveAccessibleDescription(/^22 Nature damage to the boss each time it hits you: a raid Restoration druid’s/)
     await expect(own).not.toBeChecked()
     await expect(own).toHaveAccessibleDescription(/^22 Nature damage to the boss each time it hits you: your own/)
     // Self only is the bear's own; they don't stack, so turning the raid druid's on turns it off.

@@ -11,7 +11,7 @@ import { BUFFS_BY_ID, type BuffSpec, TEMP_ENCHANT } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { catalogueEffects } from '../effects/types'
 import { buffProvided, buffUnusedReason, forSpecClass, presetBuffIds } from '../effects/presets'
-import { fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
+import { fitsSlot, isTwoHand, questOnlyBar, uniqueConflicts } from '../equip'
 import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_IDS, SPEC_META } from '../specs'
 import { normalizeAplOrder, storedAplOrder } from '../classes/apl'
@@ -132,6 +132,54 @@ export interface NormalizedConfig {
   config: SimConfig
   warnings: string[]
   talentChange?: TalentChange
+  /**
+   * The items removed because they're another class's quest reward, which `warnings` also says
+   * (questRemovalNotice): the automatic save says this one too, since the player must pick a
+   * replacement (docs/ux.md#persistence-and-sharing).
+   */
+  questRemovals?: QuestRemoval[]
+}
+
+/**
+ * An item a loaded setup held that is another class's quest reward, which the class could wear by
+ * the client alone (docs/data/items.md#class-quest-rewards). An item the class couldn't wear there
+ * anyway isn't one: it gets the generic message.
+ */
+export interface QuestRemoval {
+  slot: GearSlot
+  /** The one class whose quest gives the item. */
+  classId: ClassId
+  name: string
+}
+
+const joinNames = (names: readonly string[]) =>
+  names.length <= 1 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+
+/**
+ * What a load's class-quest removals say (docs/data/items.md#class-quest-rewards): one sentence per
+ * group and quest class, the names in paper-doll order, then what to do, once. `whose` names the
+ * spec whose setup lost them, for the visit's notice ("from your Feral (Bear) Druid setup"):
+ * "Darkmantle Cap and Darkmantle Boots are quest rewards only rogues receive, so they were removed.
+ * Choose others in Gear." Each class takes its own version of the quests and receives its own piece.
+ */
+export function questRemovalNotice(groups: readonly { removals: readonly QuestRemoval[]; whose?: string }[]): string {
+  const sentences: string[] = []
+  let count = 0
+  for (const { removals, whose } of groups) {
+    const ordered = [...removals].sort((a, b) => GEAR_SLOTS.indexOf(a.slot) - GEAR_SLOTS.indexOf(b.slot))
+    const from = whose ? ` from your ${whose} setup` : ''
+    for (const classId of new Set(ordered.map((q) => q.classId))) {
+      const names = ordered.filter((q) => q.classId === classId).map((q) => q.name)
+      count += names.length
+      sentences.push(
+        names.length === 1
+          ? `${names[0]} is a quest reward only ${classId}s receive, so it was removed${from}.`
+          : `${joinNames(names)} are quest rewards only ${classId}s receive, so they were removed${from}.`,
+      )
+    }
+  }
+  if (count === 0) return ''
+  return [...sentences, count === 1 ? 'Choose another in Gear.' : 'Choose others in Gear.'].join(' ')
 }
 
 export function normalizeConfig(input: unknown): NormalizedConfig {
@@ -220,7 +268,8 @@ function normalize(input: unknown): NormalizedConfig {
     if (oneOf(rulesIn.hotrWeaponDps, ['withAttackPower', 'weaponOnly'] as const, 'withAttackPower', 'The Hammer of the Righteous rule', r) === 'weaponOnly') rules.hotrWeaponDps = 'weaponOnly'
   }
 
-  const gear = normalizeGear(input.gear, spec, race, meta.classId, r)
+  const questRemovals: QuestRemoval[] = []
+  const gear = normalizeGear(input.gear, spec, race, meta.classId, r, questRemovals)
   const buffs = normalizeBuffs(input.buffs, spec, PROFILES[rules.profile], isObj(input.run) && input.run.mode === undefined, r)
   const rotation = normalizeRotation(input.rotation, spec, r)
   const rotationOrder = normalizeRotationOrder(input.rotationOrder, spec, r)
@@ -249,10 +298,11 @@ function normalize(input: unknown): NormalizedConfig {
     config: { version: CONFIG_VERSION, spec, race, talents, gear, buffs, rotation, ...(rotationOrder ? { rotationOrder } : {}), fight, rules, run },
     warnings: r.warnings,
     ...(talentChange ? { talentChange } : {}),
+    ...(questRemovals.length > 0 ? { questRemovals } : {}),
   }
 }
 
-function normalizeGear(input: unknown, spec: SpecId, race: string, classId: ClassId, r: Repairs): SimConfig['gear'] {
+function normalizeGear(input: unknown, spec: SpecId, race: string, classId: ClassId, r: Repairs, questRemovals: QuestRemoval[]): SimConfig['gear'] {
   if (input === undefined) return defaultGear(spec, race)
   if (!isObj(input)) {
     r.add('The gear couldn’t be read, so the default gear was equipped.')
@@ -276,7 +326,11 @@ function normalizeGear(input: unknown, spec: SpecId, race: string, classId: Clas
       continue
     }
     if (!fitsSlot(classId, s, item)) {
-      r.add(`${item.name} can’t go in that slot for this class, so it was removed.`)
+      // Another class's quest reward, which the class could otherwise wear there, says whose it is,
+      // with the others in one notice below (docs/data/items.md#class-quest-rewards).
+      const quest = questOnlyBar(classId, s, item)
+      if (quest !== null) questRemovals.push({ slot: s, classId: quest, name: item.name })
+      else r.add(`${item.name} can’t go in that slot for this class, so it was removed.`)
       continue
     }
     gear[s] = { itemId: item.id }
@@ -292,6 +346,7 @@ function normalizeGear(input: unknown, spec: SpecId, race: string, classId: Clas
       else r.add(`An enchant on ${item.name} doesn’t fit it, so it was removed.`)
     }
   }
+  if (questRemovals.length > 0) r.add(questRemovalNotice([{ removals: questRemovals }]))
   const mainHand = gear.mainHand && items.get(gear.mainHand.itemId)
   if (mainHand && isTwoHand(mainHand) && gear.offHand) {
     delete gear.offHand

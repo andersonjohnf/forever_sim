@@ -57,8 +57,8 @@ describe('the Feral bear presets’ help numbers (CU-1)', () => {
     const presets = Object.fromEntries(aplPresets(BEAR_APL).map((p) => [p.id, p]))
     expect(presets.default.summary).toBe('Faerie Fire kept, Demoralizing Roar dropped: +2.8% TPS, +2.6% DPS and 0.7% more damage taken than Defensive.')
     expect(presets.default.help).toContain('2.8% more TPS and 2.6% more DPS than Defensive in the default setup, for 0.7% more damage taken.')
-    expect(presets.maxTps.summary).toBe('Balanced, but Mauls from 14 rage: +0.2% TPS, −0.1% DPS, the same damage taken (0.7% more than Defensive).')
-    expect(presets.maxTps.help).toContain('Against Balanced in the default setup that’s 0.2% more TPS for 0.1% less DPS, and the same damage taken; against Defensive, 2.9% more TPS, 2.4% more DPS and 0.7% more damage taken.')
+    expect(presets.maxTps.summary).toBe('Balanced, but Mauls from 14 rage: +0.2% TPS, −0.2% DPS, the same damage taken (0.7% more than Defensive).')
+    expect(presets.maxTps.help).toContain('Against Balanced in the default setup that’s 0.2% more TPS for 0.2% less DPS, and the same damage taken; against Defensive, 2.9% more TPS, 2.4% more DPS and 0.7% more damage taken.')
     // Defensive's help rounds to whole percents against Balanced: −2.7% TPS and −2.6% DPS.
     expect(presets.defensive.help).toContain('0.7% less damage taken than Balanced, for 3% less TPS and 3% less DPS in the default setup')
   })

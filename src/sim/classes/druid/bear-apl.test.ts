@@ -61,7 +61,9 @@ describe('the Feral bear’s priority list (D31)', () => {
     // (2026-09-26, CL-4): Lacerate's bonus a flat 206 (its 0.05 × AP term dropped, druid.md §4.3), the
     // bear form's weapon two-handed for normalized rage (rage.md "Bear white hits"), and a raid
     // druid's Thorns at 22 + 0.08 × 313 = 47.04 (was 38; buffs doc §1.2); with those three set back,
-    // main's snapshot reproduces exactly.
+    // main's snapshot reproduces exactly. Re-taken for the default head, Shadowcraft Cap for Darkmantle
+    // Cap, a rogue's quest reward (druid.md §7.3a), on the bear slice's values: with Darkmantle Cap back,
+    // the snapshot before it reproduces exactly.
     const cases = bearCases(BEAR_OPTIONS, 200)
     const plans = cases.map((config) =>
       buildPlan({

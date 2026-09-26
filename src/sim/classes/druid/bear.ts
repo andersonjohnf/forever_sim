@@ -152,15 +152,16 @@ const MAX_TPS_MAUL_MIN_RAGE = 14
  * What the presets' help and short lines say, measured in the default setup (druid.md §6.3 "Max
  * TPS"; seed 28401, 200,000 paired fights with scripts/tune/rotation.mjs, re-measured 2026-09-26
  * with Primal Bite at one threat per damage, Lacerate's flat 206, 11.25 rage a bear swing and a raid
- * druid's Thorns at 47): Defensive's TPS, DPS and damage taken a second, Balanced and Max TPS against
- * it in percent, and Max TPS against Balanced. bear-presets.test.ts measures them again, so a change
+ * druid's Thorns at 47, and again for the default head's Shadowcraft Cap, druid.md §7.3a): Defensive's
+ * TPS, DPS and damage taken a second, Balanced and Max TPS against it in percent, and Max TPS against
+ * Balanced. bear-presets.test.ts measures them again, so a change
  * that moves them fails until they're re-measured here.
  */
 export const BEAR_PRESET_MEASURES = {
-  defensive: { tps: 1075.14, dps: 535.56, damageTaken: 629.09 },
-  balanced: { tpsPct: 2.77, dpsPct: 2.59, damageTakenPct: 0.72 },
-  maxTps: { tpsPct: 2.93, dpsPct: 2.44, damageTakenPct: 0.69 },
-  maxTpsOverBalanced: { tpsPct: 0.16, dpsPct: -0.14, damageTakenPct: -0.02 },
+  defensive: { tps: 1059.64, dps: 528.33, damageTaken: 633.0 },
+  balanced: { tpsPct: 2.75, dpsPct: 2.57, damageTakenPct: 0.72 },
+  maxTps: { tpsPct: 2.92, dpsPct: 2.41, damageTakenPct: 0.69 },
+  maxTpsOverBalanced: { tpsPct: 0.16, dpsPct: -0.16, damageTakenPct: -0.02 },
 } as const
 const M = BEAR_PRESET_MEASURES
 /** A measured percent to a tenth, unsigned: "2.8%". */

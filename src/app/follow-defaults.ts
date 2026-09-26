@@ -10,7 +10,7 @@
 import { factionOf, raceChangeTwin } from '@/features/character/faction-gear'
 import { sameEntry, type Following } from '@/features/gear/default-set'
 import { itemsById } from '@/lib/items'
-import { GEAR_SLOTS, refundNotice, SPEC_META, successorNotice, type EquippedItem, type GearSlot, type SimConfig, type SpecId, type TalentChange } from '@/sim'
+import { GEAR_SLOTS, questRemovalNotice, refundNotice, SPEC_META, successorNotice, type EquippedItem, type GearSlot, type QuestRemoval, type SimConfig, type SpecId, type TalentChange } from '@/sim'
 import { LEGACY_DEFAULTS, type LegacyEntry } from './legacy-defaults'
 
 export { followDefaults, following, type Following } from '@/features/gear/default-set'
@@ -140,15 +140,36 @@ export function writtenV1Talents(saved: unknown): string | undefined {
 }
 
 /**
+ * The gear a saved setup holds as it was written, for `legacyFollowing`: each slot's entry that reads
+ * as one (an item id, and an enchant id or none), before loading removes what the class can't wear.
+ */
+export function writtenGearOf(saved: unknown): SimConfig['gear'] {
+  const out: SimConfig['gear'] = {}
+  const gear = typeof saved === 'object' && saved !== null ? (saved as { gear?: unknown }).gear : undefined
+  if (typeof gear !== 'object' || gear === null) return out
+  for (const slot of GEAR_SLOTS) {
+    const entry = Object.hasOwn(gear, slot) ? (gear as Record<string, unknown>)[slot] : undefined
+    if (typeof entry !== 'object' || entry === null) continue
+    const { itemId, enchantId } = entry as { itemId?: unknown; enchantId?: unknown }
+    if (typeof itemId !== 'number') continue
+    out[slot] = typeof enchantId === 'string' ? { itemId, enchantId } : { itemId }
+  }
+  return out
+}
+
+/**
  * The parts of a setup saved before saves said what follows the defaults that held a default then,
  * by the frozen tables alone, never today's defaults: a slot with the snapshot's default, its v1
  * pick or a former interim item (with one of the slot's frozen enchants, or none where the former
  * default had none), for the setup's race or the class's default race, or a race change's twin of
  * one of those; and a talent build that was the spec's default. Everything else is the player's.
  * `writtenTalents` is the talent code as the save held it (writtenV1Talents): the frozen codes are on
- * 1.60.1.69913's trees, and `config`, loaded, has it on today's.
+ * 1.60.1.69913's trees, and `config`, loaded, has it on today's. `writtenGear` is the gear as the save
+ * held it (writtenGearOf): a slot loading emptied (a default item the class can no longer wear, such as
+ * the bear's former Darkmantle Cap, a rogue's quest reward: docs/data/items.md#class-quest-rewards) is
+ * judged by what it held, so it still follows and takes today's default.
  */
-export function legacyFollowing(config: SimConfig, writtenTalents: string | undefined): Following {
+export function legacyFollowing(config: SimConfig, writtenTalents: string | undefined, writtenGear?: SimConfig['gear']): Following {
   const { spec, race } = config
   const { classId } = SPEC_META[spec]
   const faction = factionOf(race)
@@ -156,7 +177,7 @@ export function legacyFollowing(config: SimConfig, writtenTalents: string | unde
   const races = [...new Set([race, frozen?.race ?? race])]
   const defaults = races.flatMap((r) => frozenGear(spec, r))
   const gear = GEAR_SLOTS.filter((slot) => {
-    const entry = config.gear[slot]
+    const entry = config.gear[slot] ?? writtenGear?.[slot]
     if (defaults.some((d) => sameEntry(entry, d[slot]))) return true
     if (!entry) return false
     const ids = new Set<number>([...defaults.flatMap((d) => d[slot]?.itemId ?? []), ...(FORMER_GEAR[spec]?.[slot] ?? [])])
@@ -175,15 +196,18 @@ export function legacyFollowing(config: SimConfig, writtenTalents: string | unde
 }
 
 /**
- * What a load changed for one spec: parts moved to newer defaults, and what reading a talent build
+ * What a load changed for one spec: parts moved to newer defaults, what reading a talent build
  * from the game's older talent trees changed (`change`, docs/data/talents.md#tree-versions): the
- * points the player's own build lost, or the build that succeeds a code the sim shipped.
+ * points the player's own build lost, or the build that succeeds a code the sim shipped; and the
+ * player's own items removed as another class's quest reward (`removed`,
+ * docs/data/items.md#class-quest-rewards).
  */
 export interface DefaultsUpdate {
   spec: SpecId
   gear: boolean
   talents: boolean
   change?: TalentChange
+  removed?: QuestRemoval[]
 }
 
 const specName = (spec: SpecId) => `${SPEC_META[spec].name} ${SPEC_META[spec].className}`
@@ -205,7 +229,10 @@ function whoseOf(specs: readonly SpecId[]): string {
  * moved onto the game’s new trees for …". "Gear and talents you changed yourself are kept." opens
  * the notice when parts moved; when a successor replaced a build the player picked (a shipped code
  * their setup no longer followed), where that wouldn't hold, it's "Gear you changed yourself is
- * kept." (review TMV-3). Null when nothing changed.
+ * kept." (review TMV-3). The player's own items removed as another class's quest reward
+ * (questRemovalNotice, naming each spec) open the description, and "kept" becomes "Other gear …";
+ * with nothing moved, the title is "Gear removed from …", or "Gear and talents changed for …" beside
+ * a talent change (FU-1). Null when nothing changed.
  */
 export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current: SpecId): { title: string; description: string } | null {
   if (updates.length === 0) return null
@@ -223,9 +250,14 @@ export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current
   ]
     .sort((a, b) => a.at - b.at)
     .map((t) => t.words)
+  // The player's own pieces removed as another class's quest reward come first: they must pick others.
+  const removedFrom = ordered.filter((u) => u.removed && u.removed.length > 0)
+  const removal = questRemovalNotice(removedFrom.map((u) => ({ removals: u.removed!, whose: specName(u.spec) })))
   if (moved.length === 0) {
-    const title = succeeded.length > 0 ? 'Talents moved onto the game’s new trees for' : 'Talent points refunded for'
-    return { title: `${title} ${whoseOf(changed.map((u) => u.spec))}`, description: talentWords.join(' ') }
+    const talentTitle = succeeded.length > 0 ? 'Talents moved onto the game’s new trees for' : 'Talent points refunded for'
+    const title = changed.length === 0 ? 'Gear removed from' : removedFrom.length === 0 ? talentTitle : 'Gear and talents changed for'
+    const specs = ordered.filter((u) => u.change || removedFrom.includes(u)).map((u) => u.spec)
+    return { title: `${title} ${whoseOf(specs)}`, description: [removal, ...talentWords].filter(Boolean).join(' ') }
   }
   const gear = moved.some((u) => u.gear)
   const talents = moved.some((u) => u.talents)
@@ -235,6 +267,7 @@ export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current
   const kept = succeeded.length > 0 ? 'Gear you changed yourself is kept.' : 'Gear and talents you changed yourself are kept.'
   return {
     title: `Updated to the new default ${what} for ${whoseOf(moved.map((u) => u.spec))}`,
-    description: [kept, ...talentWords].join(' '),
+    // After a removal, "kept" holds for the rest of what the player changed.
+    description: [removal, removal ? `Other ${kept[0].toLowerCase()}${kept.slice(1)}` : kept, ...talentWords].filter(Boolean).join(' '),
   }
 }

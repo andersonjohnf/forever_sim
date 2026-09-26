@@ -193,8 +193,10 @@ describe('optimize', () => {
   }, 60_000)
 
   it('searches partial ranks by default, and max ranks only when that space passes the builds’ limit or the fight cap, saying so (OG-2, OGV-2)', async () => {
+    // 6,000 fights: room for the partial space's first round of 2 each, so no note grows the budget
+    // (1,573 plans since the bear's Shadowcraft Cap and 2026-09-26 values; 3,000 fit it before).
     const run = (talents: TalentSearch, extra: Partial<OptimizeOptions> = {}) =>
-      optimize({ config: bear, talents, budget: { fights: 3_000, initialFights: 2 }, runner: localFightRunner(), top: 1, ...extra })
+      optimize({ config: bear, talents, budget: { fights: 6_000, initialFights: 2 }, runner: localFightRunner(), top: 1, ...extra })
     const plain = await run(search)
     const byDefault = { minPoints: search.minPoints, screenFights: search.screenFights }
     const partials = await run(byDefault)
@@ -257,9 +259,10 @@ describe('optimize', () => {
 
   it('a caller’s large first round never narrows the space: it shrinks to fit the cap (OGV2-1, the verification’s bear probe)', async () => {
     // `--first 2000 --max-fights 1000000 --screen-fights 40` on quick, with a first round of 2,500 so
-    // the case holds whatever the screen keeps (488 plans since the bear's 2026-09-26 threat and rage
-    // values, which fit whole at 2,000): the plans pass the cap (the CLI's makes 1,034 on
-    // 1.60.1.70009; the probe's 504 were 69913's, with the default screen), but at 50
+    // the case holds whatever the screen keeps: since the bear's 2026-09-26 threat and rage values
+    // (488 plans) and its head's change to Shadowcraft Cap (druid.md §7.3a; 461 on that branch alone),
+    // the screen keeps fewer than 500, which fit whole at 2,000. The plans pass the cap (the CLI's
+    // makes 1,034 on 1.60.1.70009; the probe's 504 were 69913's, with the default screen), but at 50
     // each they fit, so every rank is searched and the first round shrinks. The test checks that the
     // case holds before relying on it. Stopped once the space is known.
     const controller = new AbortController()
@@ -663,8 +666,10 @@ describe('optimize', () => {
   }, 120_000)
 
   it('in turns, a pass holds back a tenth of what’s left for the passes after it, so one pass can’t spend the whole cap (OGV2-4)', async () => {
-    // A budget far past the cap: the talent pass would take all of it.
-    const maxFights = 30_000
+    // A budget far past the cap: the talent pass would take all of it. 16,000 since the bear's
+    // Shadowcraft Cap and its 2026-09-26 threat and rage values (2026-09-26 merge): at 20,000 or more
+    // the talent pass's race now separates before its share is spent.
+    const maxFights = 16_000
     const options = { config: bear, talents: { screenFights: 20, searchPartials: false }, rotations: [{ [MAUL]: 90 }], budget: { fights: 10_000_000, initialFights: 20 }, runner: localFightRunner(), top: 1, maxFights }
     const passes = await optimizeInTurns(options)
     const share = Math.floor(maxFights * (1 - TURNS_RESERVE))
@@ -686,7 +691,7 @@ describe('optimize', () => {
     expect(none).toHaveLength(1)
     expect(none[0].fights).toBeLessThanOrEqual(maxFights)
     expect(maxFights - none[0].fights).toBeLessThan(2 * none[0].race.rounds.at(-1)!.ran)
-    expect(none[0].turnsStopped).toMatch(/^The cap of 30,000 fights a search ended the turns after pass 1, with \d+ left/)
+    expect(none[0].turnsStopped).toMatch(/^The cap of 16,000 fights a search ended the turns after pass 1, with \d+ left/)
     const two = await optimizeInTurns({ ...options, passes: 2 })
     expect(two[1].budget.cap).toBe(maxFights - two[0].fights)
   }, 120_000)

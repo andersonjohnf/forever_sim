@@ -754,6 +754,14 @@ describe('golden run (fixed config and seed)', () => {
   //   206 + 0.05 × the attack power as it lands, in place of Classic Era's 261 (threat.md's wording
   //   table, D29). On this seed's 500 fights only Lacerate's threat moves, 14,273,663 → 14,609,981:
   //   TPS 1,114.45 → 1,118.19, DPS 547.00 unchanged.
+  // - The head is Shadowcraft Cap for Darkmantle Cap, a rogue's quest reward (druid.md §7.3a,
+  //   items.md#class-quest-rewards). On this seed's 500 fights TPS 1,102.03 → 1,085.43, DPS 540.39 →
+  //   532.82 on the bear's values before the bear slice; with Darkmantle Cap back on the head, the
+  //   snapshot before it reproduces exactly.
+  // - 2026-09-26 merge: Shadowcraft Cap on top of the bear slice's values (Lacerate 206 flat, 11.25
+  //   rage a white swing, Thorns 47.04; main's bullet at the Fury warrior's golden). TPS 1,101.83 →
+  //   1,087.98, DPS 548.03 → 541.37. With Darkmantle Cap back on the head (and allowed a druid), main's
+  //   snapshot reproduces exactly.
   it('keeps the default Feral bear’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)
@@ -770,6 +778,9 @@ describe('golden run (fixed config and seed)', () => {
   //   plays; bear-apl.test.ts checks 200 random setups too).
   // - Build 1.60.1.70009: Lacerate's threat as above (206 + 0.05 × AP for 261). Lacerate's threat
   //   13,321,144 → 13,641,126; TPS 1,081.78 → 1,085.34, DPS unchanged.
+  // - Shadowcraft Cap for Darkmantle Cap, as above: TPS 1,069.95 → 1,054.01, DPS 526.21 → 518.84 (before
+  //   the bear slice's values).
+  // - 2026-09-26 merge, as above: TPS 1,076.02 → 1,059.69, DPS 536.15 → 528.23.
   it('keeps the Defensive Feral bear’s result unchanged', () => {
     const d = defaultConfig('druid-feral-bear')
     const bundle = buildPlan({ ...d, rotation: { 'druid.bear.priority': 'duties' }, run: { mode: 'fixed', iterations: 500, seed: 12345 } })

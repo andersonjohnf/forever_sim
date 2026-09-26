@@ -490,6 +490,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - The picker offers only what the character can wear together
     ([items.md, "Equipping rules"](data/items.md#equipping-rules)):
     - It leaves out the other faction's PvP and battleground items, except the one equipped.
+    - It leaves out what the class can't wear, and another class's quest rewards: a druid isn't
+      offered Darkmantle Cap, a rogue's
+      ([items.md, "Class-quest rewards"](data/items.md#class-quest-rewards)). A share link, code,
+      saved setup or visit that holds one loads without it, and the load's notice says why and what
+      to do: "Darkmantle Cap is a quest reward only rogues receive, so it was removed. Choose another
+      in Gear." A search for one finds nothing, as for plate or the other faction's PvP gear
+      ([known gaps](known-gaps.md)).
     - A unique item worn in the other slot of a pair moves over when picked. Its second line
       says so: "Unique: moves from ring 2".
     - An item that would break a Unique-Equipped group is dimmed and can't be picked. A line
@@ -1714,6 +1721,15 @@ Every view handles these states:
   it was, still following the default, and the next visit tries again. Share links, codes and
   saved setups are loaded exactly as they are; after that, anything in them that is the default
   follows it.
+- **Another class's quest reward you chose yourself** (Darkmantle Cap on a druid, offered by the
+  picker before [items.md, "Class-quest rewards"](data/items.md#class-quest-rewards)) is removed on
+  the next visit, and the visit says so once, naming the spec, since you must choose another: "Darkmantle
+  Cap is a quest reward only rogues receive, so it was removed from your Feral (Bear) Druid setup.
+  Choose another in Gear." Several pieces of one class's set share one sentence. It opens the
+  defaults notice, whose "kept" line then reads "Other gear and talents you changed yourself are
+  kept."; on its own, the notice is "Gear removed from Feral (Bear) Druid" ("Gear and talents
+  changed for …" beside a talent change). One in a slot that follows the defaults was the default,
+  and today's takes its place: that move is all the notice says.
 - **A talent build from the game's older talent trees** (a setup saved or shared before
   1.60.1.70009) loads mapped onto today's trees, talent by talent
   ([talents.md § Tree versions](data/talents.md#tree-versions)). Points that have no place there
@@ -1765,7 +1781,8 @@ Every view handles these states:
     They wait for What's New too ([What's new](#whats-new)). A link pasted in later says so at once.
   - A change gets a notice only when it happens out of sight or needs saying: a shared link
     loaded, **Reset setup** (it changes every tab), a race change that swapped faction gear
-    (on the Gear tab), a visit that moved untouched gear or talents to newer defaults, a
+    (on the Gear tab), a visit that moved untouched gear or talents to newer defaults or removed
+    another class's quest reward you chose, a
     setup saved, loaded, deleted or imported ([Setups](#setups)), and a pasted build code from the
     game's older talent trees ([Talents](#sections)), which isn't the build the trees show at a
     glance. A change you watch happen, like gear, a talent build or Reset rotation, gets none, but screen

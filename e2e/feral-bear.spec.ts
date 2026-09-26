@@ -64,7 +64,7 @@ const HEARD_CHANGE = /^(up|down) [\d,]+\.\d from the last run, (better|worse)$/
 /** Each preset's short line under the picker: what it keeps and drops, with a number or two against Defensive (D28). */
 const BALANCED_LINE = 'Faerie Fire kept, Demoralizing Roar dropped: +2.8% TPS, +2.6% DPS and 0.7% more damage taken than Defensive.'
 const DEFENSIVE_LINE = 'Demoralizing Roar and Faerie Fire kept on the boss: the least damage taken. Tuned on threat.'
-const MAX_TPS_LINE = 'Balanced, but Mauls from 14 rage: +0.2% TPS, −0.1% DPS, the same damage taken (0.7% more than Defensive).'
+const MAX_TPS_LINE = 'Balanced, but Mauls from 14 rage: +0.2% TPS, −0.2% DPS, the same damage taken (0.7% more than Defensive).'
 
 test.describe('Feral bear in the switcher', () => {
   test('is under Druid as a tank, with its own talent build, a Tauren and the Manual Crowd Pummeler', async ({ page }) => {

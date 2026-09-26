@@ -1126,9 +1126,12 @@ export const rogueFinisherApText = (o: { eviscerate: boolean; rupture: boolean; 
   ]
   if (parts.length === 0) return REGISTRY.rogueFinisherAp.text
   const what = parts.join(' and of ')
-  return o.classicEra
-    ? `The attack-power part of ${what} ${parts.length > 1 ? 'are the shares' : 'is the share'} Classic Era sims use; the game’s data doesn’t give it. Untested.`
-    : `A player’s in-game tests, shared on Discord and not yet repeated, measured the attack-power part of ${what}, without saying which talents the tester had.`
+  if (o.classicEra) {
+    return parts.length > 1
+      ? `The attack-power parts of ${parts.join(' and ')} are the shares Classic Era sims use; the game’s data doesn’t give them. Untested.`
+      : `The attack-power part of ${what} is the share Classic Era sims use; the game’s data doesn’t give it. Untested.`
+  }
+  return `A player’s in-game tests, shared on Discord and not yet repeated, measured the attack-power part of ${what}, without saying which talents the tester had.`
 }
 
 /**

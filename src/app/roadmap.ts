@@ -38,14 +38,16 @@ export const ROADMAP: readonly RoadmapEntry[] = [
   },
   {
     id: 'audit-fixes',
-    title: 'Audit fixes',
+    title: 'More numbers checked against the game',
     when: 'Planned',
     items: [
       'Casters’ spells are no longer partly resisted for the boss’s level, as beta logs show, and melee crit against a boss drops as it does in Classic Era.',
       'Ironfoe procs as often as the game’s data says, Felstriker and Alcor’s Sunrazor about once a minute, and Assassination Rogues’ Seal Fate from either Mutilate hand.',
       'Arcane Mages cast Arcane Blast, with its stacks and Missile Barrage.',
       'Paladins’ Hammer of the Righteous hits for three times your main hand’s damage per second, as its tooltip reads, and Protection Paladins’ enchants are picked again for threat.',
-      'Consumable and gear presets are rebuilt around what each spec’s players use, and pets take 10% of your attack power and your crit, no longer your hit or spell damage.',
+      'Items that give crit with melee attacks no longer raise Hunters’ ranged crit, as Forever’s tooltips say, so Hunters lose some crit and their gear presets are picked again.',
+      'Consumable presets are rebuilt around what each spec’s players use, and some gear presets are picked again, leaving out PvP and Darkmoon Faire rewards.',
+      'Pets take 10% of your attack power and your crit, no longer your hit or spell damage.',
     ],
   },
   {

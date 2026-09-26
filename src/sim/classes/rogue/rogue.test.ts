@@ -632,9 +632,10 @@ describe('worked examples (rogue.md §9)', () => {
     const all = rogueFinisherTalentsText({ eviscerate: true, rupture: true, talents: new Map([['Improved Eviscerate', 3], ['Aggression', 3], ['Serrated Blades', 3]]) })
     expect(all).toMatch(/Eviscerate and Rupture by your Improved Eviscerate, Aggression and Serrated Blades/)
     expect(all).toMatch(/these talents, they’re counted twice/)
-    // AV2-9: two finishers' shares are plural in `classicEra`.
-    expect(rogueFinisherApText({ eviscerate: true, rupture: true, classicEra: true })).toMatch(/Rupture \(1% per combo point a tick, up to 3%\) are the shares Classic Era sims use/)
-    expect(rogueFinisherApText({ eviscerate: true, rupture: false, classicEra: true })).toMatch(/\) is the share Classic Era sims use/)
+    // AV2-9, AV3-2: two finishers' shares are plural in `classicEra`, the whole sentence through.
+    expect(rogueFinisherApText({ eviscerate: true, rupture: true, classicEra: true })).toBe('The attack-power parts of Eviscerate (3% of your attack power per combo point) and Rupture (1% per combo point a tick, up to 3%) are the shares Classic Era sims use; the game’s data doesn’t give them. Untested.')
+    expect(rogueFinisherApText({ eviscerate: true, rupture: false, classicEra: true })).toBe('The attack-power part of Eviscerate (3% of your attack power per combo point) is the share Classic Era sims use; the game’s data doesn’t give it. Untested.')
+    expect(rogueFinisherApText({ eviscerate: false, rupture: true, classicEra: true })).toBe('The attack-power part of Rupture (1% per combo point a tick, up to 3%) is the share Classic Era sims use; the game’s data doesn’t give it. Untested.')
   })
 
   it('lists the finishers’ Discord-tested attack-power shares whenever the plan uses Eviscerate or Rupture, talents or not (rogue.md Q3)', () => {

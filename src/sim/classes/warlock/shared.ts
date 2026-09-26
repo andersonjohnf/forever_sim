@@ -527,9 +527,10 @@ export function warlockRotation(
     }
   }
 
-  // Off the GCD, on cooldown from the pull: the racial, on-use trinkets and Power Infusion; then the
-  // Major Mana Potion and Demonic Rune (off the GCD) once the most they restore fits. What the Buffs tab
-  // selects is pressed (`onUse`), whether or not its row is on.
+  // Off the GCD: the racial and on-use trinkets on cooldown from the pull, and Power Infusion once, at
+  // the pull (its one charge; buffs doc §1.1 "Power Infusion"); then the Major Mana Potion and Demonic
+  // Rune (off the GCD) once the most they restore fits. What the Buffs tab selects is pressed
+  // (`onUse`), whether or not its row is on.
   const racial = eurekaFor(ctx.race, 'warlock') ?? CASTER_RACIALS[ctx.race]
   const infusion = ctx.consumables.find((c) => c.id === POWER_INFUSION)
   if (infusion) pressed.push(POWER_INFUSION)

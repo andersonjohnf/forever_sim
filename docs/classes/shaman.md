@@ -115,7 +115,7 @@ level 68 (333 + 8 × 12.5), not at 60.
 ## Conventions used below
 
 - **Rank at level 60.** A rank learned below 60 grows by its per-level points up to 60 or its max
-  level, truncated to a whole number ([per-level values](../data/items.md#per-level-values)), and a range is base × (1 ± variance / 2) [F] ([paladin.md](paladin.md#conventions-used-below)).
+  level, truncated to a whole number by the datasets' rule ([per-level values](../data/items.md#per-level-values); how the client itself rounds it is [?], [open-questions B74](../open-questions.md#b74-per-level-tooltip-values)), and a range is base × (1 ± variance / 2) [F] ([paladin.md](paladin.md#conventions-used-below)).
 - **Damage class** is `SpellCategories.DefenseType`: the shocks and Lightning Bolt are magic
   (DefenseType 1: the spell table, crit ×1.5); Stormstrike is melee (2: the special-attack table,
   crit ×2) with neither No Active Defense nor Always Hit, so it can miss, be dodged or parried

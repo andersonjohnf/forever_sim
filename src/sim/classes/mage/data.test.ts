@@ -154,7 +154,9 @@ describe('the damage spells against the client (mage.md#fire-spells, #frost-spel
     expect([ARCANE_BLAST_SPELL.min.toFixed(2), ARCANE_BLAST_SPELL.max.toFixed(2)]).toEqual(['364.25', '423.75'])
   })
 
-  it('the per-level term is truncated, as the client renders it (docs/data/items.md#per-level-values): Frostbolt r10 adds trunc(2.9 × 4) = 11, not 11.6, which gives its tooltip’s "382 to 412"', () => {
+  // How the client itself rounds the term is [?] (docs/open-questions.md B74, whose in-game check is this
+  // tooltip's low end: 382 truncated, 383 rounded).
+  it('the per-level term is truncated, the datasets’ rendering, by the same rule (docs/data/items.md#per-level-values): Frostbolt r10 adds trunc(2.9 × 4) = 11, not 11.6, which gives the spellbook dataset’s "382 to 412"', () => {
     const e = effect(FRB, 1)
     const levels = spell(FRB).levels!
     expect([e.effectRealPointsPerLevel, levels.spellLevel, levels.maxLevel]).toEqual([2.9, 56, 60])

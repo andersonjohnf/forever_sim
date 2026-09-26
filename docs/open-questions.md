@@ -1396,7 +1396,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Test:** at the current level, read tooltips whose values scale: Demoralizing Shout rank 1–2
   and Battle Shout (warrior), Cat Form's attack power (druid), Vindication 1/3 (paladin, if the
   cap allows the tier). Compare with the formula at that level: from `SpellLevel`, truncated,
-  and the `BaseLevel` alternative.
+  and the `BaseLevel` alternative. At 60, the rounding itself: Frostbolt rank 10's tooltip low
+  end reads **382** if the client truncates the term (386 × (1 − 0.0381) + trunc(2.9 × 4) =
+  371.29 + 11) and **383** if it rounds (371.29 + 11.6 = 382.89); the class docs' spell tables
+  and every rank below 60 in the engine assume truncation.
 - **Samples:** one read per spell, at two levels if possible.
 - **Changes:** the rendered tooltips, and the tank-side boss AP reduction of Demoralizing
   Shout.

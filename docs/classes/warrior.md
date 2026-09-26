@@ -145,8 +145,9 @@ restores the old value:
 
 **Rank 6 at level 60: 115** [F]. Its row is base 111 with 0.6 points per level from `SpellLevel`
 52, `MaxLevel` 61 [F] [client] (SpellEffect, SpellLevels, 1.60.1.70009). The per-level term is
-applied at 60 and truncated, as the client renders every per-level value
-([per-level values](../data/items.md#per-level-values)): 111 + trunc(0.6 × 8) = 111 + 4 = **115**,
+applied at 60 and truncated, the datasets' rule for every per-level value; how the client itself
+rounds it is [?] ([per-level values](../data/items.md#per-level-values),
+[open-questions B74](../open-questions.md#b74-per-level-tooltip-values)): 111 + trunc(0.6 × 8) = 111 + 4 = **115**,
 not the base 111 (the unrounded 115.8 would be 116; 1 AP is under 0.05% of DPS). That the term
 applies in combat is Classic Era's own evidence: its rank 6 is 184 + 1 with 1 point per level from
 52, so **193** at 60 [C] [client] (SpellEffect, SpellLevels, 1.15.9.69722), the value Classic

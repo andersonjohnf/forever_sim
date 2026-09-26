@@ -2044,7 +2044,8 @@ indices and results are unchanged.
 ### 11.2 Spells
 
 Level-60 values, before talents. A rank learned below 60 grows by its per-level points, truncated to a whole number
-([per-level values](../data/items.md#per-level-values)); a range is base × (1 ± variance / 2) plus
+by the datasets' rule ([per-level values](../data/items.md#per-level-values); how the client itself rounds it is [?],
+[open-questions B74](../open-questions.md#b74-per-level-tooltip-values)); a range is base × (1 ± variance / 2) plus
 that growth (paladin.md#conventions-used-below).
 
 | Spell (id) | Damage at 60 | Coefficient | Cast, cost | Other | Tag |

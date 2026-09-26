@@ -111,7 +111,9 @@ row says otherwise. Spell ranges are at level 60 before spell damage.
 ## Spells
 
 Ranges are base × (1 ± variance / 2) plus the rank's per-level points up to 60, truncated to a
-whole number as the client renders them ([per-level values](../data/items.md#per-level-values);
+whole number by the datasets' rule (how the client itself rounds them is [?],
+[open-questions B74](../open-questions.md#b74-per-level-tooltip-values);
+[per-level values](../data/items.md#per-level-values);
 [spells §5](../mechanics/spells.md#5-spell-power-and-coefficients)); each matches the Forever
 tooltip [F] [client] (SpellEffect, SpellMisc, SpellPower, SpellCastTimes, 1.60.1.69913;
 `src/data/spells/mage.json`). Every one is magic (DefenseType 1), on the GCD, and triggers procs.

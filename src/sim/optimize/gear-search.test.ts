@@ -226,7 +226,11 @@ describe('the gear search on a worker pool (O2L-12)', () => {
 
 describe('a tank’s gear search (O2L-12)', () => {
   it('keeps the effective-health floor against the survival preset, and a one-hander and a shield', { timeout: 180_000 }, async () => {
-    const config: SimConfig = { ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 0, seed: 9 } }
+    // A weak main hand (Ardent Custodian, item level 43) beside the default shield, so the weapons step
+    // must move (JL-4): the rule it's held to, a one-hander and a shield, is then what's tested.
+    const d = defaultConfig('warrior-protection')
+    const WEAK_MAIN_HAND = 868
+    const config: SimConfig = { ...d, gear: { ...d.gear, mainHand: { itemId: WEAK_MAIN_HAND } }, run: { mode: 'fixed', iterations: 0, seed: 9 } }
     const open: GearSlot[] = ['head', 'legs', 'mainHand', 'offHand']
     const constraints = defaultConstraints('tank')
     const r = await optimizeGear({
@@ -244,8 +248,11 @@ describe('a tank’s gear search (O2L-12)', () => {
     })
     expect(r.goal).toBe('balanced')
     expect(r.answer).not.toBeNull()
-    // An answer with no gear keeps the setup's (since the default boss melee of 2026-09-26 the search finds nothing better here).
-    const answer = r.answer!.gear ?? config.gear
+    // The search moved the weapons: the answer has gear, and a better main hand than the weak one.
+    expect(r.answer!.gear).toBeDefined()
+    const answer = r.answer!.gear!
+    expect(answer.mainHand!.itemId).not.toBe(WEAK_MAIN_HAND)
+    expect(r.starts[0].steps.some((s) => s.group === 'weapons' && s.changed)).toBe(true)
     // The shield stays: a one-hander in the main hand, a shield in the off hand, at every start's end too.
     for (const gear of [answer, ...r.starts.map((s) => s.end)]) {
       expect(isTwoHand(POOL.get(gear.mainHand!.itemId)!)).toBe(false)

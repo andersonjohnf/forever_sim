@@ -57,7 +57,11 @@ describe('the Feral bear’s priority list (D31)', () => {
     // reproduces exactly (no case turns on the bear's own Thorns, `thornsOwn`). Re-taken for Touch of
     // the Grave's trigger (`damageLanded`, character-stats.md#touch-of-the-grave): every plan carries
     // one more trigger list, empty, since a druid can't be Undead; with the lists held at the 27 codes
-    // before it, the snapshot before it reproduces exactly.
+    // before it, the snapshot before it reproduces exactly. Re-taken for the Feral bear slice
+    // (2026-09-26, CL-4): Lacerate's bonus a flat 206 (its 0.05 × AP term dropped, druid.md §4.3), the
+    // bear form's weapon two-handed for normalized rage (rage.md "Bear white hits"), and a raid
+    // druid's Thorns at 22 + 0.08 × 313 = 47.04 (was 38; buffs doc §1.2); with those three set back,
+    // main's snapshot reproduces exactly.
     const cases = bearCases(BEAR_OPTIONS, 200)
     const plans = cases.map((config) =>
       buildPlan({

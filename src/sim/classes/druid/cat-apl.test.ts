@@ -89,7 +89,10 @@ describe('the Feral cat’s priority list (D31)', () => {
 
   it('gives 200 random setups the plan they had before the list', () => {
     // The snapshot is of the plans before the priority list (A2), whole, taken on the code before it:
-    // a change to it is a change to what the default order plays.
+    // a change to it is a change to what the default order plays. Re-taken for the Feral bear slice
+    // (2026-09-26, CL-4): every druid plan carries its forms, and the bear form's weapon now counts as
+    // two-handed for normalized rage (rage.md "Bear white hits"); nothing the rotation plays moved,
+    // and with the bear form's `twoHand` set back to false, main's snapshot reproduces exactly.
     const cases = catCases(CAT_OPTIONS, 200)
     const plans = cases.map((config) => buildPlan({ ...config, rotationOrder: defaultAplOrder(CAT_APL) }).plan)
     const hashes = plans.map((plan) => fingerprint(planJson(plan)))

@@ -452,10 +452,13 @@ and PvP Rank 10 or lower. Left out: raid drops (Zul'Gurub, Ruins of Ahn'Qiraj); 
 from the Scourge Invasion (Chains of the Lich and Staff of Balzaphon, from Balzaphon in Stratholme, and
 the invasion's other bosses' loot: [items.md "Sources"](../data/items.md#sources-c)); Forever-new items
 (no known source yet); random-suffix items; and four weapons whose Classic Era source couldn't be
-confirmed: Verimonde's Last Resort and Shivsprocket's Shiv (Forever's +74 Rare caster-weapon spell
-power `[?]`; with Mindfang at +30 they would rank first and second in the main hand, 21 to 23 DPS ahead
-of it), Whiteout Staff (+74 spell power: it would lead the two-handers, 4 to 6 DPS ahead of Mindfang
-and the off hand) and Amethyst War Staff. Confirming their sources would move each warlock's main hand. A
+confirmed when the lists were searched: Verimonde's Last Resort and Shivsprocket's Shiv (+74 Spell
+Power in Forever's tooltips; with Mindfang at +30 they would rank first and second in the main hand,
+21 to 23 DPS ahead of it), Whiteout Staff (+74 spell power: it would lead the two-handers, 4 to 6 DPS
+ahead of Mindfang and the off hand) and Amethyst War Staff. Wowhead Classic has since given two of
+them: Shivsprocket's Shiv is a raid quest's reward (The Perfect Poison), so it stays out; Verimonde's
+Last Resort is a Darkmoon Faire reputation reward, an event source the lists haven't ruled on
+([known gaps](../known-gaps.md)). A
 slot-by-slot paired search from the guide's gear (each spec's default Orc setup, 6,000 fights a
 candidate on seed 2701) swapped items until no swap helped. Each slot's alternatives are then ranked
 by their paired DPS in the finished set (20,000 fights), close calls on a direct paired run (40,000

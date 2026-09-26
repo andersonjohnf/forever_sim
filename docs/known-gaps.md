@@ -390,11 +390,19 @@ slice is worked:
     hidden value as Firebolt's cast time. That reading went on 2026-09-26 (an undescribed dummy has no
     effect), and the default became the Succubus build: 584.1 DPS against Destruction's 552.3 (+5.8%,
     20,000 fights on seed 2701, with Mindfang's Classic Era +30; [warlock.md §11.6](classes/warlock.md#116-defaults)).
-  - **Rare caster weapons whose sources aren't confirmed would lead the casters' main hands**
+  - **Two Rare caster daggers outside the lists' sources would lead the casters' main hands**
     (2026-09-26). With Mindfang and Sageclaw at their Classic Era +30 spell power, Verimonde's Last
-    Resort and Shivsprocket's Shiv (+74 from the Rare caster-weapon rule) beat them by 14 to 24 DPS in
-    every caster's default set, and Whiteout Staff by 1 to 13 (paired, 10,000 fights). The lists leave
-    them out until their Classic Era sources are confirmed ([warlock.md §7.3](classes/warlock.md#73-gear)).
+    Resort and Shivsprocket's Shiv (+74 Spell Power, as the Forever beta's tooltips showed) beat them by
+    14 to 24 DPS in every caster's default set, and Whiteout Staff by 1 to 13 (paired, 10,000 fights).
+    Mindfang still leads every candidate the lists allow, so no preset moved. Their Classic Era sources
+    ([Wowhead Classic](https://www.wowhead.com/classic/item=22379/shivsprockets-shiv)): Shivsprocket's
+    Shiv is the reward of The Perfect Poison, a raid quest (Ruins of Ahn'Qiraj and Zul'Gurub venom
+    sacs), so it stays out with the raid drops; Verimonde's Last Resort
+    ([Wowhead Classic](https://www.wowhead.com/classic/item=22688/verimondes-last-resort)) is a Darkmoon
+    Faire reputation reward (the Superior Armaments of Battle quests). **Open for the lead:** whether a
+    Darkmoon Faire reward counts as a pre-raid source (an event, like the Scourge Invasion's loot the
+    lists leave out, but a recurring one) and whether the Faire runs in Forever; if both, it takes rank
+    1 in all 9 casters' main hands ([warlock.md §7.3](classes/warlock.md#73-gear)).
   - **Item effects the sim doesn't model count as zero** in the lists' rankings (DV2-4,
     [items.md](data/items.md#modelled-item-effects)); the ones on the caster lists: Eye of the Beast's +7%
     spell hit use (E7, [shaman.md](classes/shaman.md)), Burst of Knowledge's and Second Wind's mana

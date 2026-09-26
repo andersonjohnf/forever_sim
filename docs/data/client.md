@@ -930,7 +930,7 @@ min and max. Crackling Staff has spell power in its own stats (+25). It takes th
 but doesn't get the extra 74, so the derivation adds the caster spell power only to weapons
 whose stats have no spell power, healing or spell damage. That rule rests on a single item.
 
-**Epic caster weapons `[C]`.** The rule above was fitted on Rare weapons only, and no Epic
+**Epic caster weapons `[C]`, Forever's value `[?]`.** The rule above was fitted on Rare weapons only, and no Epic
 caster weapon's Forever tooltip is on record, so it isn't extrapolated to Epic quality (2 × the
 Epic budget would give +94). An Epic caster weapon takes **its Classic Era item's spell stats**
 ([Classic Era 1.15.9 ItemSparse and item effects](#items-from-the-client)): Mindfang and Sageclaw

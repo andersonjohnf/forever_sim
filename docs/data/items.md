@@ -702,7 +702,7 @@ defaults are Fire builds, and Forever gave the Arathi Basin daggers +94 spell po
 and Shadow keep their guide lists with that dagger added at rank 1 (DG-2); ranking them too is a known
 gap. **Item effects the sim doesn't model count as zero** in a sim-ranked list (an unmodelled use or
 proc adds nothing to a paired run), so each such effect on a candidate is listed in the
-[milestones' known gaps](../milestones.md) and the list's note names it; the modelled ones are
+[known gaps](../known-gaps.md) and the list's note names it; the modelled ones are
 [below](#modelled-item-effects).
 
 **Kept items.** When a list change leaves an item on no list, and the level rule wouldn't keep it, the

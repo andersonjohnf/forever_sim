@@ -457,8 +457,8 @@ candidate on seed 2701) swapped items until no swap helped. Each slot's alternat
 by their paired DPS in the finished set (20,000 fights), close calls on a direct paired run (40,000
 fights). Within the 95% interval the guide's pick keeps its place. Each list's `note` has the details,
 and the sources no guide gave cite Wowhead Classic ([wh-items]). **An item effect the sim doesn't model
-counts as zero** in these runs, and each one on a candidate is a known gap in the
-[milestones](../milestones.md): Eye of the Beast's +7% spell hit use (E7), Burst of Knowledge's mana-cost
+counts as zero** in these runs, and each one on a candidate is a [known gap](../known-gaps.md):
+Eye of the Beast's +7% spell hit use (E7), Burst of Knowledge's mana-cost
 use, Robe of the Void's pet heal. Wrath of Cenarius's and Draconic Infused Emblem's procs are modelled
 ([items.md](../data/items.md#modelled-item-effects)), and each list names one side's faction reward: its
 [twin](../data/items.md#faction-twins), read from the client, takes the same rank.

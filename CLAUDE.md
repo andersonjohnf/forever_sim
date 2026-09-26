@@ -42,7 +42,7 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
    - **Introduced:** fix it, or waive it with a reason.
    - **Pre-existing:** fix it if it's medium or worse, or if it breaks a promise the docs make
      (`docs/ux.md`, the doctrine, a mechanics or class doc). A low finding that breaks no
-     promise may instead go to the milestones' known gaps, with its reason.
+     promise may instead go to the known gaps in `docs/known-gaps.md`, with its reason.
 5. **Fix rounds get a verification pass, not a fresh review.** New work always gets the full
    reviews in steps 2 and 3. The fixes they lead to get one pass by a fresh reviewer, scoped to
    the fix commits. It confirms each finding is fixed, and hunts for regressions the fixes
@@ -60,10 +60,11 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
 7. **New specs land in a 90/10 mode until the tuning milestone (D27).** First-pass defaults
    (the common priority plus one quick search; about ±5% is fine) replace D23's full tuning.
    One fresh reviewer does a **combined logic and UX review** (steps 2 and 3 together). High
-   and medium findings are fixed; lows go to the milestones' known gaps unless the fix is one
-   line. Only a fix that changed engine logic gets a verification pass. Build shared engine
-   cores before class slices, run agents in parallel on disjoint files (at most 10 at once, and
-   none new while tests fail from machine load), and rebase a branch once, just before its review.
+   and medium findings are fixed; lows go to the known gaps in `docs/known-gaps.md` unless the
+   fix is one line. Only a fix that changed engine logic gets a verification pass. Build shared
+   engine cores before class slices, run agents in parallel on disjoint files (at most 10 at once,
+   and none new while tests fail from machine load), and rebase a branch once, just before its
+   review.
 
 ## Git workflow
 
@@ -81,6 +82,8 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
 - **Parallel tracks** work on worktree branches and are reviewed there. The lead merges them onto
   `main` one at a time and runs `npm run test:full` after each merge. A merge that resolved
   conflicts or re-snapshotted goldens gets a verification pass scoped to the merge (D25).
+  After merging a track, the lead removes its worktree and deletes its branch; the ledger records
+  the merge commit, so nothing depends on the branch name.
 - **Push at every new stable state** (D25): as soon as the review gate above has passed for
   everything since the last push, push `main`, so features land as soon as they're ready.
   Pushing `main` deploys to Firebase Hosting (D35). After each push, watch the deploy and the Full
@@ -131,12 +134,24 @@ Large work is split into **slices** listed under each milestone in `docs/milesto
   carries its whole transcript. Resume only for small fixes to the same slice while its
   context is still small. Hand off through committed code and a short written brief.
 - **Brief narrowly.** Point the agent to the exact doc sections and files it needs, not
-  whole docs. List the files it owns and the ones it must not touch.
+  whole docs: never "read docs/milestones.md", but its one milestone's section. List the files
+  it owns and the ones it must not touch.
 - **Stop at a clean checkpoint.** If a slice grows, the agent stops at a green,
   committable state and reports what's left, rather than pushing on.
 - **The lead verifies and commits each slice** (lint, typecheck, unit and e2e tests) before
   starting work that builds on it. Independent slices with disjoint files may run in
   parallel.
+- **The lead keeps a ledger:** a local, gitignored `.claude/ledger.md`, updated at every
+  dispatch, merge and push. Its sections:
+  - **Standing rules:** temporary user rules, such as a lowered agent cap or a held release;
+  - **State:** `origin/main` and what's ahead of it;
+  - **In flight:** agent → slice → branch → merge target, and the E2E port if any;
+  - **Queue;**
+  - **Open questions,** for the user and for the guild.
+- **A temporary rule the user gives goes in the ledger's Standing rules,** not only in the
+  conversation.
+- **After any compaction, the lead rebuilds its state before acting,** from the ledger,
+  `git worktree list`, `git log --oneline origin/main..main` and `docs/milestones.md`.
 
 ## Read before changing things
 

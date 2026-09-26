@@ -227,7 +227,7 @@ So:
 - fixes get one verification pass, scoped to the fix commits, that confirms them and hunts for
   regressions they introduced
 - findings say whether the change introduced them, and a pre-existing low finding that breaks
-  no promise the docs make may go to the known gaps
+  no promise the docs make may go to the [known gaps](known-gaps.md)
 - an area that draws new findings two rounds running is simplified, not patched a third time
 
 The procedure is in [CLAUDE.md](../CLAUDE.md#core-doctrine-adversarial-review-before-every-push)
@@ -390,12 +390,14 @@ pieces separately. So, for new specs until the tuning milestone:
   D23 still governs specs already tuned, and the tuning milestone.
 - **One combined review** per slice, logic and UX by one fresh reviewer, replacing the separate
   logic and UX reviews of D20. High and medium findings are fixed; low findings go to the
-  milestones' known gaps with their reasons, unless fixing one is a one-line change. A
+  [known gaps](known-gaps.md) with their reasons, unless fixing one is a one-line change. A
   verification pass follows only when a fix changed engine logic; copy and doc fixes don't need
   one.
 - **Shared engine first, then thin class slices.** A caster core (casts, channels, DoTs, spell
   power, spell hit, crit and resists) and a ranged core (Auto Shot, ranged weapons, pets) are
-  built once; each class is then data, talents and a rotation.
+  built once; each class is then data, talents and a rotation. A class slice delivers its class
+  doc (Forever's changes from the client, the Classic Era priority, open questions), its scraped
+  data, talents and default build, abilities, rotation, defaults and e2e tests, and ships the spec.
 - **A merge queue.** A branch rebases once, just before its review, and merges as soon as it's
   green. **Agents run in parallel on disjoint files, at most 10 at once** (user decision,
   2026-09-25, replacing 8, which replaced "about four"), and new ones wait while the machine is saturated, that is,

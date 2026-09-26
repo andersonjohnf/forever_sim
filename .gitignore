@@ -36,3 +36,6 @@ blob-report/
 
 # Firebase CLI: its deploy cache (firebase-debug.log is covered by *.log above)
 .firebase/
+
+# The lead's local state of what's in flight (CLAUDE.md, "Working with agents")
+.claude/ledger.md

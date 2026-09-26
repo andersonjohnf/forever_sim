@@ -238,12 +238,12 @@ finding is fixed or waived with a written reason, and the log is committed as
   confirms the fixes and looks for regressions they introduced. New work always gets the full
   reviews.
 - **Each finding says whether the change introduced it.** A pre-existing low finding that
-  breaks no promise the docs make may go to the milestones' known gaps instead of being fixed
-  then.
+  breaks no promise the docs make may go to the [known gaps](known-gaps.md) instead of being
+  fixed then.
 - **An area that draws new findings two rounds running** is simplified, not patched again
   ([D20](decisions.md#d20-review-new-work-in-full-verify-the-fixes-2026-09-23)).
 - **New specs until the tuning milestone** get one combined logic and UX review; high and
-  medium findings are fixed, lows go to the known gaps, and only engine fixes get a
+  medium findings are fixed, lows go to the [known gaps](known-gaps.md), and only engine fixes get a
   verification pass ([D27](decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)).
 
 - **Plausibility is part of the logic review** (D29). A reviewer compares the headline with
@@ -261,5 +261,6 @@ The procedure and checklists are in
 - The beta client changes. When wago.tools lists a new `wow_classic_beta` build, re-scrape
   with `npm run scrape -- --version=<build> --diff`, review the diffs, and update any doc
   whose numbers moved (bump the build in its status line).
-- Milestones live in [milestones.md](milestones.md). Significant decisions go in
+- Milestones live in [milestones.md](milestones.md), and the known gaps in
+  [known-gaps.md](known-gaps.md). Significant decisions go in
   [decisions.md](decisions.md) with a date and the reasoning.

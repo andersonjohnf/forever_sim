@@ -1064,7 +1064,7 @@ Each with its effect on the default setup's DPS, per
 ### Enhancement on the core
 
 K5 turns on the two switches the caster core left off for the Enhancement shaman
-([milestones' known gaps](../milestones.md#known-gaps-and-follow-ups)):
+([known gaps](../known-gaps.md)):
 
 - **Its Lightning Bolt is hasted**: casting speed (Berserking) shortens a cast bolt (fewer than 5
   Maelstrom Weapon stacks). Rage of the Farseer's +30% casting speed (aura 65) did the same until

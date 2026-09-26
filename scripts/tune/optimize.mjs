@@ -68,8 +68,9 @@
 //                         finger1, finger2, trinket1, trinket2, mainHand, offHand, ranged; repeatable or comma-separated
 //   --faction alliance|horde   the character's faction (the gear it can wear): the class's default race of that
 //                         faction, unless --race gives one
-//   --enchants all        search every enchant, the Zandalar and Scourge shoulder enchants too (left out by
-//                         default: their content in Forever is unconfirmed, buffs doc §6.4)
+//   --enchants all        search every enchant, the Zandalar and Scourge shoulder enchants and Zul'Gurub's
+//                         Presence of Might too (left out by default: their content in Forever is unconfirmed,
+//                         buffs doc §5.3 and §6.4)
 //   --per-slot <n>        items each slot races by value, beside its current one (default 6; D30: 5 to 8)
 //   --no-restarts         only the ascent from the setup's gear (default: also from the default preset and a greedy set)
 //   --gear-passes <n>     most passes over the paper doll a start runs (default 4)

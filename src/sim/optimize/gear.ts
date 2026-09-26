@@ -101,19 +101,28 @@ export interface GearFilters {
   /**
    * Enchants the search never tries, by id (a slot's current enchant stays when its slot is kept).
    * For content whose presence in Forever is unconfirmed: the Zandalar and Scourge shoulder
-   * enchants the default presets leave out (buffs doc §6.4). Default: UNCONFIRMED_ENCHANTS; [] searches
-   * every one.
+   * enchants the default presets leave out and Zul'Gurub's Presence of Might (buffs doc §5.3, §6.4).
+   * Default: UNCONFIRMED_ENCHANTS; [] searches every one.
    */
   excludedEnchants?: readonly string[]
 }
 
 /**
  * Enchants the gear search leaves out unless told otherwise (`GearFilters.excludedEnchants`): the
- * shoulder enchants of Zul'Gurub's and the Argent Dawn's Scourge rewards, whose content Forever may
- * not have. The default presets leave the shoulders empty until the guild confirms it (buffs doc
- * §6.4; src/sim/defaults.ts), so the optimizer's defaults (O4) must too.
+ * shoulder enchants of Zul'Gurub's and the Argent Dawn's Scourge rewards, and Zul'Gurub's head and
+ * legs idol, Presence of Might (O2L-5), whose content Forever may not have ("ZG availability [?]",
+ * buffs doc §5.3). The default presets leave them off until the guild confirms it (buffs doc §6.4;
+ * src/sim/defaults.ts), so the optimizer's defaults (O4) must too. Zul'Gurub's other idol enchants
+ * join this list when the catalogue gains them.
  */
-export const UNCONFIRMED_ENCHANTS: readonly string[] = ['zandalarSignetOfMight', 'mightOfTheScourge', 'fortitudeOfTheScourge']
+export const UNCONFIRMED_ENCHANTS: readonly string[] = ['zandalarSignetOfMight', 'mightOfTheScourge', 'fortitudeOfTheScourge', 'presenceOfMight']
+
+/**
+ * Enchants buffs doc §6.4 calls options, not defaults: the +15 Superior Strength and Superior Agility
+ * gloves, from harder-to-get formulas ("Offer them as options; don't default to them"). The search may
+ * pick them, as any player may; O4 must not make them a default (docs/optimizer.md#defaults-from-the-results).
+ */
+export const OPTION_ENCHANTS: readonly string[] = ['gloveSuperiorStrength', 'gloveSuperiorAgility']
 
 /** The slots the search fills: every paper-doll slot but a hunter's ammo and quiver, which follow the ranged weapon (`matchSupplies`). */
 export const SEARCHED_SLOTS: readonly GearSlot[] = [

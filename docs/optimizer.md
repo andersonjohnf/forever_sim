@@ -638,10 +638,13 @@ Fury warrior's slots take 966 of them by default and 1,152 opted in.
   from").
 
 Enchants are the catalogue's (buffs doc §5) that fit the item (the Gear tab's `enchantFits`: a
-weapon's, a two-hander's, a shield's). **The Zandalar and Scourge shoulder enchants are left out by
-default** (`UNCONFIRMED_ENCHANTS`): the default presets leave the shoulders empty until the guild
-confirms that content is in Forever (buffs doc §6.4), so the optimizer's defaults must too;
-`--enchants all` searches them.
+weapon's, a two-hander's, a shield's). **The Zandalar and Scourge shoulder enchants and Zul'Gurub's
+Presence of Might (head and legs) are left out by default** (`UNCONFIRMED_ENCHANTS`; Presence of Might
+since O2L-5): the default presets leave them off until the guild confirms that content is in Forever
+(buffs doc §5.3's "ZG availability [?]", §6.4), so the optimizer's defaults must too; `--enchants all`
+searches them. **The +15 Superior Strength and Superior Agility gloves are searched** (`OPTION_ENCHANTS`):
+buffs doc §6.4 calls them options, not defaults, so a result may take them, and O4 doesn't make them a
+default ([defaults from the results](#defaults-from-the-results)).
 
 ### Stat weights
 
@@ -920,6 +923,11 @@ fresh seed. This is O4's process, after the tanks' threat fixes (M5.6):
    D23's bar there and doesn't depend on an unmeasured rating.
 4. Record the change, the numbers and the command in the spec's class doc, update the default
    build (`src/sim/defaults.ts`), and re-snapshot the goldens with the explanation.
+5. **An option isn't a default** (O2L-5). Where an answer's enchant is one buffs doc §6.4 calls an
+   option, not a default (`OPTION_ENCHANTS`: the +15 Superior Strength and Superior Agility gloves),
+   O4 sets §6.4's default for that slot instead (Greater Strength or Greater Agility, +10) and records
+   the answer's enchant as an option in the class doc. The same goes for any enchant left out by
+   default (`UNCONFIRMED_ENCHANTS`), which a default search never picks.
 
 **The answers on 1.60.1.70009 so far** (`quick`, seed 1, the default goals and constraints; not
 O4's `thorough`, confirmed runs, so no default has changed). Each is against the spec's 70009

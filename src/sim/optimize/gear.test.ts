@@ -325,6 +325,13 @@ describe('enchants with their slot', () => {
     const shoulderEnchants = (filters: GearFilters) => new Set(groups(config, 'shoulder', filters).map((g) => g.shoulder?.enchantId))
     for (const id of UNCONFIRMED_ENCHANTS) expect(shoulderEnchants({}).has(id)).toBe(false)
     expect(shoulderEnchants({ excludedEnchants: [] }).has('zandalarSignetOfMight')).toBe(true)
+    // Zul'Gurub's Presence of Might, on the head and legs, likewise (O2L-5), and a Protection warrior's
+    // legs step never takes it by default.
+    expect(UNCONFIRMED_ENCHANTS).toContain('presenceOfMight')
+    const prot = setup('warrior-protection')
+    const legEnchants = (filters: GearFilters) => new Set(groups(prot, 'legs', filters).map((g) => g.legs?.enchantId))
+    expect(legEnchants({}).has('presenceOfMight')).toBe(false)
+    expect(fakeRankings(prot, { excludedEnchants: [] }).enchants.has('presenceOfMight')).toBe(true)
   })
 
   it('puts a shield’s enchants only on shields', () => {

@@ -105,6 +105,7 @@ export {
   GROUP_SLOTS,
   hasUnmeasuredRating,
   itemSource,
+  OPTION_ENCHANTS,
   PER_SLOT,
   POOL,
   type Rankings,

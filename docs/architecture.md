@@ -337,7 +337,8 @@ A spec is data plus small ability modules, never its own loop.
   kind `spell` cast one (and one per tick: Consecration), and procs can too (the seals', on a
   trigger after a white swing's own procs). The paladin pays for them from the one mana pool (the
   resources below), and gets mana back when an ability lands (Sanctified Judgement); abilities can
-  share a cooldown category, and auras can form an exclusive group (one seal). Holy damage and Holy
+  share a cooldown category, and auras can form an exclusive group (one seal), or yield to one that
+  outranks them (`yieldsTo`: Power Infusion to Arcane Power). Holy damage and Holy
   threat have their own multipliers (Vengeance, Righteous Fury). Warrior and druid plans have none
   of these, and the paladin has no rage pool, so its hits give no rage.
   A warrior's Thunder Clap and Demoralizing Shout roll the spell table too, but as their own kind,

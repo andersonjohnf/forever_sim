@@ -426,6 +426,12 @@ export interface AuraPlan {
    */
   group?: string
   /**
+   * The id of an aura that outranks it (`AuraSpec.yieldsTo`): while that one is up this one doesn't
+   * go up, and that one going up ends it (Power Infusion yields to Arcane Power [C], buffs doc §1.1
+   * "Power Infusion"). Absent, or an aura not in the plan: none.
+   */
+  yieldsTo?: string
+  /**
    * Debuffs the player keeps on the boss, as auras (Faerie Fire, druid.md §3.8; warrior.md §5.4, §7
    * "Debuffs on the boss"), per stack, absent = 0: armor removed (Faerie Fire's 505, Sunder Armor's
    * 450), attack-speed slow % (Thunder Clap 20; the strongest active one counts, with the Buffs

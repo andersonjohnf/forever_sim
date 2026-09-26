@@ -367,8 +367,10 @@ export const EZ_THRO_DARK_BOMB: OnUseSpec = {
  * client gives it a mana-cost reduction, and its 20% of base mana is the priest's. Cast on you
  * **once, at the pull** (`charges`: 1, the user's rule): a caster's rotation presses it (its row,
  * off the GCD, at the pull in the default order), and a spec whose rotation doesn't, the Protection
- * paladin, gets it as a shared line at the pull (classes/shared-consumables.ts). Nothing in either
- * client keeps it from stacking with Arcane Power, so it does [?] (buffs doc open question 23).
+ * paladin, gets it as a shared line at the pull (classes/shared-consumables.ts). It doesn't stack
+ * with a mage's Arcane Power (12042), which outranks it: it doesn't go up while Arcane Power is ("A
+ * more powerful spell is already active"), and Arcane Power going up ends it (`yieldsTo`) [C]
+ * (Classic Era's rule, which neither client's tables show; buffs doc open question 23 for Forever).
  */
 export const POWER_INFUSION: OnUseSpec = {
   id: 'powerInfusion',
@@ -376,7 +378,14 @@ export const POWER_INFUSION: OnUseSpec = {
   icon: 'spell_holy_powerinfusion',
   cooldownMs: 180000,
   gcdMs: 0,
-  aura: { id: 'powerInfusion', name: 'Power Infusion', durationMs: 15000, mods: { schoolMask: schoolMask(MAGIC_SCHOOLS), schoolDamage: 20 } },
+  aura: {
+    id: 'powerInfusion',
+    name: 'Power Infusion',
+    durationMs: 15000,
+    // Arcane Power's aura (classes/mage/abilities.ts ARCANE_POWER_AURA) outranks it [C].
+    yieldsTo: 'arcanePower',
+    mods: { schoolMask: schoolMask(MAGIC_SCHOOLS), schoolDamage: 20 },
+  },
   rageTenths: 0,
   rageSpreadTenths: 0,
   charges: 1,

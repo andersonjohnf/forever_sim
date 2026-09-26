@@ -426,6 +426,13 @@ export class Sim {
   /** The next aura of the same exclusive group, in a ring (itself when it has none): one seal at a time. */
   private readonly aGroupNext: Int32Array
   /**
+   * The aura that outranks each (`AuraPlan.yieldsTo`), or −1: while it's up this one doesn't go up;
+   * and the aura each one's going up ends, or −1 (Power Infusion yields to Arcane Power [C], buffs doc
+   * §1.1 "Power Infusion").
+   */
+  private readonly aYieldsTo: Int32Array
+  private readonly aEnds: Int32Array
+  /**
    * Charges that hits taken which cost health use up (Seal of Fury's absorb, 1; paladin.md#protection-tree),
    * the auras that have them, and each active one's charges left.
    */
@@ -1538,6 +1545,12 @@ export class Sim {
     this.aHoly = Float64Array.from(auras, (a) => a.holy ?? 0)
     this.aHolyTaken = Float64Array.from(auras, (a) => a.holyTaken ?? 0)
     this.aGroupNext = ring(auras.map((a) => a.group))
+    // buffs doc §1.1 "Power Infusion": an aura that outranks another (Arcane Power, Power Infusion) [C].
+    this.aYieldsTo = Int32Array.from(auras, (a) => (a.yieldsTo === undefined ? -1 : auras.findIndex((b) => b.id === a.yieldsTo)))
+    this.aEnds = new Int32Array(na).fill(-1)
+    this.aYieldsTo.forEach((over, i) => {
+      if (over >= 0) this.aEnds[over] = i
+    })
     this.aTakenCharges = Int32Array.from(auras, (a) => a.takenCharges ?? 0)
     this.takenChargeAuras = Int32Array.from(auras.flatMap((a, i) => ((a.takenCharges ?? 0) > 0 ? [i] : [])))
     this.auraTakenCharges = new Int32Array(na)
@@ -4021,6 +4034,12 @@ export class Sim {
 
   /** Puts aura a on the warrior (or refreshes it, adding a stack) until `end` (a pre-pull aura ends early). */
   private startAura(a: number, end: number): void {
+    // buffs doc §1.1 "Power Infusion": an aura that outranks it is up, so it doesn't go up ("A more
+    // powerful spell is already active"); and one it outranks ends as it goes up [C].
+    const over = this.aYieldsTo[a]
+    if (over >= 0 && this.auraActive[over] === 1) return
+    const under = this.aEnds[a]
+    if (under >= 0 && this.auraActive[under] === 1) this.removeAura(under)
     this.auraApplications[a]++
     const wasActive = this.auraActive[a] === 1
     const oldStacks = this.auraStacks[a]

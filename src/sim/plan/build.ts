@@ -846,6 +846,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.holy ? { holy: spec.mods.holy } : {}),
       ...(spec.mods.holyTaken ? { holyTaken: spec.mods.holyTaken } : {}),
       ...(spec.group ? { group: spec.group } : {}),
+      // buffs doc §1.1 "Power Infusion": an aura that outranks it (Arcane Power, Power Infusion's) [C].
+      ...(spec.yieldsTo ? { yieldsTo: spec.yieldsTo } : {}),
       // Debuffs the player keeps on the boss (Faerie Fire, druid.md §3.8; warrior.md §7 "Debuffs on
       // the boss"), and an item-armor aura (Enrage, druid.md §4.5), only when set.
       ...(spec.mods.targetArmor ? { targetArmor: spec.mods.targetArmor } : {}),
@@ -1714,7 +1716,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...onUseItems,
   ]
   if (setup.simulated && notPressed.length) notes.add('onUseConsumables', notPressed.join(', '))
-  // buffs doc §1.1 "Power Infusion": once, at the pull; with Arcane Power, they stack [?] (OQ 23).
+  // buffs doc §1.1 "Power Infusion": once, at the pull; with Arcane Power, they don't stack [C] (OQ 23).
   if (abilities.some((a) => a.id === POWER_INFUSION.id))
     notes.addText('powerInfusion', powerInfusionText(abilities.some((a) => a.id === 'arcanePower')))
   // buffs doc §3.7: the bomb's throw and table [?].

@@ -344,6 +344,10 @@ SpellCooldowns 3 min; SpellDuration 15 s). Off the GCD and free.
   when it lands, so one that lands after Arcane Power ends pays the usual cost; a Clearcasting cast
   stays free.
 - Master of Elements returns its share of the spell's base cost, without the 30%.
+- **It doesn't stack with a priest's Power Infusion**, and wins: Power Infusion doesn't land while
+  it's up, and it ends Power Infusion as it goes up, Classic Era's rule [C]
+  ([buffs "Power Infusion"](../mechanics/buffs-debuffs-consumables.md#power-infusion), open question
+  23 for Forever). Both at the pull, Power Infusion gives the Arcane mage nothing.
 
 ---
 

@@ -1104,8 +1104,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B85. Maelstrom Weapon's rate
 **Medium · Enhancement shaman · ≤30 (tier 5)**
-- **Assumes** [?]: a stack on 50% of landed melee hits, white, special and extra attacks, read from
-  a value the talent carries. Blizzard never published the rate; its Season of Discovery notes raise
+- **Assumes** [?]: a stack on 50% of landed melee hits, white, special and extra attacks. The
+  tooltip describes a chance but never shows it (it references the talent's 20 and 5, not its 50);
+  the sim reads the client's undescribed dummy 50 as that chance, a question for the user. Blizzard never published the rate; its Season of Discovery notes raise
   it about 50% with Windfury Weapon and 25% with a two-hander, which the sim doesn't add.
 - **Test:** count Maelstrom Weapon stacks gained against landed melee hits in the combat log, with a
   one-hander and a two-hander, with and without Windfury Weapon.

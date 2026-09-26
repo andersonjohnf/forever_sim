@@ -368,10 +368,14 @@ SpellMisc, 1.60.1.69913); the rolling model [?] ([D36](../decisions.md#d36-what-
   Classic's bleed 12721 doesn't exist in the Forever client (no `SpellName`, `SpellEffect` or
   `SpellMisc` row, and not encrypted) [F] [client] (SpellName, SpellEffect, SpellMisc,
   1.60.1.69913). 412609 is the Season of Discovery spell, which the Classic Era 1.15.9 client
-  also carries, so SoD's behaviour for it is the closest analog for how Forever's server runs it
-  (the doctrine's second exception): it rolls, as WarriorSim's SoD `DeepWounds` class does
-  [ws-spell]. It's `[?]` until a guild test (Q21, [open-questions
-  B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)).
+  also carries. The sim has it roll, on [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)'s
+  evidence: the BlizzCon demo stream ("stacking SoD-style"), the Forever client carrying only
+  SoD's spells, and one beta log, plus WarriorSim's SoD `DeepWounds` class [ws-spell] as
+  unconfirmed data, not a source. It's `[?]` and re-checked under
+  [D37](../decisions.md#d37-only-sourced-values-2026-09-26), whose scoped SoD rule admits only
+  Blizzard's own SoD data or patch notes for 412609 (Q21, [open-questions
+  B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)), until an
+  in-game test settles it.
 - **Modifiers.** The bleed ignores armor. The physical damage-done modifiers at the crit apply
   (Death Wish, Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]; the tick
   spell's flags may say otherwise (Q36). It cannot crit (its Forever bleed lacks the
@@ -1273,8 +1277,8 @@ seed 36501, 400,000 paired fights) the result is **+40.25 DPS (+5.02%, 95% CI +4
     cooldowns and potion timed into the phase. A rogue has nothing that changes below 20%.
   - **Deep Wounds, 112 DPS more (41%).** Without a phase its 3 points are worth 112.34; with one,
     120.55, **14.3% of Fury's damage** (Arms 129.93, 15.8%; the tank's 11%): D36's rolling bleed
-    ([§2.5](#25-crits-impale-flurry-deep-wounds), [?], SoD's behaviour for the SoD spell Forever
-    uses). WarriorSim's own Forever Fury fixture has it at 12.1% ([wsf-golden], "forever-dw-fury":
+    ([§2.5](#25-crits-impale-flurry-deep-wounds), [?], on D36's evidence and WarriorSim's SoD code
+    as unconfirmed data; re-checked under D37, B79). WarriorSim's own Forever Fury fixture has it at 12.1% ([wsf-golden], "forever-dw-fury":
     28,325 of 234,751). Ours is higher for reasons that are cited, not wrong: more crits to feed it
     (our 2.4-point crit suppression against WarriorSim's 4.8, [combat-tables §2.2](../mechanics/combat-tables.md#22-outcome-formulas),
     which D36 kept), a 180 s fight rather than its 50–60 s ones, where the pool pays out after a
@@ -3240,10 +3244,12 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     client, and Forever's bleed is spell **412609** (4 ticks, one every 3 s, no periodic-crit
     flag), which the talent 12834 triggers server-side. Rend 11574 does carry the periodic-crit
     flag [F] [client] (SpellName, SpellEffect, SpellMisc, 1.60.1.69913). 412609 is the Season of
-    Discovery spell, also in the Classic Era 1.15.9 client, so under the doctrine's second
-    exception its SoD behaviour is the closest analog: the bleed **rolls** (each crit adds its
-    snapshotted amount to a pool the next 4 ticks pay out, and the pending tick keeps its time,
-    [§2.5](#25-crits-impale-flurry-deep-wounds)) [?]. It's the largest change D36 brought: the
+    Discovery spell, also in the Classic Era 1.15.9 client. The sim has the bleed **roll** (each
+    crit adds its snapshotted amount to a pool the next 4 ticks pay out, and the pending tick
+    keeps its time, [§2.5](#25-crits-impale-flurry-deep-wounds)) [?], on D36's evidence (the
+    BlizzCon stream, the Forever client's SoD spells, one beta log) plus WarriorSim's SoD code as
+    unconfirmed data; it's re-checked under D37 ([open-questions
+    B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)). It's the largest change D36 brought: the
     earlier restart model, which lost what was left of the bleed at every crit, gave the default
     Fury warrior about 14% less DPS and Arms about 14% less: on the defaults since W4, at the
     default seed (1) over 5,000 fights with only the rolling switched off, Fury 842.3 → 727.0

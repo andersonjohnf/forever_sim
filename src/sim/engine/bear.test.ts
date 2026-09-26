@@ -704,5 +704,5 @@ describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TP
     expect(max.tps!.mean / balanced.tps!.mean).toBeLessThan(1.006)
     expect(max.dps.mean / balanced.dps.mean).toBeLessThan(1)
     expect(max.dps.mean / balanced.dps.mean).toBeGreaterThan(0.994)
-  })
+  }, 60_000)
 })

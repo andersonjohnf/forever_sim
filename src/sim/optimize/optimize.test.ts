@@ -260,13 +260,15 @@ describe('optimize', () => {
     // the cap (the CLI's makes 1,034 on 1.60.1.70009; the probe's 504 were 69913's, with the default
     // screen, which on 70009 makes 238 that fit at 2,000), but at 50
     // each they fit, so every rank is searched and the first round shrinks. The test checks that the
-    // case holds before relying on it. Stopped once the space is known.
+    // case holds before relying on it. Stopped once the space is known. At 2,500 since the bear's head
+    // became Shadowcraft Cap (druid.md §7.3a): its screen keeps 461 candidates, whose 2,000 each fit the
+    // race's share of the cap, so a caller's first round runs as asked.
     const controller = new AbortController()
     let space: Extract<OptimizeProgress, { phase: 'space' }> | undefined
     const run = optimize({
       config: bear,
       talents: { minPoints: search.minPoints, screenFights: search.screenFights },
-      budget: { ...BUDGETS.quick, initialFights: 2_000 },
+      budget: { ...BUDGETS.quick, initialFights: 2_500 },
       maxFights: 1_000_000,
       runner: localFightRunner(),
       signal: controller.signal,
@@ -279,14 +281,14 @@ describe('optimize', () => {
     await expect(run).rejects.toThrow(/cancelled/)
     const plans = space!.candidates + 1
     const raceCap = 1_000_000 - space!.screen!.fights
-    // The probe's case: at 2,000 fights each the plans pass 90% of what the cap leaves the race.
-    expect(2_000 * plans).toBeGreaterThan(0.9 * raceCap)
+    // The probe's case: at 2,500 fights each the plans pass what the cap leaves the race.
+    expect(2_500 * plans).toBeGreaterThan(raceCap)
     expect(space!.space!.searchPartials).toBe(true)
     expect(space!.space!.narrowed).toBeUndefined()
     expect(space!.notes.some((n) => n.startsWith('Narrowed'))).toBe(false)
     expect(space!.budget).toEqual({ fights: raceCap, initialFights: Math.floor((0.9 * raceCap) / plans), cap: 1_000_000 })
-    expect(space!.budget.initialFights).toBeLessThan(2_000)
-    expect(space!.notes.at(-1)).toMatch(/^A first round of 2,000 fights each over [\d,]+ plans \(the baseline included\) passes the [\d,]+ fights the search's cap leaves the race: it runs [\d,]+ each\.$/)
+    expect(space!.budget.initialFights).toBeLessThan(2_500)
+    expect(space!.notes.at(-1)).toMatch(/^A first round of 2,500 fights each over [\d,]+ plans \(the baseline included\) passes the [\d,]+ fights the search's cap leaves the race: it runs [\d,]+ each\.$/)
   }, 120_000)
 
   it('refuses a search too large for the cap even at its narrowest, before the fights it can’t afford (OGV-2)', async () => {

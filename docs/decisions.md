@@ -611,7 +611,7 @@ and Ahn'Qiraj's Rares, which aren't in the game at launch. The default pool is: 
 pre-raid list (D11's lists); dungeon, PvP, reputation, crafted and other non-raid items up to item
 level 63; and the launch raids' items (Onyxia, and Forever's new Barrow Deeps and Hyjal) where they
 can be identified. Later raid drops (Zul'Gurub, Ahn'Qiraj, Molten Core, Blackwing Lair, Naxxramas and
-later-patch Rares) are off unless the player opts in (the CLI's `--include-later-raids`, a checkbox in
+later patches' items above item level 63) are off unless the player opts in (the CLI's `--include-later-raids`, a checkbox in
 O3). The client has no drop sources, so a later item is one above item level 63 on no list, a curated
 raid item or a raid set's piece; an item new in Forever counts as the launch game's. This replaces the
 build plan's "defaults search the whole pool". Every answer labels each piece's source ("launch raid:

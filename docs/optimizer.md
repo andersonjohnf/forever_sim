@@ -611,7 +611,7 @@ and Ahn'Qiraj comes long after launch (D36). So by default a slot takes (`conten
 
 **The later raids are off unless the player opts in** (`GearFilters.laterRaids`, the CLI's
 `--include-later-raids`, O3's checkbox): Zul'Gurub, Ahn'Qiraj, Molten Core, Blackwing Lair, Naxxramas
-and later patches' Rares. The client has no drop sources, so they're found by what the data says:
+and later patches' items above item level 63. The client has no drop sources, so they're found by what the data says:
 
 - **any item above item level 63 on no pre-raid list** that isn't new in Forever (Fury of the Forgotten
   Swarm, 71; Slime Kickers, 73; Sacrificial Gauntlets, 68);
@@ -636,6 +636,11 @@ Fury warrior's slots take 966 of them by default and 1,152 opted in.
   the Sylvan and Ironvine sets), labelled "later content (item level N, on no pre-raid list)", not a
   raid's. The user's rule puts them there.
 - **A Forever-new item from a later phase** would count as the launch game's: the client doesn't say.
+- **The line is item level, not patch** (O2V-2): later patches' non-raid items at 63 or below stay in
+  the default (Silithus' Cenarion and Abyssal rewards such as Earthweave Cloak and Band of Earthen
+  Wrath; the Scourge Invasion's), as the pre-raid lists already take Earthstrike and Band of Earthen
+  Might from the same chain; and Alterac Valley's reputation weapons at 65 (19099–19102, 19104) fall
+  to "later" though they're pre-raid, unless a list names them.
 - **A raid item at item level 63 or below** that isn't curated stays in the default. The two Hakkari
   cloaks (item level 59) are curated as Zul'Gurub's by their name and ids `[?]`.
 - **A worn item stays a candidate** whatever its content (a step always races the current item), so a
@@ -941,6 +946,10 @@ fresh seed. This is O4's process, after the tanks' threat fixes (M5.6):
    O4 sets §6.4's default for that slot instead (Greater Strength or Greater Agility, +10) and records
    the answer's enchant as an option in the class doc. The same goes for any enchant left out by
    default (`UNCONFIRMED_ENCHANTS`), which a default search never picks.
+6. **A rated piece the start already wears is checked too** (O2V-1). The search applies D30's
+   unmeasured-rating rule only to an answer's new pieces, so a preset's rated item (Adaptive Combat
+   Assistant, Stalwart Watcher's Signet) is never compared with unrated alternatives. Before a default
+   keeps one, O4 races it against the best unrated alternative for its slot and applies the rule.
 
 **The answers on 1.60.1.70009 so far** (`quick`, seed 1, the default goals and constraints; not
 O4's `thorough`, confirmed runs, so no default has changed). Each is against the spec's 70009

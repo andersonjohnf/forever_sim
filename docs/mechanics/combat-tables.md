@@ -109,7 +109,7 @@ strings with no numbers ([era strings][gs-era]).
 | Dual-wield white miss penalty | +19% [F] tooltip (27% − 8%, [gs][gs-forever]); in combat [C] (unchanged) | +19% [C] ([Magey][magey-at]) |
 | Boss dodge @300 | 6.5% [F] tooltip `CR_EXPERTISE_TOOLTIP` ([gs][gs-forever]); `BASE_ENEMY_DODGE_CHANCE[3] = 6.5` ([stats Lua][ui-stats]); in combat [C] (unchanged) | 6.5% [C] ([Magey][magey-at]) |
 | Dodge change per skill point | 0.04% [F] client UI ([SkillsFrame][ui-skills]); [?] in combat | 0.1% [C] ([Magey][magey-at]) |
-| Boss parry @300 (front only) | **16.5%** [F] tooltip `CR_EXPERTISE_TOOLTIP` ([gs][gs-forever]); [?] in combat: beta logs at levels 1–20 read nearer 14% (OQ 3) | 14% [C] (Blizzard, via [Magey][magey-at]) |
+| Boss parry @300 (front only) | **16.5%** [F] tooltip `CR_EXPERTISE_TOOLTIP` ([gs][gs-forever]); [?] in combat: beta logs at levels 1–20 read nearer 14%, unverified (OQ 3) | 14% [C] (Blizzard, via [Magey][magey-at]) |
 | Parry change per skill point | 0.04% [F] client UI ([SkillsFrame][ui-skills]); [?] in combat | 0 [?] (not established, see [§4.1](#41-effects-per-point)) |
 | Boss block (front only) | 5% [C] ([Magey][magey-at]) | 5% [C] ([Magey][magey-at]) |
 | Glancing chance | `10% + 2% × (def − min(skill, 300))` = 40% [F] client UI `GetGlancingBlowChance` ([SkillsFrame][ui-skills]); in combat [C] (unchanged) | same, 40% [C] ([Magey][magey-at]) |
@@ -952,11 +952,13 @@ adopt its results when they land.
    source now. Magey suggests testing vs +2 mobs as a proxy for +5 skill.
 3. **Boss parry 16.5% vs 14%** [?]. The client's other expertise string
    (`CR_RANGED_EXPERTISE_TOOLTIP`) still says 14.00%. **Log evidence against 16.5%:** an audit of 47
-   public beta logs (2026-09-26) reads **14.3% ± 1.5** parry on white swings from the front against
-   mobs three levels above the attacker, at levels 1–20. That's Classic Era's 14%, not the tooltip's
-   16.5%, but it isn't a level-63 boss, and its method isn't written up here yet (D22 asks for
-   that), so the default stays the client's 16.5% [F] until a test at 60 or a documented re-run
-   settles it. 14% would give the default Protection warrior about 2.6% more TPS. Test: log white
+   public beta logs (2026-09-26) reads **14.3% ± 1.5** parry on white swings against mobs three
+   levels above the attacker, at levels 1–20. Its front-only filter is unverified: no script or
+   write-up of it exists yet (D22 asks for one), and swings from behind mixed in would pull the
+   rate down. That's Classic Era's 14%, not the tooltip's 16.5%, but it isn't a level-63 boss, so
+   the default stays the client's 16.5% [F] until a test at 60 or a documented re-run settles it.
+   14% would give the default Protection warrior about 2.5% more TPS (910.08 → 932.92, 10,000
+   fights at the default seed). Test: log white
    swings from the front vs +3 mobs, where parry is the one outcome that behind/front tests isolate
    cleanly ([open-questions B12](../open-questions.md#b12-boss-parry-from-the-front)).
 4. **Glancing damage** [?]. The UI gives 25% at 300 skill; the beta currently deals the wrong

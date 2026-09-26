@@ -1571,7 +1571,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const standIns: string[] = []
   if (placeholders.includes('base attributes')) {
     // Every class's Skyborne rows are the class row: Skyborne's race offsets are unknown (OQ-1).
-    const neutral = config.race.includes('skyborne') ? ', the class row with no race adjustment, as Skyborne’s is unknown' : ''
+    const neutral = config.race.includes('skyborne') ? `, a ${meta.className.toLowerCase()}’s base stats before any racial bonus, as the Skyborne’s aren’t known` : ''
     standIns.push(`base attributes Str ${block.baseStr}, Agi ${block.baseAgi}, Sta ${block.baseSta}, Int ${block.baseInt}, Spi ${block.baseSpi}${neutral}`)
   }
   if (placeholders.includes('base attack power')) standIns.push(`base attack power ${signed(block.baseAp)} before Strength`)

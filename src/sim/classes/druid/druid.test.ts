@@ -333,7 +333,7 @@ describe('the druid plan (druid.md §2, §7)', () => {
     const skyborne = buildPlan({ ...bare(defaultConfig('druid-feral-cat')), race: 'horde-skyborne-windshaper', gear: {}, talents: '' })
     expect(skyborne.blockers).toEqual([])
     expect(skyborne.assumptions.find((a) => a.id === 'baseStatPlaceholders')!.text).toContain(
-      'base attributes Str 65, Agi 60, Sta 70, Int 100, Spi 110, the class row with no race adjustment, as Skyborne’s is unknown;',
+      'base attributes Str 65, Agi 60, Sta 70, Int 100, Spi 110, a druid’s base stats before any racial bonus, as the Skyborne’s aren’t known;',
     )
     // The rows agree with the [C] race offsets: Night Elf −3 Str, +5 Agi, −1 Sta; Tauren +5, −5, +2, −5, +2.
     const classRow = stand.attributes!['alliance-skyborne-high-order']

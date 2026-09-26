@@ -589,11 +589,11 @@ describe('base values the sim stands in for (D24), and setups it can’t run yet
     // docs/mechanics/character-stats.md#warrior-base-attributes: the warrior class row is the Human
     // row 120/80/110/30/45; docs/classes/hunter.md#75-base-values: the hunter's is 55/125/90/65/70.
     const cases = [
-      ['warrior-fury', 'Str 120, Agi 80, Sta 110, Int 30, Spi 45'],
-      ['warrior-protection', 'Str 120, Agi 80, Sta 110, Int 30, Spi 45'],
-      ['hunter-marksmanship', 'Str 55, Agi 125, Sta 90, Int 65, Spi 70'],
+      ['warrior-fury', 'Str 120, Agi 80, Sta 110, Int 30, Spi 45', 'warrior'],
+      ['warrior-protection', 'Str 120, Agi 80, Sta 110, Int 30, Spi 45', 'warrior'],
+      ['hunter-marksmanship', 'Str 55, Agi 125, Sta 90, Int 65, Spi 70', 'hunter'],
     ] as const
-    for (const [spec, row] of cases) {
+    for (const [spec, row, cls] of cases) {
       for (const race of ['alliance-skyborne-high-order', 'horde-skyborne-windshaper']) {
         const bundle = buildPlan(defaultConfig(spec, race))
         expect(bundle.blockers, `${spec} ${race}`).toEqual([])
@@ -602,7 +602,7 @@ describe('base values the sim stands in for (D24), and setups it can’t run yet
         const ids = bundle.assumptions.map((a) => a.id)
         expect(ids).not.toContain('unknownBaseAttributes')
         expect(bundle.assumptions.find((a) => a.id === 'baseStatPlaceholders')!.text).toContain(
-          `base attributes ${row}, the class row with no race adjustment, as Skyborne’s is unknown;`,
+          `base attributes ${row}, a ${cls}’s base stats before any racial bonus, as the Skyborne’s aren’t known;`,
         )
       }
     }

@@ -82,7 +82,7 @@ const REGISTRY = {
     docRef: `${CT}#5-dual-wield-and-on-next-swing-queues`,
   },
   unbridledWrathSwings: {
-    text: 'Unbridled Wrath procs only from auto attacks (white swings of either hand and extra attacks), not from Heroic Strike or Cleave swings, as the Forever client’s proc mask says; untested in combat.',
+    text: 'Unbridled Wrath procs only from auto attacks (white swings of either hand and extra attacks), not from Heroic Strike or Cleave swings, as the Forever client’s data says; untested in combat.',
     docRef: `${WAR}#23-rage-warrior-specific`,
   },
   ragingBlows: {
@@ -213,7 +213,7 @@ const REGISTRY = {
     docRef: `${DT}#54-extra-attacks-and-chaining`,
   },
   windfuryIcd: {
-    text: 'Windfury can’t proc again within 100 ms of a proc, the internal cooldown the Forever client gives it; whether the server enforces it is untested. Its +246 attack power lasts 1 s with 2 charges: the extra attack uses one and your next auto attack in that second the other, and your abilities in that second get it without using one; untested.',
+    text: 'Windfury can’t proc again within 100 ms of a proc, the internal cooldown the Forever client gives it. Its +246 attack power lasts 1 s and reaches the extra attack, your next auto attack and any ability you use in that second. Both are untested.',
     docRef: `${DT}#54-extra-attacks-and-chaining`,
   },
   windfuryStone: {
@@ -234,8 +234,10 @@ const REGISTRY = {
     docRef: `${CT}#9-spell-hit-and-crit-generic`,
   },
   // warrior.md §2.5 (the rolling model, D36, Q21) and Q36: the tick spell's "ignore caster damage modifiers" flag.
+  // The restart model's cost, measured with only `deepWoundsRolls` off at the default seed (1) over 5,000
+  // fights: Fury 802.4 → 695.7 DPS (−13.3%), Arms 795.4 → 692.7 (−12.9%), as warrior.md Q21 gives.
   deepWounds: {
-    text: 'Deep Wounds rolls, as the Season of Discovery bleed the Forever client carries does: each crit adds 60% of the critting weapon’s average hit (less for an off-hand crit) to a pool, and the next 4 ticks pay it out without the pending tick moving. Each crit’s share is fixed at the crit, from your attack power then and raised by Death Wish, Enrage and Two-Handed Weapon Specialization if they’re up, though the Forever client flags the tick to ignore them. It can’t crit. Under Classic Era rules each crit restarts it instead. Untested in Forever.',
+    text: 'Deep Wounds rolls, as the bleed spell the Forever client uses does: each crit adds 60% of the critting weapon’s average hit (less for an off-hand crit) to the bleed, dealt over its next 4 ticks, and none of it is lost. Each crit’s share is set when it lands, raised by Death Wish, Enrage and Two-Handed Weapon Specialization if they’re up, though the client says the ticks ignore them. It can’t crit. Under Classic Era rules each crit restarts it and loses what was left: about 13% less DPS for the default Fury and Arms warriors. Untested in Forever.',
     docRef: `${WAR}#25-crits-impale-flurry-deep-wounds`,
   },
   angerManagement: {
@@ -724,7 +726,7 @@ const REGISTRY = {
     docRef: `${ROGUE}#4-poisons`,
   },
   poisonAp: {
-    text: 'Instant Poison adds 0.5% of your attack power a hit and Deadly Poison 0.1125% a stack each tick, as a guild test measured. Deadly Poison reads your attack power at each tick, not when the stack lands, and Vile Poisons and Venom raise the attack-power part as they raise the rest of a poison’s damage. Untested.',
+    text: 'Instant Poison adds 0.5% of your attack power a hit, as a guild test measured, and Deadly Poison 0.1125% a stack each tick, measured on Deadly Poison V; rank IV is taken to be the same. Deadly Poison reads your attack power at each tick, not when the stack lands, and Vile Poisons and Venom raise the attack-power part as they raise the rest of a poison’s damage. Untested.',
     docRef: `${ROGUE}#4-poisons`,
   },
   deadlyPoisonTicks: {

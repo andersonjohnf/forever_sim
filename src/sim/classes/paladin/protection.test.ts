@@ -649,6 +649,112 @@ describe('Seal of Fury’s absorb and Improved Seal of Fury (paladin.md#protecti
     expect(lostBefore - taken).toBeCloseTo(absorbed * 0.5 * perProc, 6)
   })
 
+  it('on the stand-in hits: a smaller hit leaves the rest up, with no mana; a bigger one spends it and restores mana; unspent, it ends after its 10 s', () => {
+    // A synthetic fight (DL-6): no boss, so the only hits you take are the stand-in's (encounter.md §4),
+    // `size` every 900 ms; a 15 s weapon whose swings always land, and no crits or Judgement of the
+    // Crusader, so each Seal of Fury proc deals 65 × the build's Improved Seals (74.75) and puts up an
+    // absorb of half that, 37.375, which lasts 10 s.
+    const run = (size: number) => {
+      const plan = slowPlan({ rotation: NO_JOTC })
+      plan.weapons = [{ ...plan.weapons[0]!, speedSec: 15 }, null]
+      plan.stats.crit = -100
+      plan.stats.spellCrit = -100
+      setSp(plan, 300)
+      plan.fight.bossSwing = null
+      plan.fight.damageTakenPerHit = size
+      plan.fight.damageTakenIntervalMs = 900
+      const sim = new Sim(plan)
+      const absorb = auraOf(plan, 'sealOfFuryShield')
+      const procRow = rowOf(plan, 'sealOfFuryProc')
+      const improvedRow = rowOf(plan, 'improvedSealOfFury')
+      const spy = sim as unknown as {
+        auraActive: Uint8Array
+        auraAbsorb: Float64Array
+        takeHit: (healthLost: number, pre: number) => void
+        onDamageTaken: () => void
+        gainMana: (tenths: number, source: number) => void
+      }
+      const n = { partial: 0, spent: 0, expired: 0, bare: 0, procsFired: 0, restored: 0 }
+      // What the absorb should hold: half the last proc, less what hits took since, and when it went up.
+      let model = 0
+      let putUpAt = -Infinity
+      sim.damageTrace = (source, damage) => {
+        if (source !== procRow) return
+        model = 0.5 * damage
+        putUpAt = nowOf(sim)
+      }
+      const onDamageTaken = spy.onDamageTaken.bind(sim)
+      spy.onDamageTaken = () => {
+        n.procsFired++
+        onDamageTaken()
+      }
+      const gain = spy.gainMana.bind(sim)
+      spy.gainMana = (tenths, source) => {
+        if (source === improvedRow) n.restored++
+        gain(tenths, source)
+      }
+      const takeHit = spy.takeHit.bind(sim)
+      spy.takeHit = (healthLost, pre) => {
+        expect(healthLost).toBe(size)
+        const up = spy.auraActive[absorb] === 1
+        const left = up ? spy.auraAbsorb[absorb] : 0
+        if (up) {
+          expect(left).toBeCloseTo(model, 9)
+          expect(nowOf(sim) - putUpAt).toBeLessThanOrEqual(10000)
+        } else if (model > 0) {
+          // Gone with an amount left: only its 10 s ends it.
+          expect(nowOf(sim) - putUpAt).toBeGreaterThanOrEqual(10000)
+          n.expired++
+          model = 0
+        }
+        const before = sim.fightDamageTaken
+        const fired = n.procsFired
+        takeHit(healthLost, pre)
+        expect(sim.fightDamageTaken - before).toBeCloseTo(Math.max(0, size - left), 9)
+        if (up && left > size) {
+          // A partial absorb: the rest stays up, and the hit cost nothing, so no damage-taken procs.
+          n.partial++
+          expect(spy.auraActive[absorb]).toBe(1)
+          expect(spy.auraAbsorb[absorb]).toBeCloseTo(left - size, 9)
+          expect(n.procsFired).toBe(fired)
+          model = left - size
+        } else if (up) {
+          n.spent++
+          expect(spy.auraActive[absorb]).toBe(0)
+          expect(n.procsFired).toBe(fired + 1)
+          model = 0
+        } else {
+          n.bare++
+          expect(n.procsFired).toBe(fired + 1)
+        }
+      }
+      for (let i = 0; i < 10; i++) {
+        model = 0
+        putUpAt = -Infinity
+        sim.runFight(i)
+      }
+      const perProc = field(sim, plan, 'sealOfFuryProc', FIELD.damage) / field(sim, plan, 'sealOfFuryProc', FIELD.hits)
+      const spell = plan.spells![plan.procs.find((p) => p.id === 'sealOfFuryProc')!.amount]
+      expect(perProc).toBeCloseTo(65 * spell.damageMult, 9)
+      expect(perProc / 2).toBeGreaterThan(11)
+      expect(perProc / 2).toBeLessThan(40)
+      return n
+    }
+    // 1 a hit: about 11 hits in 10 s take 11 of it, so it's never used up, and ends with the rest.
+    const small = run(1)
+    expect(small.partial).toBeGreaterThan(100)
+    expect(small.expired).toBeGreaterThan(10)
+    expect(small.spent).toBe(0)
+    expect(small.restored).toBe(0)
+    expect(small.bare).toBeGreaterThan(10)
+    // 40 a hit: the first after each proc spends it, and restores Improved Seal of Fury's mana.
+    const big = run(40)
+    expect(big.partial).toBe(0)
+    expect(big.expired).toBe(0)
+    expect(big.spent).toBeGreaterThan(10)
+    expect(big.restored).toBe(big.spent)
+  })
+
   it('needs Seal of Fury and a shield', () => {
     expect(protPlan({ rotation: { [ID.seal]: 'righteousness' } }).procs.some((p) => p.id === 'improvedSealOfFury')).toBe(false)
     expect(protPlan({ gear: { mainHand: defaultConfig(PROT).gear.mainHand } }).procs.some((p) => p.id === 'improvedSealOfFury')).toBe(false)

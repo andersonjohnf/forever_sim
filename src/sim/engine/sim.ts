@@ -267,8 +267,9 @@ export class Sim {
   /** Test hook: every power tick with mana (its time, and the mana it restores in tenths before the cap). */
   manaTrace: ((time: number, tenths: number) => void) | null = null
   /**
-   * Test hook: every boss swing on the tank, as it resolves: its BOSS_OUTCOME, the health it cost
-   * and its size before mitigation (both 0 for a miss, dodge or parry).
+   * Test hook: every boss swing on the tank, as it resolves: its BOSS_OUTCOME, its damage after
+   * mitigation but before an absorb takes its part (`takeHit`: Seal of Fury's), and its size before
+   * mitigation (both 0 for a miss, dodge or parry).
    */
   swingTakenTrace: ((outcome: number, healthLost: number, pre: number) => void) | null = null
   /** The boss's swings by outcome (BOSS_OUTCOME), summed over every fight run (combat-tables §8). */
@@ -5762,11 +5763,12 @@ export class Sim {
 
   /**
    * One boss swing on the player (combat-tables §8, encounter §5): one roll over miss, dodge, parry,
-   * block, crit and crushing. A landed swing costs health after damage-taken modifiers, armor, its
-   * outcome's multiplier and a block's block value (damage-and-timing §2.6), and gives rage from its
-   * size before all of them (rage.md#forever-). Then the class hooks: `dodgeParry` and `dodge` or
-   * `parry` for an avoided swing; for a landed one `damageTaken` (if it cost health), `meleeTaken`,
-   * and `block` (then the blocks that end auras, of the auras up before these procs) or `critTaken`.
+   * block, crit and crushing. A landed swing's damage is after damage-taken modifiers, armor, its
+   * outcome's multiplier and a block's block value (damage-and-timing §2.6); an absorb that's up then
+   * takes its part (`takeHit`), and the rest costs health. It gives rage from its size before all of
+   * them (rage.md#forever-). Then the class hooks: `dodgeParry` and `dodge` or `parry` for an avoided
+   * swing; for a landed one `damageTaken` (if it cost health or spent an absorb), `meleeTaken`, and
+   * `block` (then the blocks that end auras, of the auras up before these procs) or `critTaken`.
    */
   private onBossSwing(): void {
     const boss = this.plan.fight.bossSwing!

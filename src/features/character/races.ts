@@ -59,7 +59,7 @@ function clearedBecause(change: FactionGearChange, slot: string): string {
  * pieces that became the new race's own default, not their twin, say which set they come from (a slot
  * that was empty too: an Alliance caster's off hand), a piece whose set bonus isn't the old one's says
  * how, and a slot the new default leaves empty says why (a Horde caster's Whiteout Staff takes both
- * hands). The title counts every slot that moved (docs/ux.md "Character").
+ * hands). The title counts every slot that moved, "Changed 4 slots for Horde gear" (docs/ux.md "Character").
  */
 export function raceChangeMessage(change: FactionGearChange, faction: Faction): { title: string; description: string } | null {
   const { swapped, defaulted, cleared, kept } = change
@@ -80,16 +80,10 @@ export function raceChangeMessage(change: FactionGearChange, faction: Faction): 
     ...cleared.map(({ slot }) => `${SLOT_LABEL[slot]} cleared${clearedBecause(change, slot)}.`),
     keptLine,
   ]
+  // One title whatever moved (review finding EV2-2): a slot filled, replaced or cleared is a slot changed.
   const moved = swapped.length + defaulted.length + cleared.length
   return {
-    title:
-      cleared.length > 0
-        ? `Changed ${moved} ${moved === 1 ? 'slot' : 'slots'} for ${faction} gear`
-        : defaulted.length > 0
-          ? `Swapped ${moved} ${moved === 1 ? 'item' : 'items'} for ${faction} gear`
-          : swapped.length === 1
-            ? `Swapped 1 item for its ${faction} version`
-            : `Swapped ${swapped.length} items for their ${faction} versions`,
+    title: `Changed ${moved} ${moved === 1 ? 'slot' : 'slots'} for ${faction} gear`,
     description: lines.filter(Boolean).join(' '),
   }
 }

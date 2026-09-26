@@ -108,9 +108,9 @@ test.describe('notices', () => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
     await page.getByRole('radio', { name: 'Orc' }).click()
-    await expect(toasts(page).filter({ hasText: 'Swapped 2 items for their Horde versions' })).toBeVisible()
+    await expect(toasts(page).filter({ hasText: 'Changed 2 slots for Horde gear' })).toBeVisible()
     await page.getByRole('radio', { name: 'Human' }).click()
-    await expect(toasts(page).filter({ hasText: 'Swapped 2 items for their Alliance versions' })).toBeVisible()
+    await expect(toasts(page).filter({ hasText: 'Changed 2 slots for Alliance gear' })).toBeVisible()
     await expect(toasts(page)).toHaveCount(1)
   })
 

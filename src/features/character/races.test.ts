@@ -16,9 +16,9 @@ describe('races the sim can simulate', () => {
 describe('the race-change toast', () => {
   const human = defaultConfig('warrior-fury', 'alliance-human')
 
-  it('names the swapped items', () => {
+  it('names the swapped items, and counts the slots they changed (EV2-2)', () => {
     const message = raceChangeMessage(changeRace(human, 'horde-orc'), 'Horde')!
-    expect(message.title).toMatch(/^Swapped \d+ items for their Horde versions$/)
+    expect(message.title).toMatch(/^Changed \d+ slots for Horde gear$/)
     expect(message.description).toMatch(/Champion's Plate Shoulders.*, with the same stats\.$/)
   })
 
@@ -44,8 +44,9 @@ describe('the race-change toast', () => {
     const troll = defaultConfig('mage-fire', 'horde-troll')
     const toHuman = changeRace(troll, 'alliance-human')
     expect(toHuman.cleared).toEqual([])
+    // A filled slot changes like a replaced one: the title says "Changed" both ways (EV2-2).
     expect(raceChangeMessage(toHuman, 'Alliance')).toEqual({
-      title: 'Swapped 4 items for Alliance gear',
+      title: 'Changed 4 slots for Alliance gear',
       description:
         "Lieutenant Commander's Silk Mantle, with the same stats but no set bonus. Inferno Gloves, Sageclaw and Tome of Fiery Arcana, from Alliance pre-raid best in slot.",
     })

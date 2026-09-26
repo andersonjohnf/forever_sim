@@ -584,7 +584,7 @@ const REGISTRY = {
   },
   // docs/classes/druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.
   bearThreat: {
-    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (206 is Sunder’s value in Forever’s game files). None is measured in Forever.',
+    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1.5 threat per damage, Blizzard’s value for Season of Discovery’s Mangle (Bear), the spell Primal Bite is in Forever’s game files. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (206 is Sunder’s value in Forever’s game files). None is measured in Forever.',
     docRef: `${THREAT}#druid-bear`
   },
   lacerate: {
@@ -1136,7 +1136,7 @@ export const BEAR_TEXT = {
               : `${prose(known)}: the value every Classic and Season of Discovery threat meter has used since 2019, which goes back to a 2006 guide and was never measured in Classic Era.`,
           ]
         : []),
-      ...(uses.mangle ? ['Primal Bite makes 1 threat per damage, since its threat is unknown.'] : []),
+      ...(uses.mangle ? ['Primal Bite makes 1.5 threat per damage, Blizzard’s value for Season of Discovery’s Mangle (Bear), the spell Primal Bite is in Forever’s game files.'] : []),
       ...(uses.lacerate
         ? [
             profile === 'forever'

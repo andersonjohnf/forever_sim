@@ -595,7 +595,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Assumes:** Maul and Swipe 1.75 × dmg, Demoralizing Roar 39, Faerie Fire 108 [?: every Classic
   and Season of Discovery threat tool has used them since 2019; they trace to a 2006 guide and were
   never measured on Classic Era; kept by user decision, 2026-09-26]; Primal Bite (Mangle until
-  1.60.1.70009) dmg × 1 [?]; bear form ×1.3 with no Feral Instinct threat [F].
+  1.60.1.70009) 1.5 × dmg [?: Blizzard's Season of Discovery hotfix for Mangle (Bear), the same
+  spell, 407995 (D36)]; bear form ×1.3 with no Feral Instinct threat [F].
 - **Test:** threat macro in bear form: fit mult × dmg + bonus over several damage rolls for Maul,
   Swipe and Primal Bite; flat values for Demoralizing Roar and Faerie Fire; calibrate with a white
   hit (×1.3).

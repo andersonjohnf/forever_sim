@@ -10,7 +10,8 @@
 // Predatory Instincts, Rend and Tear) are applied by `withDruidTalents` (modifiers.ts) when the plan
 // resolves the rotation. Threat values are threat.md's bear rows, all [?] (Q15): Maul's, Swipe's,
 // Faerie Fire's and Demoralizing Roar's are the values every Classic and Season of Discovery threat
-// tool has used since 2019, which trace to a 2006 guide and were never measured on Classic Era; and
+// tool has used since 2019, which trace to a 2006 guide and were never measured on Classic Era;
+// Primal Bite's is Blizzard's for Season of Discovery's Mangle (Bear), the spell it is (D36); and
 // Lacerate's "high amount of threat" is, by threat.md's wording table (D29), the warrior's Sunder
 // Armor's at the same level.
 import { CRIT_MULTIPLIER, GCD_MS } from '../../core/formulas'
@@ -39,6 +40,14 @@ export const SWIPE_THREAT_MULT = 1.75
 /** Faerie Fire's threat, 108 (rank 4), and Demoralizing Roar's, 39 per target (rank 5), of Maul's lineage [?] (threat.md#druid-bear, druid.md §4.8, Q15). */
 export const FAERIE_FIRE_THREAT = 108
 export const DEMORALIZING_ROAR_THREAT = 39
+/**
+ * Primal Bite's threat, 1.5 per damage before the global multipliers [?] (threat.md#druid-bear,
+ * druid.md §4.2, Q15). Its talent spell, 407995, is Season of Discovery's Mangle (Bear), which the
+ * Forever client carries in place of a Classic spell, and Blizzard's SoD hotfixes of 2 December 2024
+ * set that spell's threat modifier to 1.5× per damage (was 1.0×): the closest analog for how the
+ * server runs it (D36, D37). Its Forever tooltip names no threat, so the wording table adds nothing.
+ */
+export const PRIMAL_BITE_THREAT_MULT = 1.5
 
 /** The fields of a bear attack: rage, Dire Bear Form only, the 1.5 s GCD, one threat per damage (druid.md §4.8). */
 const BEAR_ATTACK = {
@@ -99,8 +108,9 @@ export const SWIPE: AbilityDef = {
  * 6000, GCD 1500; `WEAPON_PERCENT_DAMAGE` 100 and `WEAPON_DAMAGE` +77: `1.00 × (W_b + 77)`, one
  * roll [F] (druid.md §4.2). Bear and Dire Bear only (shapeshift mask 144). Build 1.60.1.70009 renamed
  * Mangle to Primal Bite and gave it a new icon (132278, `ability_racial_cannibalize`), and changed
- * nothing else: the same ids, damage, cost, cooldown and class mask. Its tooltip has no threat words,
- * so one per damage [?] (Q15). While Berserk is up it starts no cooldown (§4.6). Its id stays
+ * nothing else: the same ids, damage, cost, cooldown and class mask. Threat ×1.5 [?], Season of
+ * Discovery's Mangle (Bear)'s by Blizzard's notes (`PRIMAL_BITE_THREAT_MULT`, Q15). While Berserk is
+ * up it starts no cooldown (§4.6). Its id stays
  * `mangle`, as its setting's and its priority-list row's do, so saved setups and links keep it.
  */
 export const PRIMAL_BITE: AbilityDef = {
@@ -113,6 +123,7 @@ export const PRIMAL_BITE: AbilityDef = {
   cooldownMs: 6000,
   weaponPercent: 1,
   flatDamage: 77,
+  threatMult: PRIMAL_BITE_THREAT_MULT,
   clearcastable: true,
   noCooldownWhile: BERSERK_AURA_ID,
 }

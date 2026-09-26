@@ -52,11 +52,11 @@ test('Buffs presets say what they bring in view, not in a hover title', async ({
 
 test('Classic Era rules show Classic Era’s buff and enchant numbers', async ({ page }) => {
   await page.goto('./')
-  // Forever: the warrior's own Battle Shout is +139, and the gloves' Greater Strength +10.
+  // Forever: the warrior's own Battle Shout is +115 (rank 6, the trainer's: D36), and the gloves' Greater Strength +10.
   await expect(page.getByRole('button', { name: /^Greater Strength · .*, Hands enchant$/ })).toContainText('Greater Strength · +10 Strength')
   await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
   const shout = page.locator('label').filter({ has: page.getByRole('switch', { name: 'Battle Shout' }) })
-  await expect(shout).toContainText('+139 attack power')
+  await expect(shout).toContainText('+115 attack power')
 
   await page.getByRole('tab', { name: 'Character', exact: true }).click()
   await page.getByRole('button', { name: 'Advanced' }).click()

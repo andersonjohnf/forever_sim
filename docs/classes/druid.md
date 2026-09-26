@@ -2125,7 +2125,7 @@ Eclipse makes Wrath worth weaving, and the sim has no debuff limit (spells.md, I
 | # | Action | Default |
 | --- | --- | --- |
 | 0 | Moonkin Form before the pull | always |
-| 1 | Off the GCD: Elune's Light (Night Elf), on-use trinkets, Power Infusion (if a priest gives it, Buffs), on cooldown | on |
+| 1 | Off the GCD: Elune's Light (Night Elf) and on-use trinkets, on cooldown; Power Infusion (if a priest gives it, Buffs), once, at the pull ([buffs](../mechanics/buffs-debuffs-consumables.md#power-infusion)) | on |
 | 2 | Off the GCD: Major Mana Potion when missing ≥ 2,000 mana; Demonic Rune when missing ≥ 1,500 (if selected in Buffs) | on |
 | 3 | Innervate on yourself at ≤ 40% mana | on |
 | 4 | Faerie Fire when it's off the boss (a duty; costs you DPS) | **off** |
@@ -2173,7 +2173,7 @@ conditions in the table above (ids `druid.balance.…`):
 | Before the pull (`prepull`), pinned first | none | | Moonkin Form (row 0) |
 | Racial cooldown (`racial`) | `racial.enabled` | | Elune's Light on cooldown, a Night Elf's (row 1) |
 | On-use trinkets (`trinkets`) | `trinkets.enabled` | | On cooldown, if worn (row 1) |
-| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | On cooldown, if a priest gives it in Buffs (row 1) |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | Once, at the pull, if a priest gives it in Buffs (row 1) |
 | Innervate yourself (`innervate`) | `innervate.enabled` | `innervate.maxManaPct` | At or below that share of your mana (row 3) |
 | Faerie Fire (`faerieFire`) | `faerieFire.enabled` | | When it's off the boss (row 4) |
 | Insect Swarm (`insectSwarm`) | `insectSwarm.enabled` | `dots.minFightLeftSec` | When it's off the boss, with the talent (row 5) |

@@ -243,7 +243,7 @@ switch, its own settings and its own conditions, which it keeps wherever it sits
 | Before the pull (`prepull`), pinned first | — | | Shadowform, with the talent ([§3.6](#36-shadowform-15473)) |
 | Racial cooldown (`racial`) | `racial.enabled` | | on cooldown: Berserking, Elune's Light or Eureka! ([§3.8](#38-racial-spells)) |
 | On-use trinkets (`trinkets`) | `trinkets.enabled` | | on cooldown, each the sim models |
-| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | selected in Buffs (another priest's), on cooldown; the mana potion and rune take their turn just after it |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | selected in Buffs (another priest's), once, at the pull ([buffs](../mechanics/buffs-debuffs-consumables.md#power-infusion)); the mana potion and rune take their turn just after it |
 | Dark Sacrifice (`darkSacrifice`) | `darkSacrifice.enabled` | `darkSacrifice.missingMana` | Undead only; missing at least that much mana ([§3.8](#38-racial-spells)) |
 | Shadow Word: Pain (`shadowWordPain`) | `shadowWordPain.enabled` | `dots.minTimeLeftSec` | off the boss, and at least that much of the fight left ([§3.1](#31-shadow-word-pain-r8-10894)) |
 | Devouring Plague (`devouringPlague`) | `devouringPlague.enabled` | `dots.minTimeLeftSec` | on cooldown, at least that much left ([§3.4](#34-devouring-plague-r6-19280)) |

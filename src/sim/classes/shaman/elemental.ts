@@ -88,7 +88,7 @@ export const ELEMENTAL_OPTIONS: RotationOption[] = [
     id: ID.powerInfusion,
     group: 'Cooldowns and buffs',
     label: 'Power Infusion',
-    help: 'Use it on cooldown from the pull, as a priest would cast it on you: +20% spell damage for 15 s, every 3 minutes.',
+    help: 'Use it once at the pull, as a priest would cast it on you: +20% spell damage for 15 s.',
     default: true,
     requiresBuff: POWER_INFUSION_ID,
   },
@@ -253,7 +253,7 @@ export const ELEMENTAL_APL: AplDefinition = {
   rows: [
     { id: 'racial', label: 'Racial cooldown', icon: 'racial_orc_berserkerstrength', enabledId: ID.racial, optionIds: [], summary: [{ text: 'on cooldown' }] },
     { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: [{ text: 'on cooldown' }] },
-    { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'once, at the pull' }] },
     {
       id: 'manaTide',
       label: 'Mana Tide Totem',

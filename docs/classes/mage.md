@@ -523,7 +523,7 @@ without the prefix below). A mana threshold is a share of maximum mana.
 | 1 | Combustion, off the GCD | `combustion.enabled`, with the talent; ready | on |
 | 2 | Berserking (Troll), Blood Fury (Orc) or Eureka! (Gnome), off the GCD | `racial.enabled`; on cooldown | on |
 | 3 | On-use trinkets, off the GCD | `trinkets.enabled`; on cooldown | on |
-| 4 | Power Infusion, off the GCD | `powerInfusion.enabled`, with Power Infusion selected in Buffs; ready | on (Buffs: off) |
+| 4 | Power Infusion, off the GCD | `powerInfusion.enabled`, with Power Infusion selected in Buffs; once, at the pull ([buffs](../mechanics/buffs-debuffs-consumables.md#power-infusion)) | on (Buffs: off) |
 | 5 | Mana Ruby or Mana Citrine, whichever fits first (the Ruby on a tie) | `manaGems.enabled`; missing 1,200 / 925 | on |
 | 6 | Major Mana Potion | `manaPotion.enabled`, selected in Buffs (Standard raid); missing `manaPotion.missingMana` | on, 2,250 |
 | 7 | Demonic Rune | `rune.enabled`, selected in Buffs (Max consumables); missing `rune.missingMana`; after the gems | on, 1,500 |
@@ -644,7 +644,7 @@ has each row's cited conditions. A row's conditions are its own wherever it sits
 | Combustion (`combustion`) | `combustion.enabled` | | 1: with the talent, ready |
 | Racial cooldown (`racial`) | `racial.enabled` | | 2: Berserking, Blood Fury or Eureka!, on cooldown |
 | On-use trinkets (`trinkets`) | `trinkets.enabled` | | 3: on cooldown |
-| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | 4: selected in Buffs, ready |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | 4: selected in Buffs, once, at the pull |
 | Mana gems (`manaGems`) | `manaGems.enabled` | | 5: each when you're missing all it restores (1,200 for the Ruby, 925 for the Citrine); then 6 and 7, spec-wide |
 | Evocation (`evocation`) | `evocation.enabled` | `evocation.maxManaPct` | 8: at or below the share, or below Fireball's cost |
 | Scorch (`scorch`) | `scorch.enabled` | `scorch.refreshSec` | 9: under 5 stacks, or refresh in time (COND 44) |

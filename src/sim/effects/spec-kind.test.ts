@@ -162,7 +162,8 @@ describe('melee and caster entries (forSpecs)', () => {
 
   it('leave every melee and tank spec’s Buffs list as it was: only the caster core’s entries are hidden from them', () => {
     const hidden = (spec: SpecId) => BUFFS.filter((b) => !forSpecClass(b, spec) && !(b.forClasses && !b.forClasses.includes(SPEC_META[spec].classId))).map((b) => b.id)
-    for (const spec of melee) expect(hidden(spec), spec).toEqual(['moonkinAura', 'powerInfusion', 'curseOfTheElements'])
+    // Power Infusion is the Protection paladin's too: its threat is Holy spell damage (buffs doc §1.1).
+    for (const spec of melee) expect(hidden(spec), spec).toEqual(spec === 'paladin-protection' ? ['moonkinAura', 'curseOfTheElements'] : ['moonkinAura', 'powerInfusion', 'curseOfTheElements'])
     // The Mighty Rage Potion is a warrior's and a druid's: a Balance druid's class could drink it.
     for (const spec of casters) expect(hidden(spec), spec).toEqual(SPEC_META[spec].classId === 'druid' ? meleeFor(spec) : meleeFor(spec).filter((id) => id !== 'mightyRagePotion'))
   })

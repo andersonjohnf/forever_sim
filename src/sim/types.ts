@@ -464,11 +464,17 @@ export interface BuffDefinition {
    * The kind of spec it's for (buffs doc "Class-only entries"; docs/ux.md "Buffs"): `melee`, an
    * entry that changes only attacks (attack power, Strength, Agility, a weapon's temporary enchant,
    * the boss's armor), which a caster spec (SpecMeta.caster) never sees; `caster`, the caster core's
-   * (Moonkin Aura, Power Infusion, Curse of the Elements), which only a caster spec sees. Absent,
+   * (Moonkin Aura, Power Infusion, Curse of the Elements), which only a caster spec sees (and the
+   * specs in `alsoForSpecs`). Absent,
    * every spec. Like `forClasses`, the Buffs tab lists it only for them, and presets, saved setups and
    * the plan skip it for the others.
    */
   forSpecs?: 'melee' | 'caster'
+  /**
+   * Specs it's also for, whatever `forSpecs` says: Power Infusion is the casters' and the Protection
+   * paladin's, whose threat is Holy spell damage (buffs doc §1.1 "Power Infusion").
+   */
+  alsoForSpecs?: readonly SpecId[]
   /**
    * Also for every caster spec (SpecMeta.caster), whatever its class: the mana and spell damage
    * entries, which a druid's Balance spec needs and its Feral specs don't (docs/classes/druid.md

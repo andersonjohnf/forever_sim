@@ -44,6 +44,8 @@ export const ASSUMPTION_GROUP = {
   explosiveThrow: 'gear',
   // A tank's Gift of Arthas on the boss, from Buffs (buffs doc §4.2).
   giftOfArthas: 'gear',
+  // A priest's Power Infusion, once at the pull, from Buffs (buffs doc §1.1).
+  powerInfusion: 'gear',
   hyjalFlask: 'gear',
   procRates: 'gear',
   ironfoeChance: 'gear',

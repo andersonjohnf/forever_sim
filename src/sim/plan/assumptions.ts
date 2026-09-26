@@ -440,6 +440,12 @@ const REGISTRY = {
     text: 'Gift of Arthas is on the boss all fight, and each direct physical hit on it deals +8: added after the damage bonuses and before the boss’s armor, so the hit’s crit multiplier applies to it too (×2 on a white crit). Bleed ticks get none. Untested.',
     docRef: `${DT}#24-damage-modifier-stacking`,
   },
+  // buffs doc §1.1 "Power Infusion": one cast at the pull (the user's rule); with Arcane Power, the
+  // plan adds that they stack (`powerInfusionText`), since neither client stops it [?] (OQ 23).
+  powerInfusion: {
+    text: 'A priest casts Power Infusion on you once, at the pull: +20% spell damage from 0 to 15 s. It isn’t cast again, though its 3-minute cooldown would allow a second in a fight over 3 minutes.',
+    docRef: `${BUFFS}#power-infusion`,
+  },
   // docs/classes/druid.md §4.7 (BR6, Q19): Thick Hide's base armor, a reading of "further increased by multipliers from those forms".
   thickHide: {
     text: 'Thick Hide’s base armor (3 per level and 2 per defense point above 300 at 3/3) is multiplied by Dire Bear Form’s +360%, as armor from items is, a reading of its tooltip’s “further increased by multipliers from those forms”; unmeasured.',
@@ -1093,6 +1099,15 @@ export const preAqRanksText = (blessings: boolean): string =>
   blessings
     ? 'Abilities and buffs use the ranks trainable before Ahn’Qiraj, not the higher ones its books teach, and the Greater Blessings’ rank 2 is taken to need Ahn’Qiraj too.'
     : REGISTRY.preAqRanks.text
+
+/**
+ * The `powerInfusion` assumption, adding for a setup that also uses Arcane Power that they stack
+ * (buffs doc §1.1 "Power Infusion", open question 23): nothing in either client keeps them apart.
+ */
+export const powerInfusionText = (arcanePower: boolean): string =>
+  arcanePower
+    ? `${REGISTRY.powerInfusion.text} It stacks with your Arcane Power (+30% and +20% make +56% while both are up): nothing in the game’s data keeps them apart. Untested in Forever.`
+    : REGISTRY.powerInfusion.text
 
 /** Items in prose: "a", "a and b", "a, b and c". */
 const prose = (items: readonly string[]) => (items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)

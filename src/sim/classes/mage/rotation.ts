@@ -106,7 +106,7 @@ function sharedOptions(spec: Spec): { cooldowns: RotationOption[]; mana: Rotatio
         id: ID.powerInfusion,
         group: COOLDOWNS,
         label: 'Power Infusion',
-        help: 'Take a priest’s Power Infusion whenever it’s ready: +20% spell damage for 15 s, every 3 minutes.',
+        help: 'Take a priest’s Power Infusion, cast on you once at the pull: +20% spell damage for 15 s.',
         default: true,
         requiresBuff: POWER_INFUSION,
       },
@@ -354,7 +354,7 @@ function sharedRows(spec: Spec): { cooldowns: AplRow[]; mana: AplRow[] } {
     cooldowns: [
       { id: 'racial', label: 'Racial cooldown', icon: 'racial_troll_berserk', enabledId: ID.racial, optionIds: [], summary: ON_COOLDOWN },
       { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: ON_COOLDOWN },
-      { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'whenever it’s ready' }] },
+      { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'once, at the pull' }] },
     ],
     mana: [
       { id: 'manaGems', label: 'Mana gems', icon: MANA_RUBY.icon, enabledId: ID.gems, optionIds: [], summary: [{ text: 'each when you’re missing all it restores' }] },

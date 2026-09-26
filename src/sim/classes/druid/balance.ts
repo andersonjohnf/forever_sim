@@ -88,7 +88,7 @@ export const BALANCE_OPTIONS: RotationOption[] = [
     id: ID.powerInfusion,
     group: 'Cooldowns and buffs',
     label: 'Power Infusion',
-    help: 'Use a priest’s Power Infusion on cooldown from the pull: +20% spell damage for 15 s, every 3 minutes. Turn it on in Buffs if a priest gives you one.',
+    help: 'Use a priest’s Power Infusion, cast on you once at the pull: +20% spell damage for 15 s. Turn it on in Buffs if a priest gives you one.',
     default: true,
     requiresBuff: POWER_INFUSION.id,
   },
@@ -271,7 +271,7 @@ export const BALANCE_APL: AplDefinition = {
     },
     { id: 'racial', label: 'Racial cooldown', icon: ELUNES_LIGHT.icon, enabledId: ID.racial, optionIds: [], summary: [{ text: 'on cooldown' }] },
     { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: [{ text: 'on cooldown' }] },
-    { id: 'powerInfusion', label: 'Power Infusion', icon: POWER_INFUSION.icon, enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'powerInfusion', label: 'Power Infusion', icon: POWER_INFUSION.icon, enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'once, at the pull' }] },
     {
       id: 'innervate',
       label: 'Innervate yourself',

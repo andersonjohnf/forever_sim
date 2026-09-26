@@ -144,7 +144,7 @@ const common = (spec: WarlockSpec, d: WarlockDefaults): { head: RotationOption[]
         id: ID.powerInfusion,
         group: 'Cooldowns and buffs',
         label: 'Power Infusion',
-        help: 'Take a priest’s Power Infusion on cooldown from the pull: +20% spell damage for 15 s, every 3 minutes.',
+        help: 'Take a priest’s Power Infusion, cast on you once at the pull: +20% spell damage for 15 s.',
         default: true,
         requiresBuff: POWER_INFUSION,
       },
@@ -407,7 +407,7 @@ export function warlockApl(spec: WarlockSpec): AplDefinition {
   const row: Record<string, AplRow> = {
     racial: { id: 'racial', label: 'Racial cooldown', icon: 'racial_orc_berserkerstrength', enabledId: ID.racial, optionIds: [], summary: onCooldown },
     trinkets: { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: onCooldown },
-    powerInfusion: { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: onCooldown },
+    powerInfusion: { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'once, at the pull' }] },
     curse: { id: 'curse', label: 'Curse of the Elements', icon: CURSE_OF_THE_ELEMENTS.icon, enabledId: ID.curse, optionIds: [], summary: [{ text: 'kept up' }] },
     immolate: { id: 'immolate', label: 'Immolate', icon: IMMOLATE.icon, enabledId: ID.immolate, optionIds: [], summary: recast },
     conflagrate: { id: 'conflagrate', label: 'Conflagrate', icon: CONFLAGRATE.icon, enabledId: ID.conflagrate, optionIds: [], summary: [{ text: 'on cooldown, while Immolate is up' }] },

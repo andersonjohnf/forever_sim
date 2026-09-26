@@ -229,7 +229,7 @@ A to F and J ([review](reviews/2026-09-26-sourced-values.md)); B3 and G moved to
       ([B79](open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer))
 - [x] **C Bear threat:** Lacerate 206 flat, Primal Bite at 1 threat per damage (D38), the rage
       fit, Maul's ×1.75 provenance
-- [x] **D Paladin:** [M5.668](#m5668-sharper-paladin-numbers--next-update)'s P1–P3, with the log
+- [x] **D Paladin:** [M5.668](#m5668-sharper-paladin-numbers-)'s P1–P3, with the log
       check's paladin findings: Seal of Righteousness without a flat term, Holy Strike's flat
       damage and spell power inside its weapon share, Judgement of the Crusader's misses,
       Retribution Aura's spell-power share

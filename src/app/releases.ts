@@ -30,19 +30,20 @@ export const RELEASES: readonly Release[] = [
         label: 'Tanks',
         items: [
           'Bosses hit tanks for 2,200 to 3,200 every 2 seconds, sized from a Classic Era log of Golemagg: about half the damage taken. Saved setups on the old boss move to it.',
-          'Protection Warrior about 985 to 866 TPS: Sunder Armor makes Forever’s flat threat, Shield Slam Classic Era’s, and smaller hits bring less rage. Defensive and Max TPS hold Heroic Strike for more rage.',
-          'Feral Bear about 1,100 to 990 TPS: Lacerate makes a flat 206 threat and Primal Bite threat equal to its damage. New helm and boots: Eye of Rend with Defiler’s (Highlander’s) Leather Boots. Max TPS now plays as Balanced.',
-          'Protection Paladin about 747 to 701 TPS: Seal of Fury deals its flat damage per hit, Judgement of the Crusader adds each Holy hit’s share, and Hammer of the Righteous leaves out attack power, as its tooltip reads.',
-          'Maul’s threat is confirmed by an in-game test.',
+          'Protection Warrior about 985 to 866 TPS: Sunder Armor makes Forever’s flat threat, Shield Slam Classic Era’s, and smaller hits bring less rage. Defensive and Max TPS wait for more rage before Heroic Strike.',
+          'Feral Bear about 1,100 to 990 TPS: Lacerate makes a flat 206 threat and Primal Bite threat equal to its damage. New helm and boots: Eye of Rend with Defiler’s Leather Boots (Highlander’s for the Alliance). Max TPS now plays as Balanced.',
+          'Protection Paladin about 747 to 701 TPS: Seal of Fury deals its flat damage per hit, Judgement of the Crusader adds each Holy hit’s share, and Hammer of the Righteous counts your weapon’s own DPS, as its tooltip reads (the old reading is in Character → Advanced).',
+          'An in-game test puts Maul’s threat between about 1.7 and 2.25 times its damage, which fits the sim’s 1.75.',
         ],
       },
       {
         label: 'DPS',
         items: [
-          'Epic caster weapons carry Classic Era’s spell damage: most casters −5% to −6%.',
-          'Demonology Warlock defaults to the Succubus build: 663 to 590 DPS, still the top caster. Horde casters default to Whiteout Staff.',
+          'Epic caster weapons carry Classic Era’s spell damage: most casters −5% to −6%. Horde casters default to Whiteout Staff.',
+          'Demonology Warlock 663 to 590 DPS, still the top caster: Improved Imp no longer adds damage its tooltip doesn’t describe, and the default is now the Succubus build.',
           'Enhancement Shaman’s Earth Shock makes double threat: +10% TPS.',
           'Retribution Paladin −2%: Seal of Righteousness and Holy Strike follow the beta logs.',
+          'Hunters’ Serpent Sting ticks crit for double: up to +0.7%.',
         ],
       },
       {

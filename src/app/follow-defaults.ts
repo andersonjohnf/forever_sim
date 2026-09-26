@@ -244,6 +244,8 @@ function whoseOf(specs: readonly SpecId[]): string {
  * that moved ("Updated to the new default gear and boss melee for …"), and one sentence names every
  * such spec (bossMeleeMovedNotice) after the "kept" line, which only gear or talents that moved need
  * (JL-3, JU-1). Null when nothing changed.
+ * A removal beside a default that moved titles it "Gear removed and defaults updated for …", naming
+ * every spec either touches (MV-3).
  */
 export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current: SpecId): { title: string; description: string } | null {
   if (updates.length === 0) return null

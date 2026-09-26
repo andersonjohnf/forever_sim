@@ -265,7 +265,7 @@ and the docs it links; this list only summarizes them, with the same tags.
   not your class's, so the sim keeps them outside your class's procs, as it keeps an item's spell
   out of every class's spell procs
   ([buffs §3.7](../mechanics/buffs-debuffs-consumables.md#37-engineering-and-explosives)); whether Can Proc From Procs lets their
-  crits give stacks on Forever's server is a in-game test candidate (open question 22). Ranged shots
+  crits give stacks on Forever's server is an in-game test candidate (open question 22). Ranged shots
   are the hunter's and never reach a paladin. `paladin.test.ts` holds both item paths.
 - **Holy damage ignores armor.** Mobs and raid bosses have no Holy resistance. Whether
   level-based partial resists apply to melee-class Holy spells is an

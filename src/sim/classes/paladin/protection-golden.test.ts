@@ -127,6 +127,9 @@ describe('golden run (fixed config and seed)', () => {
   // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values):
   //   Judgement of Fury r7 adds trunc(7.38) = 7 (153.3–166.7), Judgement of Righteousness r8 trunc(8.2) = 8,
   //   Seal of the Crusader 325 AP. Both goldens 744.92 → 744.81 TPS.
+  // - The beta-log check (paladin.md#the-beta-log-check-2026-09-26), step 1: Seal of Fury's proc is a
+  //   flat 35 + 0.1 × SP (its weapon-speed dummy zero), and its absorb comes off the next hit taken.
+  //   Both goldens 744.81 → 716.32 TPS, 460.34 → 442.88 DPS, damage taken 918.7 → 900.2 a second.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

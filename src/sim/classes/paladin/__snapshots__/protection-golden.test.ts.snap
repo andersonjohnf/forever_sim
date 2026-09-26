@@ -161,8 +161,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
     [
       "sealOfFuryProc",
-      15691466.02590691,
-      25608472.554285113,
+      12554889.48000853,
+      20489579.631366193,
       117513,
       108522,
       8991,
@@ -247,14 +247,14 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
   ],
   "dps": {
-    "ci95": 1.1341414043159859,
-    "mean": 460.3403761659591,
-    "stdev": 18.298652702958087,
+    "ci95": 1.0807157233678415,
+    "mean": 442.8795201281957,
+    "stdev": 17.436663203792634,
   },
   "dtps": {
-    "ci95": 3.5351873457963494,
-    "mean": 918.7171116666041,
-    "stdev": 57.038007107794805,
+    "ci95": 3.500374746388015,
+    "mean": 900.2517882073357,
+    "stdev": 56.4763278816982,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -281,9 +281,9 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     "spentPerFight": 19439.756,
   },
   "tps": {
-    "ci95": 1.842931929057356,
-    "mean": 744.8114790314988,
-    "stdev": 29.734538565190633,
+    "ci95": 1.7708974264186352,
+    "mean": 716.315361977867,
+    "stdev": 28.572307522923683,
   },
 }
 `;
@@ -449,8 +449,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "sealOfFuryProc",
-      15691466.02590691,
-      25608472.554285113,
+      12554889.48000853,
+      20489579.631366193,
       117513,
       108522,
       8991,
@@ -535,14 +535,14 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
   ],
   "dps": {
-    "ci95": 1.1341414043159859,
-    "mean": 460.3403761659591,
-    "stdev": 18.298652702958087,
+    "ci95": 1.0807157233678415,
+    "mean": 442.8795201281957,
+    "stdev": 17.436663203792634,
   },
   "dtps": {
-    "ci95": 3.5351873457963494,
-    "mean": 918.7171116666041,
-    "stdev": 57.038007107794805,
+    "ci95": 3.500374746388015,
+    "mean": 900.2517882073357,
+    "stdev": 56.4763278816982,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -569,9 +569,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     "spentPerFight": 19439.756,
   },
   "tps": {
-    "ci95": 1.842931929057356,
-    "mean": 744.8114790314988,
-    "stdev": 29.734538565190633,
+    "ci95": 1.7708974264186352,
+    "mean": 716.315361977867,
+    "stdev": 28.572307522923683,
   },
 }
 `;

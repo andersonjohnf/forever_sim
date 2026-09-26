@@ -651,17 +651,18 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Docs:** [paladin § SoC](classes/paladin.md#seal-of-command-soc),
   [OQ 1](classes/paladin.md#open-questions)
 
-#### B20. Seal of Fury per-hit damage
+#### B20. Seal of Fury per-hit damage and absorb
 **High · M5 · ≤20 (ranks from level 10)**
-- **Assumes:** +35 Holy per landed white hit at rank 7 [F tooltip], plus the aura's SoR-style
-  weapon-speed value (1607 + 42/level: `0.85 × 16.91 × speed` one-handed) on top [?], and 0.1 × SP.
-  Seal of Righteousness's proc carries the same 35 and is read the same way (B67).
-  Absorb stacking [?]; Improved Seal of Fury's mana (the client's rank text reads 60, which
-  foreverchanges printed as 0) [?].
-- **Test:** highest rank available, two weapons of different speed: average proc damage vs the
-  tooltip's flat value; watch absorb stacking and mana on a full absorb.
-- **Samples:** ≥30 procs per weapon.
-- **Changes:** the SoF model, the main Prot paladin threat source.
+- **Settled (2026-09-26):** 35 Holy + 0.1 × SP per landed white hit at rank 7, whatever the weapon
+  [F tooltip, client], measured in the beta logs (179 of 179 procs from 24 characters,
+  [paladin § SoF](classes/paladin.md#the-beta-logs-seal-of-fury)); the aura's undescribed
+  weapon-speed dummy adds nothing.
+- **Assumes:** one absorb, 50% of the last proc's damage, which hits you take spend [?]; Improved
+  Seal of Fury's mana (the client's rank text reads 60, which foreverchanges printed as 0) [?].
+- **Test:** Seal of Fury up with a shield against a mob: mana per hit taken with and without
+  Improved Seal of Fury, and whether two hits between two of your swings both restore it.
+- **Samples:** ≥100 hits taken per state.
+- **Changes:** Seal of Fury's absorb and Improved Seal of Fury's mana, which fund a Protection paladin's rotation.
 - **Docs:** [paladin § SoF](classes/paladin.md#seal-of-fury-sof-new-the-protection-seal),
   [OQ 10](classes/paladin.md#open-questions);
   [threat § paladin](mechanics/threat.md#paladin)
@@ -1308,7 +1309,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   term is refused.
 - **Test:** SoR procs with two two-handers of different speed and one one-hander, no spell
   power; then add spell power.
-- **Samples:** ≥30 procs per weapon.
+- **Samples:** ≥100 hits taken per state.
 - **Changes:** SoR (the alternative seal and twisting partner).
 - **Docs:** [paladin § SoR](classes/paladin.md#seal-of-righteousness-sor),
   [OQ 4](classes/paladin.md#open-questions)

@@ -175,35 +175,6 @@ export const HOLY_SHIELD_PROC: ProcSpec = {
 }
 
 /**
- * Seal of Fury's absorb (20423 effect 1, 50; paladin.md#seal-of-fury-sof-new-the-protection-seal):
- * with a shield equipped, each landed Seal of Fury proc shields you for half its Holy damage [F].
- * How it stacks and how long it lasts are the server's: the sim keeps one, which each proc replaces
- * and the next hit you take that costs health uses up, and which ends with the seal's 30 s [?]
- * (OQ 10). A boss's hit is thousands, so it always takes all of it, which is when Improved Seal of
- * Fury restores mana (talents.ts). The absorb itself isn't taken off the hit: about 20 damage.
- */
-export const SEAL_OF_FURY_SHIELD_AURA: AuraSpec = {
-  id: 'sealOfFuryShield',
-  name: 'Seal of Fury’s absorb',
-  durationMs: 30000,
-  takenCharges: 1,
-  mods: {},
-}
-
-/** Each landed Seal of Fury proc puts its absorb up, with a shield equipped (the rotation adds it only then). */
-export const SEAL_OF_FURY_SHIELD_PROC: ProcSpec = {
-  id: 'sealOfFuryShield',
-  name: 'Seal of Fury’s absorb',
-  icon: 'spell_holy_retributionaura',
-  trigger: 'whiteResolved',
-  from: 'mainHand',
-  chance: { pct: 100 },
-  action: { kind: 'aura', aura: SEAL_OF_FURY_SHIELD_AURA },
-  requiresAura: SEAL_OF_FURY.id,
-  docRef: `${DOC}#seal-of-fury-sof-new-the-protection-seal`,
-}
-
-/**
  * Swift Judgement's buff (1310994, paladin.md#protection-tree): the next Judgement costs no mana
  * (aura 108, cost −100% on Judgement's class mask, 1 charge) [F] [client] (SpellEffect,
  * SpellAuraOptions, 1.60.1.69913). The client's lasts until used; the rotation judges at once, so
@@ -346,15 +317,16 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
 
 /**
  * What the presets' help and Hammer of the Righteous's say, measured in the default setup (paladin.md
- * "Priority: Defensive, Balanced or Max TPS"; seed 31101, 100,000 fights, 2026-09-24): Defensive's
+ * "Priority: Defensive, Balanced or Max TPS"; seed 31101, 100,000 fights, re-measured 2026-09-26 for
+ * the beta-log check, paladin.md#the-beta-log-check-2026-09-26): Defensive's
  * TPS, DPS and damage taken a second, and Max TPS and Hammer of the Righteous turned on against it, in
  * percent. protection-presets.test.ts measures them again, so a change that moves them fails until
  * they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 746.42, dps: 460.97, damageTaken: 918.9 },
-  maxTps: { tpsPct: 6.81, dpsPct: 6.76, damageTakenPct: 5.72 },
-  hammerOfTheRighteous: { tpsPct: -2.0, dpsPct: -0.13, damageTakenPct: 4.92 },
+  defensive: { tps: 718.37, dps: 444.0, damageTaken: 900.4 },
+  maxTps: { tpsPct: 7.08, dpsPct: 7.02, damageTakenPct: 5.83 },
+  hammerOfTheRighteous: { tpsPct: -2.1, dpsPct: -0.16, damageTakenPct: 5.01 },
 } as const
 
 const M = PROTECTION_PRESET_MEASURES
@@ -862,11 +834,10 @@ export function protectionRotation(
   const auraDown = (a: number): RotationCondition => ({ code: COND.abilityAuraDown, a, b: 0 })
   const procs: ProcSpec[] = []
 
-  // Abilities 0 and 1: the seal and its judgement. Seal of Fury's absorb needs a shield.
+  // Abilities 0 and 1: the seal and its judgement. Seal of Fury's absorb, with a shield, is its proc's (paladinProcs).
   const sealDef = protectionSeal(values)
   const seal = index(sealDef)
   const judge = index(JUDGEMENT_OF[sealDef.id])
-  if (sealDef.id === SEAL_OF_FURY.id && ctx.hasShield) procs.push(SEAL_OF_FURY_SHIELD_PROC)
   const refresh: RotationCondition = { code: COND.abilityAuraRefresh, a: seal, b: seconds(v, ID.sealRefresh) }
   // Row 0c's seal and judgement (paladin.md "the opener"), indexed after the seal's, as before the list.
   const crusader = v.on(ID.crusader)

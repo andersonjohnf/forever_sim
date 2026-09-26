@@ -839,7 +839,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.armor ? { armor: spec.mods.armor } : {}),
       ...(spec.mods.damageTaken ? { damageTaken: spec.mods.damageTaken } : {}),
       ...(spec.blockCharges ? { blockCharges: spec.blockCharges } : {}),
-      ...(spec.takenCharges ? { takenCharges: spec.takenCharges } : {}),
+      ...(spec.absorb ? { absorb: true } : {}),
       // docs/classes/warlock.md §11.3: Demonic Brand's charges, which the pet's landed attacks use.
       ...(spec.petLandedCharges ? { petLandedCharges: spec.petLandedCharges } : {}),
       // paladin.md: Vengeance's Holy damage, JotC's Holy damage taken, one seal at a time.
@@ -896,7 +896,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     const source = sourceIndex(def.id, def.name, def.icon)
     const i = spells.findIndex((x) => x.source === source)
     if (i >= 0) return i
-    const { name: _, icon: __, school, defense, boost, critAura, ...rest } = def
+    const { name: _, icon: __, school, defense, boost, critAura, absorb, ...rest } = def
     // docs/mechanics/spells.md §7: a spell with a DoT. A pure DoT's row counts its applications and
     // ticks, as a bleed's does; a hybrid's ticks get a row of their own, "<name> (DoT)", after its hit.
     let dotSource: number | undefined
@@ -910,7 +910,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         // so its row shows the share avoided.
       } else sources[source].bleed = { ticksCanCrit, avoidable: (defense === 'magic' || defense === 'ranged') && !def.alwaysHit }
     }
-    spells.push({ ...rest, school: SCHOOL[school], defense: DEFENSE[defense], source, ...(dotSource !== undefined ? { dotSource } : {}) })
+    // paladin.md#seal-of-fury-sof-new-the-protection-seal: the absorb aura a landed hit puts up.
+    const absorbs = absorb ? { absorbAura: auraIndex(absorb.aura, absorb.aura.id, def.icon), absorbPct: absorb.pct } : {}
+    spells.push({ ...rest, school: SCHOOL[school], defense: DEFENSE[defense], source, ...(dotSource !== undefined ? { dotSource } : {}), ...absorbs })
     // One that always lands and never crits (Holy Shield's damage) shows no crit or avoided shares.
     if (def.cannotCrit && (defense === 'none' || (def.alwaysHit && def.noActiveDefense))) sources[source].certain = true
     if (boost) spellBoosts.push({ spell: spells.length - 1, boost })

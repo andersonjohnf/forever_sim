@@ -28,9 +28,9 @@ import {
   PROTECTION_PRIORITY,
   protectionRotation,
   RETRIBUTION_AURA_DAMAGE,
-  SEAL_OF_FURY_SHIELD_AURA,
   SWIFT_JUDGEMENT,
 } from './protection'
+import { SEAL_OF_FURY_SHIELD_AURA } from './spells'
 import { addPaladinAbility, examplePlan, setSp } from './test-helpers'
 import { hammerOfTheRighteousAbility, JUDGEMENT_OF } from './abilities'
 import { aplPresets, applyAplPreset, defaultAplOrder, moveAplRow } from '../apl'
@@ -245,7 +245,10 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
     expect(r.abilities[1].clearcastable).toBe(true)
     // Improved Judgement 2/2: an 8 s Judgement.
     expect(r.abilities[1].cooldownMs).toBe(8000)
-    expect(r.procs.map((p) => p.id)).toEqual(['sealOfFuryProc', 'sealOfFuryShield', 'holyShieldProc'])
+    // Seal of Fury's absorb, with a shield, is its proc's spell's (paladin.md#seal-of-fury-sof-new-the-protection-seal).
+    expect(r.procs.map((p) => p.id)).toEqual(['sealOfFuryProc', 'holyShieldProc'])
+    const sof = r.procs[0].action
+    expect(sof.kind === 'spell' && sof.spell.absorb).toMatchObject({ aura: { id: 'sealOfFuryShield', absorb: true }, pct: 50 })
   })
 
   it('needs the talents and a shield for Holy Shield, the talent for Swift Judgement, and Undead or Demons for Exorcism', () => {
@@ -552,8 +555,8 @@ describe('Redoubt (paladin.md#protection-tree)', () => {
 
 describe('Seal of Fury’s absorb and Improved Seal of Fury (paladin.md#protection-tree, OQ 10)', () => {
   /** A plan whose own swings always land, with a slow weapon, so two boss swings can come between them. */
-  function slowPlan(): Plan {
-    const plan = protPlan()
+  function slowPlan(patch: Partial<SimConfig> = {}): Plan {
+    const plan = protPlan(patch)
     plan.weapons = [{ ...plan.weapons[0]!, speedSec: 5 }, null]
     plan.stats.hit = 100
     plan.fight.bossCanDodge = false
@@ -565,7 +568,7 @@ describe('Seal of Fury’s absorb and Improved Seal of Fury (paladin.md#protecti
     const plan = protPlan()
     const improved = plan.procs.find((p) => p.id === 'improvedSealOfFury')!
     expect(improved).toMatchObject({ trigger: TRIGGER.damageTaken, action: ACTION.manaFlat, amount: 870, requiresAura: auraOf(plan, 'sealOfFuryShield') })
-    expect(plan.auras[auraOf(plan, 'sealOfFuryShield')]).toMatchObject({ durationMs: SEAL_OF_FURY_SHIELD_AURA.durationMs, takenCharges: 1 })
+    expect(plan.auras[auraOf(plan, 'sealOfFuryShield')]).toMatchObject({ durationMs: SEAL_OF_FURY_SHIELD_AURA.durationMs, absorb: true })
     // A level-61 boss: 15% more.
     const low = protPlan({ fight: { ...defaultConfig(PROT).fight, bossLevel: 61 } })
     expect(low.procs.find((p) => p.id === 'improvedSealOfFury')!.amount).toBe(690)
@@ -607,6 +610,43 @@ describe('Seal of Fury’s absorb and Improved Seal of Fury (paladin.md#protecti
     }
     expect(expected).toBeGreaterThan(200)
     expect(restored).toBe(expected)
+  })
+
+  it('the absorb comes off the hit: half of the last proc’s Holy damage, from the next hit that costs health', () => {
+    // No crits and no Judgement of the Crusader, so every proc deals the same: 35 + 0.1 × 300 = 65, × the
+    // build's Improved Seals.
+    const plan = slowPlan({ rotation: NO_JOTC })
+    plan.stats.crit = -100
+    plan.stats.spellCrit = -100
+    setSp(plan, 300)
+    const sim = new Sim(plan)
+    const seal = auraOf(plan, 'sealOfFury')
+    const active = (sim as unknown as { auraActive: Uint8Array }).auraActive
+    let swung = false
+    let absorbed = 0
+    let lostBefore = 0
+    let taken = 0
+    sim.trace = (_source, hand) => {
+      if (hand === 0 && active[seal]) swung = true
+    }
+    sim.swingTakenTrace = (o, lost) => {
+      if (!LANDED.has(o) || lost <= 0) return
+      lostBefore += lost
+      if (swung) absorbed++
+      swung = false
+    }
+    for (let i = 0; i < 10; i++) {
+      swung = false
+      sim.runFight(i)
+      taken += sim.fightDamageTaken
+    }
+    const procs = field(sim, plan, 'sealOfFuryProc', FIELD.hits)
+    const perProc = field(sim, plan, 'sealOfFuryProc', FIELD.damage) / procs
+    const spell = plan.spells![plan.procs.find((p) => p.id === 'sealOfFuryProc')!.amount]
+    expect(perProc).toBeCloseTo(65 * spell.damageMult, 9)
+    expect(absorbed).toBeGreaterThan(100)
+    // Every boss hit that lands is far bigger than the absorb, so each one after a proc takes all of it.
+    expect(lostBefore - taken).toBeCloseTo(absorbed * 0.5 * perProc, 6)
   })
 
   it('needs Seal of Fury and a shield', () => {
@@ -749,8 +789,8 @@ describe('what the fix round’s engine rules do in a Protection fight', () => {
   it('a damage-taken proc that puts up an aura hits use up keeps it: only one up before the hit pays (the block charges’ rule)', () => {
     const plan = protPlan()
     const absorb = auraOf(plan, 'sealOfFuryShield')
-    // A proc on each hit that costs health, putting the absorb up again.
-    const puts = plan.procs.find((p) => p.id === 'sealOfFuryShield')!
+    // A proc on each hit that costs health, putting the absorb up again (a Seal of Fury proc's).
+    const puts = plan.procs.find((p) => p.id === 'sealOfFuryProc')!
     plan.procs = [...plan.procs, { ...puts, trigger: TRIGGER.damageTaken, requiresAura: -1 }]
     plan.triggers = plan.triggers.map(() => [])
     plan.procs.forEach((p, i) => plan.triggers[p.trigger].push(i))

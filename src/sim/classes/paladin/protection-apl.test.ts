@@ -91,6 +91,8 @@ describe('Protection paladin’s priority list (D31)', () => {
     // Re-taken for Touch of the Grave (character-stats.md#touch-of-the-grave): every plan carries one
     // more trigger list (`damageLanded`), and an Undead's its proc and row. With the lists held at the
     // 27 codes before it, exactly the 49 Undead cases move, and the other 151 reproduce the snapshot.
+    // Re-taken for the beta-log check (paladin.md#the-beta-log-check-2026-09-26): Seal of Fury's proc
+    // lost its weapon-speed value and carries its absorb (no separate absorb proc), so every plan moved.
     const hashes = protectionCases(200).map((config) => fingerprint(planJson(buildPlan(config).plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     expect(hashes).toMatchSnapshot()

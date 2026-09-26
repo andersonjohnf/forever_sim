@@ -87,7 +87,7 @@ export function paladinProcs(
   jotcRule: JotcRule = 'coefficient',
 ): ProcSpec[] {
   const has = (id: string) => abilities.some((a) => a.id === id)
-  const seals = sealProcs(context.mainHand ?? null, (s) => withJotcRule(withSpellTalents(s, talents), jotcRule))
+  const seals = sealProcs(context.mainHand ?? null, (s) => withJotcRule(withSpellTalents(s, talents), jotcRule), context.hasShield ?? false)
   return [...seals.filter((p) => p.requiresAura !== undefined && has(p.requiresAura)), ...(has(JUDGE_CRUSADER.id) ? [JOTC_REFRESH] : [])]
 }
 

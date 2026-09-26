@@ -11,6 +11,7 @@
 // (Improved Seals, Sacred Arbiter, Iron Creed) are applied by `withSpellTalents` in talents.ts,
 // and the Judgement of the Crusader rule by `withJotcRule` below.
 import { CRIT_MULTIPLIER } from '../../core/formulas'
+import type { AuraSpec } from '../../effects/types'
 import type { SpellDef } from '../../plan/types'
 
 /**
@@ -142,27 +143,39 @@ export const JUDGEMENT_OF_RIGHTEOUSNESS: SpellDef = {
   takenScale: 0.5,
 }
 
-/** Seal of Fury's proc base (20418 effect 0, paladin.md#seal-of-fury-sof-new-the-protection-seal): the tooltip's flat 35 [F], as Seal of Righteousness's. */
-export const SEAL_OF_FURY_BASE = SEAL_PROC_BASE
+/**
+ * Seal of Fury's proc base (20418 effect 0, paladin.md#seal-of-fury-sof-new-the-protection-seal): the
+ * tooltip's flat 35 [F], all of its damage but its 0.1 × SP. Measured in the beta logs: every one of 179
+ * non-crit procs from 24 characters is floor(base points + 0.1 × SP), after swings of 1.1 to 4.5 s.
+ */
+export const SEAL_OF_FURY_BASE = 35
 
 /**
- * The seal value of Seal of Fury r7 (20423 effect 0): 1607 + 42 per level from 58, per 100 s of
- * weapon speed, so 16.91 per second at 60 [F] data; the same structure as Seal of Righteousness's
- * (paladin.md#seal-of-fury-sof-new-the-protection-seal).
+ * Seal of Fury's absorb (20423 effect 1, 50; paladin.md#seal-of-fury-sof-new-the-protection-seal): with a
+ * shield equipped, each landed proc shields you for half the Holy damage it dealt [F]. Hits you take
+ * spend it before they cost health; it ends when spent or with the seal's 30 s. How it stacks is the
+ * server's: the sim keeps one, which each proc replaces [?] (OQ 10). Improved Seal of Fury restores mana
+ * when a hit uses it up (talents.ts).
  */
-export const SEAL_OF_FURY_VALUE = atLevel60(1607, 42, 58, 64) / 100
+export const SEAL_OF_FURY_SHIELD_AURA: AuraSpec = {
+  id: 'sealOfFuryShield',
+  name: 'Seal of Fury’s absorb',
+  durationMs: 30000,
+  absorb: true,
+  mods: {},
+}
+
+/** The absorb's share of the proc's Holy damage, % (20423 effect 1: 50) [F]. */
+export const SEAL_OF_FURY_ABSORB_PCT = 50
 
 /**
  * Seal of Fury's proc per landed white hit (20418, paladin.md#seal-of-fury-sof-new-the-protection-seal):
- * the flat 35, plus its seal value by Seal of Righteousness's rule, `0.85 × 16.91 × speed` with a
- * one-hander and `1.2 × …` with a two-hander [?] (OQ 10, guild test T1; D29: the aura carries the
- * value, so it gets a default; Seal of Righteousness's proc is read the same way), + 0.1 × SP. With the
- * default 1.5 s axe that's 35 + 21.56. With no main hand it's the flat 35. Melee class with No Active
- * Defense and Always Hit, and no NOT_A_PROC, like Seal of Righteousness's: it triggers no procs but
- * Vengeance, which can proc from procs [?].
+ * a flat 35 + 0.1 × SP, whatever the weapon: client data, and measured (the beta logs). The aura's
+ * weapon-speed dummy (1607 + 42/level) is undescribed, so it models as zero. With `shield`, it puts up
+ * the absorb. Melee class with No Active Defense and Always Hit, and no NOT_A_PROC, like Seal of
+ * Righteousness's: it triggers no procs but Vengeance, which can proc from procs [?].
  */
-export function sealOfFuryProc(mainHand: { speedSec: number; twoHand: boolean } | null): SpellDef {
-  const value = mainHand ? (mainHand.twoHand ? 1.2 : 0.85) * SEAL_OF_FURY_VALUE * mainHand.speedSec : 0
+export function sealOfFuryProc(shield = false): SpellDef {
   return {
     ...HOLY_MELEE,
     id: 'sealOfFuryProc',
@@ -171,10 +184,11 @@ export function sealOfFuryProc(mainHand: { speedSec: number; twoHand: boolean } 
     noActiveDefense: true,
     alwaysHit: true,
     triggersProcs: false,
-    min: SEAL_OF_FURY_BASE + value,
-    max: SEAL_OF_FURY_BASE + value,
+    min: SEAL_OF_FURY_BASE,
+    max: SEAL_OF_FURY_BASE,
     spCoefficient: 0.1,
     takenScale: 0.1,
+    ...(shield ? { absorb: { aura: SEAL_OF_FURY_SHIELD_AURA, pct: SEAL_OF_FURY_ABSORB_PCT } } : {}),
   }
 }
 

@@ -221,6 +221,12 @@ export interface SpellDef {
    * Shock is on the target (docs/classes/shaman.md#elemental-abilities).
    */
   boost?: { aura: string; pct: number; keep?: boolean }
+  /**
+   * When it lands, puts up an absorb aura (`AuraSpec.absorb`) worth `pct`% of the damage it dealt,
+   * replacing what's left of the last one: Seal of Fury's proc with a shield, 50%
+   * (paladin.md#seal-of-fury-sof-new-the-protection-seal). Absent: none.
+   */
+  absorb?: { aura: AuraSpec; pct: number }
   // --- The caster core (docs/mechanics/spells.md). All optional: absent, a spell behaves as before. ---
   /**
    * A binary spell (docs/mechanics/spells.md §3): one with an effect besides damage (a slow, a debuff)
@@ -287,7 +293,10 @@ export interface SpellDef {
   othersSpell?: boolean
 }
 
-export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura'> {
+export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura' | 'absorb'> {
+  /** `SpellDef.absorb` resolved: the plan aura it puts up and its share of the damage, % (paladin.md). Absent: none. */
+  absorbAura?: number
+  absorbPct?: number
   /** `SpellDef.critAura` resolved: the plan aura and its crit % a stack (docs/classes/mage.md#winters-chill). Absent: none. */
   critAura?: number
   critAuraPct?: number
@@ -419,8 +428,8 @@ export interface AuraPlan {
   damageTaken?: number
   /** Blocks that end it early (Holy Shield 4, Redoubt 5; absent or 0 = none). */
   blockCharges?: number
-  /** Hits taken that cost health and end it (Seal of Fury's absorb, 1; paladin.md#protection-tree); absent or 0 = none. */
-  takenCharges?: number
+  /** An absorb shield that hits taken spend and that ends when spent (`AuraSpec.absorb`: Seal of Fury's, paladin.md); absent: none. */
+  absorb?: boolean
   /** Your pet's landed attacks that end it, after their procs (Demonic Brand, docs/classes/warlock.md §11.3); absent or 0 = none. */
   petLandedCharges?: number
   /** Holy damage done %, multiplicative (Vengeance, paladin.md#retribution-tree). */

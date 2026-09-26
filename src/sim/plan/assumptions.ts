@@ -473,7 +473,7 @@ const REGISTRY = {
     docRef: `${PAL}#seal-of-righteousness-sor`,
   },
   sealOfFury: {
-    text: 'Seal of Fury deals its tooltip’s 35 Holy plus its seal value, 0.85 × 16.91 × your weapon’s speed with a one-hander (1.2 × with a two-hander), as Seal of Righteousness’s value works, plus 0.1 × spell damage on each landed auto attack; the tooltip alone would be 35. Untested.',
+    text: 'Seal of Fury deals 35 Holy plus 0.1 × spell damage on each landed auto attack, whatever the weapon, as its tooltip reads and beta combat logs show; a second value in its data, which nothing describes, adds nothing.',
     docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
   },
   meleeSpellProcs: {
@@ -579,7 +579,7 @@ const REGISTRY = {
     docRef: `${PAL}#other-abilities`,
   },
   improvedSealOfFury: {
-    text: 'Seal of Fury’s absorb is one shield, replaced by each of its procs and used up by the next hit that costs you health, which restores Improved Seal of Fury’s mana (87 against a level-63 boss); the absorb itself isn’t taken off the hit. Untested.',
+    text: 'Seal of Fury’s absorb is one shield, half of its last proc’s damage: each proc replaces it, and hits you take spend it before they cost health. The hit that uses it up restores Improved Seal of Fury’s mana (87 against a level-63 boss). Untested.',
     docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
   },
   // docs/classes/druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.

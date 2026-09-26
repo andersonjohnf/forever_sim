@@ -146,6 +146,19 @@ target; [milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d2
 Retribution makes **621.9 DPS** with the review's joint search (PR-2; 612.7 with the slice's
 placement, 611.0 on this data with 3 points unspent).
 
+### The beta-log check (2026-09-26)
+
+A reproducible read of the 47 public beta logs (build 1.60.1, 18–25 Sep 2026;
+[D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23),
+methods with each section) and the one guild test there is, the user's level-20 paladin (2026-09-25),
+replaced every paladin value that had been fitted to a TPS figure rather than sourced. Each step's
+headline, the default setups at 10,000 fights:
+
+| Step | What changed | Protection TPS | Protection DPS, damage taken | Retribution DPS |
+| --- | --- | --- | --- | --- |
+| Before | | 746.8 | 461.4, 918.9 | 608.6 |
+| 1 | [Seal of Fury](#the-beta-logs-seal-of-fury): a flat 35 + 0.1 × SP, its weapon-speed dummy zero; its absorb comes off the next hit | 718.3 | 443.9, 900.4 | 608.6 |
+
 ### Forever system rules that matter here (owned elsewhere)
 
 These are owned by [forever-system-changes.md](../mechanics/forever-system-changes.md#2-combat-rules)
@@ -364,28 +377,38 @@ It corroborates the client data above but isn't a guild measurement.
 | --- | --- | --- |
 | Spell (r7) | 20423, trained at 58; ranks from level 10 | [F] [F 20423][f20423] |
 | Cost | 200 mana | [F] |
-| Per landed white hit | **+35 Holy** (proc 20418), **plus the seal value** by Seal of Righteousness's rule (below): `0.85 × 16.91 × speed` with a one-hander, `1.2 × 16.91 × speed` with a two-hander, and **0.1 × SP**. The default 1.5 s axe: 35 + 21.56 | 35 and 0.1: [F] [client] (SpellEffect, 1.60.1.70009; [20418][f20418]); the seal value's use [?] ([open question 10](#open-questions), guild test T1) |
-| Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt** | [F] (effect 1 = 50). Stacking or refresh rules [?]: the sim keeps **one** absorb, which each proc replaces and the next hit that costs you health uses up, lasting at most the seal's 30 s. A boss's hit is thousands, so it always takes all of it, which is what [Improved Seal of Fury](#protection-tree)'s mana needs. The absorb itself isn't taken off that hit (about 20 damage, under 1% of damage taken) ([open question 10](#open-questions)) |
+| Per landed white hit | **35 Holy + 0.1 × SP**, whatever the weapon (proc 20418) | [F] [client] (SpellEffect, 1.60.1.70009; [20418][f20418]), and measured: the beta logs ([below](#the-beta-logs-seal-of-fury)) |
+| Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt**, which takes that much off the next hits you take | [F] (effect 1 = 50). Stacking or refresh rules [?]: the sim keeps **one** absorb, which each proc replaces (what's left of the last one is lost), and which hits you take spend before they cost health; it ends when spent, or with the seal's 30 s. A boss's hit is thousands, so the next one takes all of it, which is when [Improved Seal of Fury](#protection-tree) pays ([open question 10](#open-questions)). It takes about 2.5% off the default Protection setup's damage taken |
 | Hit table | Proc 20418: melee class, No Active Defense + Always Hit, like SoR | [F] [client] (SpellMisc, SpellCategories, 1.60.1.70009) |
 | Triggers | **Nothing**, like SoR's proc: no Windfury, Crusader, Hand of Justice, Vengeance or Vindication from it [?] | 20418's Attr3 is `0x40000` only, without NOT_A_PROC [F] [client] (SpellMisc, 1.60.1.70009); the server's use of it [?] ([open question 22](#open-questions)) |
 | Judgement of Fury (r7) | 20414: **146.3–159.7 + 7 = 153.3–166.7 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense, no Always Hit (can miss; then crit on a landed one, two rolls [?]). **Taunts for 4 s** | [F] [client] (SpellEffect, SpellMisc, 1.60.1.70009; [20414][f20414]); taunt: tooltip |
 | Improved Seals | applies to the proc and the judgement | [F] [client] (SpellEffect spell mask includes 20418 and 20414, 1.60.1.70009) |
 
-**The seal value** [?]. The SoF aura carries the same weapon-speed "seal value" dummy as SoR,
-1607 + 42/level from 58, so **16.91** per second of weapon speed at 60 [F] [client] (SpellEffect,
-1.60.1.70009; [20423][f20423]). SoR's is its whole damage in Classic Era (1786 + 47/level, 18.80, by the one- and
-two-hander factors 0.85 and 1.2, [Seal of Righteousness](#seal-of-righteousness-sor)), and Forever
-gives SoR's proc 25713 the same base 35 as SoF's 20418, where Classic Era's had 0. The two procs carry
-identical client data, so the sim reads them the same way: the 35 plus the seal value, for both
-([Seal of Righteousness](#seal-of-righteousness-sor)). For Seal of Fury that's the seal value on top
-of the tooltip's flat 35: `35 + 0.85 × 16.91 × speed` a landed swing with a one-hander (with the default
-1.5 s Flurry Axe, 56.56), `35 + 1.2 × 16.91 × speed` with a two-hander [?]. That's
-[D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24):
-the aura carries the value, so it gets a default from its closest analog, and of the two readings
-(the value on top of the 35, or in its place as Classic Era's SoR formula has it) the one that fits the guild's
-benchmark. The tooltip's flat 35 is the other reading, and the one guild test T1 would confirm
-([open question 10](#open-questions)). It's +27.2 TPS in the default setup (T2's measurement).
-Per second it hardly depends on the weapon's speed: a slower weapon hits for more, less often.
+##### The beta logs: Seal of Fury
+
+**The proc is flat: 35 + 0.1 × SP a landed swing, whatever the weapon** [F] [client], measured. The
+SoF aura (20423) also carries a weapon-speed dummy, 1607 + 42/level from 58 (16.91 per second of
+weapon speed at 60), shaped like Seal of Righteousness's seal value [F] [client] (SpellEffect,
+1.60.1.70009; [20423][f20423]). Nothing describes it: the tooltip says only "an additional 35 Holy
+damage", and the logs show no weapon-speed part. So it models as zero (an undescribed dummy is zero).
+Until 2026-09-26 the sim added it by Seal of Righteousness's rule, a reading chosen because it fit a
+TPS figure that was never a measurement (since withdrawn); it's gone, with 3.8% of the
+default Protection setup's TPS (746.8 → 718.3 in the 10,000-fight headline run).
+
+*Method* ([D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23)):
+the 47 public beta logs of 18–25 Sep 2026 (build 1.60.1: [tzcnt/forever-data][fd-logs], the logs attached
+to [magey/forever-warrior][fw-issues] and [ClassicWoWCommunity/forever-bugs][fb-issues], and
+[1337LutZ's gist][lutz-gist]), read with advanced combat logging. For each Seal of Fury proc (ranks 1–3:
+1311647, 1311654, 20231, base points 6, 9 and 14, each with 0.1) the event's unmitigated amount is compared
+with `floor(base points + c × SP)`, SP from the caster's latest advanced-log snapshot, and with the time
+between the two swings before it.
+
+| What | Result |
+| --- | --- |
+| Non-crit procs | 179 from 24 characters, after swings of 1.1 to 4.5 s |
+| `floor(base points + 0.1 × SP)` | **179 of 179** exact (with 0.2: 77; with no SP: 90) |
+| At SP 0 | 69 procs from 11 characters, every one exactly its base points: rank 1 hits 6 every time, whatever the weapon |
+| With SP | 15 characters, SP 1 to 79: rank 1 at SP 29 hits 8 (6 + 2.9), rank 2 at SP 79 hits 16 (9 + 7.9) |
 
 Judgement of Fury has a scripted dummy too, 1607 + 42.3/level at a 0.18 coefficient [F] [client]
 (SpellEffect, 1.60.1.70009; [20414][f20414]). It's the analog of Judgement of Righteousness's, whose
@@ -495,7 +518,7 @@ Improved Seal of the Crusader [F].
 | Precision (3) | "Improves your chance to hit by 3%." ([F 20189][f20189]) | melee only | **+3% melee and +3% spell hit** (two auras) |
 | Guardian's Favor (2) | BoP/BoF cooldowns | same | not modelled |
 | Anticipation (5) | "Increases your Defense Skill by 20." | +10 | +20 defense skill |
-| Improved Seal of Fury (1), new | "When Seal of Fury's shield is fully absorbed, restore 60 Mana, increased by 15% per level the attacker is above you, up to 45%." ([F 1314103][f1314103]; the rank text in [`src/data/talents/paladin.json`](../../src/data/talents/paladin.json)) | — | foreverchanges printed "0"; the client's rank text reads 60 (0 + 1 a level) [F]. When a hit that costs you health uses up Seal of Fury's absorb: 60 mana, 15% more a level the boss is above you, up to 45% more: **87** against a level-63 boss, 0.5 threat a mana. The absorb's rules are the sim's [?] ([Seal of Fury](#seal-of-fury-sof-new-the-protection-seal), [open question 10](#open-questions)). Without it the default Protection setup makes 16.5% less TPS: it's short of mana ([mana model](#mana-model)) |
+| Improved Seal of Fury (1), new | "When Seal of Fury's shield is fully absorbed, restore 60 Mana, increased by 15% per level the attacker is above you, up to 45%." ([F 1314103][f1314103]; the rank text in [`src/data/talents/paladin.json`](../../src/data/talents/paladin.json)) | — | foreverchanges printed "0"; the client's rank text reads 60 (0 + 1 a level) [F]. When a hit uses up Seal of Fury's absorb (the tooltip's "fully absorbed"): 60 mana, 15% more a level the boss is above you, up to 45% more: **87** against a level-63 boss, 0.5 threat a mana. The absorb's rules are the sim's [?] ([Seal of Fury](#seal-of-fury-sof-new-the-protection-seal), [open question 10](#open-questions)). Without it the default Protection setup makes 16.5% less TPS: it's short of mana ([mana model](#mana-model)) |
 | Improved Righteous Fury (3) | "While Righteous Fury is active, all damage taken is reduced by 6%." ([F 20468][f20468]) | +50% RF threat | −6% damage taken (curve −2/−4/−6, [client] (TraitDefinitionEffectPoints, 1.60.1.70009)); **no threat effect** |
 | Shield Specialization (3) | "Increases the amount of damage absorbed by your shield by 30%, and gives your blocks a 100% chance to restore 6% of your maximum Mana. May only occur once every 3 sec." ([F 1310925][f1310925]) | block value only | block value ×1.30; on block, +6% max mana (33/66/100%), 3 s ICD |
 | Sacred Duty (2), new | "Increases your total Stamina by 4% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 60 sec." ([F 1224697][f1224697]) | — | Stamina ×1.04 |
@@ -544,7 +567,7 @@ and aren't modelled.
 | The sim's ticks | every 2 s from a random phase in the first 2 s (the one power tick, which the druid's Energy and mana share), each `mp5 × 2/5` plus, 5 s or more after the last mana spent, `15 + Spirit / 5` from the sheet's Spirit, rounded down to a tenth (Reverence: 10% per rank of it inside the rule). The fight starts with full mana, and a seal cast before the pull costs nothing and starts no five-second rule | [?] engine choices (the tick's phase and the pre-pull) |
 | Mana from a spell effect | Sanctified Judgement, Shield Specialization, Improved Seal of Fury: 0.5 threat per mana gained ([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)) | [?] |
 | Shield Specialization (Prot 3/3) | **+6% max mana per block**, at most every 3 s | [F] |
-| Improved Seal of Fury (Prot) | **87 mana** (against a level-63 boss) each time a hit that costs you health uses up Seal of Fury's absorb | [F] rank text; the absorb's rules [?] ([Protection tree](#protection-tree)) |
+| Improved Seal of Fury (Prot) | **87 mana** (against a level-63 boss) each time a hit uses up Seal of Fury's absorb | [F] rank text; the absorb's rules [?] ([Protection tree](#protection-tree)) |
 | Judgement of Wisdom (another paladin's) | chance on each of your hits to restore 59 mana (Classic 50% [?]) | [F]/[?] |
 | Consumables | Major Mana Potion (1350–2250, 2 min, potion cooldown); Demonic Rune / Dark Rune (900–1500, 2 min, shared rune cooldown, separate from potions). Mageblood Potion and Brilliant Mana Oil for mp5 (Nightfin Soup was mp5 in Classic Era; Forever's is +22 spell damage). **Values and cooldowns are owned by** [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) | [C] |
 
@@ -1078,8 +1101,13 @@ one makes it "Custom" (D31). A setup that kept the old default gets Balanced.
       31101, 100,000 fights): **746.42 TPS, 460.97 DPS and 918.9 damage taken a second** for Balanced
       and Defensive; Max TPS against it +6.81% TPS, +6.76% DPS and +5.72% damage taken; Hammer of the
       Righteous turned on −2.00% TPS (−15.13 to −14.77), −0.13% DPS (−0.73 to −0.50) and +4.92% damage
-      taken. The presets' help quotes these (`PROTECTION_PRESET_MEASURES`, which
-      `protection-presets.test.ts` measures again), each change with its direction.
+      taken.
+    - **Re-measured for the beta-log check** ([2026-09-26](#the-beta-log-check-2026-09-26); seed 31101,
+      100,000 fights): **718.37 TPS, 444.00 DPS and 900.4 damage taken a second** for Balanced and
+      Defensive; Max TPS against it +7.08% TPS, +7.02% DPS and +5.83% damage taken; Hammer of the
+      Righteous turned on −2.1% TPS, −0.16% DPS and +5.01% damage taken. The presets' help quotes
+      these (`PROTECTION_PRESET_MEASURES`, which `protection-presets.test.ts` measures again), each
+      change with its direction.
 
 - **The duty: Devotion Aura**, the paladin's own aura, +735 armor. It's survival with a measured
   cost. In the default setup it saves 38 damage taken a second (5.3% of the 719 you'd take without
@@ -1361,8 +1389,7 @@ its Consecration and seal values; Swift Judgement's held.
   as Undead
   ([character-stats](../mechanics/character-stats.md#touch-of-the-grave)).
 - Skipped (under 0.5%): SotC's own
-  attack-speed swap during the 1.5 s pre-pull, Eye for an Eye, the damage the Seal of Fury absorb
-  takes off a hit (tank survival only; its mana is modelled), JoW/JoL healing and mana to others.
+  attack-speed swap during the 1.5 s pre-pull, Eye for an Eye, JoW/JoL healing and mana to others.
 
 ### How the engine does it
 
@@ -1457,12 +1484,14 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
     cooldown, the category's too, and whose buff is the plan's free-cast aura, Clearcasting's
     path ([druid.md §2.7](druid.md#27-omen-of-clarity-and-clearcasting)), so the judgement it
     frees costs nothing and uses it up.
-  - **Seal of Fury's absorb** is an aura a proc on each landed white swing puts up, with a shield,
-    while Seal of Fury is up. A hit that costs health uses it up (`takenCharges`), after the
-    damage-taken procs, one of which is **Improved Seal of Fury**'s mana: a flat 60 raised by the
-    boss's level (`manaFlat`, 87 against level 63). As with block charges, only an absorb up before
-    the hit's procs pays; one they put up keeps its charge. A breakdown row counts the mana its
-    effects gave (Improved Seal of Fury, Shield Specialization), which the results show a fight.
+  - **Seal of Fury's absorb** is an absorb aura (`absorb`) that Seal of Fury's proc puts up when it
+    lands, with a shield (its spell's `absorb`, 50%), worth half the damage the proc dealt; each proc
+    replaces what's left. A hit you take spends it before it costs health (`takeHit`), the stand-in
+    damage too; one that spends it ends it, after the hit's damage-taken procs, one of which is
+    **Improved Seal of Fury**'s mana: a flat 60 raised by the boss's level (`manaFlat`, 87 against
+    level 63). As with block charges, only an absorb up before the hit's procs ends; one they put up
+    stays. A breakdown row counts the mana its effects gave (Improved Seal of Fury, Shield
+    Specialization), which the results show a fight.
   - **Swift Judgement**'s `endsCooldownOf` never readies an ability that can't be used again (one
     used up, or needing a weapon the setup lacks, ready at Infinity).
   - **Reckoning** is two procs on the boss's swings, 8% a rank on a block and 20% a rank on a crit
@@ -1484,8 +1513,7 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   Judgement of the Crusader up), the utility seals, another paladin's Judgement of Wisdom, a
   Protection paladin's judgement debuff for the raid (Wisdom or Light), a rune's health cost, and
   the T1 5-piece's −0.5 s Judgement. For a tank: Judgement of Fury's taunt (no threat while you
-  hold the boss), the damage Seal of Fury's absorb takes off a hit, Templar's Bulwark, Divine
-  Protection and Eye for an Eye. Blessing of Wisdom and Mana Spring Totem are in the buff
+  hold the boss), Templar's Bulwark, Divine Protection and Eye for an Eye. Blessing of Wisdom and Mana Spring Totem are in the buff
   catalogue, for paladins only ([buffs doc](../mechanics/buffs-debuffs-consumables.md#class-only-entries)).
 
 ---
@@ -1541,9 +1569,9 @@ default setup.
 12. **Protection Holy Shield, SP 300**: 221 + 0.08 × 300 = **245** damage per block; threat
     245 × 1.6 × 1.2 = **470.4** (additive-modifier alternative: 245 × 1.8 = 441). After
     4 blocks the buff ends even if 10 s haven't passed.
-13. **Seal of Fury, SP 300, a 2.7 s one-hander**: 35 + 0.85 × 16.91 × 2.7 (38.81) + 30 = **103.81**
-    Holy per landed white hit; threat × 1.6 = **166.10**; absorb 51.90 with a shield. With the default
-    1.5 s axe and no SP: 35 + 21.56 = **56.56**. Judgement of Fury at 60: average 160 +
+13. **Seal of Fury, SP 300**: 35 + 0.1 × 300 = **65** Holy per landed white hit, with any weapon
+    (a 1.5 s axe, a 2.7 s one-hander or a 3.5 s two-hander); threat × 1.6 = **104**; with a shield, an
+    absorb of 32.5 that the next hit you take loses. Judgement of Fury at 60: average 160 +
     0.45 × 300 = **295** (the default Prot build has no Improved Seals; with it,
     ×1.15 = 339.25).
 14. **Holy Strike threat (Prot)**: a 300-damage Holy Strike → 300 × 1.6 × 1.25 = **600**.
@@ -1630,21 +1658,14 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    tanking log. The sim swings each at once, so in combat no stack builds (one given during Hammer
    of Wrath's cast swings when the cast ends); without Reckoning the default Protection setup makes
    2.8% less TPS.
-10. **Seal of Fury**: flat 35 or weapon-speed scaled (the aura holds an SoR-style value)? The sim
-    adds the seal value by SoR's rule to the 35 [?] (`35 + 0.85 × 16.91 × speed` one-handed,
-    [Seal of Fury](#seal-of-fury-sof-new-the-protection-seal)): +27.2 TPS in the default setup
-    against the flat 35. *Test (guild test T1):* 200+ auto hits with Seal of Fury and no spell damage
-    with a 1.5 s one-hander, then a 2.6–2.8 s one: about 35 both times means flat; more on the slow
-    weapon, the seal value applies (by how much says whether it's on top of the 35 or in its place).
-    Seal of Righteousness's proc 25713 carries the same base 35 in Forever (Classic Era's had 0), so the
-    sim reads it the same way, 35 plus its seal value (`35 + 0.85 × 18.80 × speed` one-handed): T1 on
-    Seal of Righteousness settles that too.
-    Absorb stacking? Improved Seal of Fury's actual mana return ("restore 0 Mana")? The client's
-    rank text reads 60 (0 + 1 a level) [F]. The sim keeps one absorb, which each proc replaces and
-    the next hit that costs you health uses up (at most the seal's 30 s), restoring 87 mana against
-    a level-63 boss; the absorb isn't taken off the hit. Without Improved Seal of Fury the default
-    Protection setup makes 16.5% less TPS, short of mana ([mana model](#mana-model)); if every hit
-    taken while an absorb exists restored mana (the absorb never used up), it would make 2.0% more.
+10. **Seal of Fury's absorb.** ✅ The proc's damage is settled: a flat 35 + 0.1 × SP, whatever the
+    weapon, measured in the beta logs ([Seal of Fury](#the-beta-logs-seal-of-fury)); the aura's
+    weapon-speed dummy models as zero. Still open: absorb stacking, and Improved Seal of Fury's actual
+    mana return ("restore 0 Mana")? The client's rank text reads 60 (0 + 1 a level) [F]. The sim
+    keeps one absorb, which each proc replaces and hits you take spend (at most the seal's 30 s); the
+    hit that uses it up restores 87 mana against a level-63 boss. Without Improved Seal of Fury the
+    default Protection setup makes 16.5% less TPS, short of mana ([mana model](#mana-model)); if every
+    hit taken while an absorb exists restored mana (the absorb never used up), it would make 2.0% more.
     *Test:* mana per boss hit taken with Seal of Fury up, with and without Improved Seal of Fury,
     and whether two boss hits between two of your swings both restore it.
 11. **Hammer of the Righteous**: target count (3 or 4 in total?), whether "weapon DPS"
@@ -1879,3 +1900,7 @@ SpellCategories, SpellCooldowns, SpellPower and SpellLevels. Table roots:
 [f-SpellCooldowns]: https://wago.tools/db2/SpellCooldowns?build=1.60.1.70009
 [f-SpellPower]: https://wago.tools/db2/SpellPower?build=1.60.1.70009
 [client]: ../data/client.md#doc-claims-checked-against-the-raw-client
+[fd-logs]: https://github.com/tzcnt/forever-data/tree/c7d17462c50d1eb0103aa5e2aff52f77f33e3418/raw-logs
+[fw-issues]: https://github.com/magey/forever-warrior/issues
+[fb-issues]: https://github.com/ClassicWoWCommunity/forever-bugs/issues
+[lutz-gist]: https://gist.github.com/077264a1aada001889e5ce0f47674623

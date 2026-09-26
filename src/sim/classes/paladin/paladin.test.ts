@@ -350,14 +350,22 @@ describe('worked example 11: Judgement of the Crusader’s bonus (the default co
 })
 
 describe('worked example 13: Seal of Fury and Judgement of Fury (Protection)', () => {
-  it('at SP 300 with a 2.7 s one-hander: 35 + 0.85 × 16.91 × 2.7 + 30 = 103.81 Holy a landed swing, 166.10 threat with Righteous Fury; JoF 295 on average, 339.25 with Improved Seals', () => {
+  it('at SP 300: 35 + 30 = 65 Holy a landed swing whatever the weapon, 104 threat with Righteous Fury; JoF 295 on average, 339.25 with Improved Seals', () => {
+    for (const weapon of [
+      { min: 150, max: 150, speedSec: 2.7, twoHand: false },
+      { min: 60, max: 60, speedSec: 1.5, twoHand: false },
+      { min: 250, max: 250, speedSec: 3.5, twoHand: true },
+    ]) {
+      const plan = examplePlan({ spec: 'paladin-protection', sp: 300, weapon })
+      expect(plan.holyThreatMult).toBeCloseTo(1.6, 12)
+      const sim = new Sim(plan)
+      sim.runFight(0)
+      const procs = counter(sim, plan, 'sealOfFuryProc', FIELD.hits)
+      expect(procs).toBeGreaterThan(0)
+      expect(counter(sim, plan, 'sealOfFuryProc', FIELD.damage) / procs).toBeCloseTo(65, 9)
+      expect(counter(sim, plan, 'sealOfFuryProc', FIELD.threat) / procs).toBeCloseTo(104, 9)
+    }
     const plan = examplePlan({ spec: 'paladin-protection', sp: 300, weapon: { min: 150, max: 150, speedSec: 2.7, twoHand: false } })
-    expect(plan.holyThreatMult).toBeCloseTo(1.6, 12)
-    const sim = new Sim(plan)
-    sim.runFight(0)
-    const procs = counter(sim, plan, 'sealOfFuryProc', FIELD.hits)
-    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.damage) / procs).toBeCloseTo(35 + 0.85 * 16.91 * 2.7 + 30, 9)
-    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.threat) / procs).toBeCloseTo((35 + 0.85 * 16.91 * 2.7 + 30) * 1.6, 9)
     expectMean(damagesOf(plan, 'judgementOfFury', 40), 160 + 135)
     const improved = examplePlan({ spec: 'paladin-protection', sp: 300, talents: IMPROVED_SEALS })
     expectMean(damagesOf(improved, 'judgementOfFury', 40), 339.25)

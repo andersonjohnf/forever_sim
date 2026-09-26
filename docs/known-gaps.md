@@ -25,6 +25,10 @@ review's log under [reviews/](reviews/). The milestones are in [milestones.md](m
 - **What's New and pasted links (WQ-2, WQ-4).** A refused link pasted while What's New is open drops
   the opening link's held "Loaded" notice, though the opening link did load; no e2e test pastes a link
   while a notice is held (the review's probe covered both). Rare.
+- **A flaky picker test under load (EU-7, pre-existing, low).** `e2e/gear-rules.spec.ts`'s "a worn item
+  of the other faction stays in its slot and the picker…" clicks the `Feet:` slot right after an
+  Escape closes the shoulders picker; it once timed out after 30 s in a parallel run, and passed 3 of 3 with `--repeat-each 3`. Waiting for the picker to close
+  before the next click would pin it.
 - **A flaky spec-switch test (EM-7).** `e2e/results-keyed.spec.ts` "cancels on a spec switch" can see
   the Fury run finish before the switch under heavy load.
 

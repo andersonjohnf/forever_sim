@@ -310,6 +310,55 @@ test.describe('the item picker', () => {
   })
 })
 
+// Tabbing down the picker opens each row's tooltip in turn and fades the last one out, inside the
+// dialog. Focus goes row to row: never back to the dialog, whose focus trap took a tooltip removed as
+// focus moved for focus lost, nor into a tooltip, which takes no focus. Quick presses, so fades end
+// while focus moves, as they did when this broke.
+for (const width of [1280, 390]) {
+  test.describe(`the item picker's rows by keyboard, ${width} px`, () => {
+    test.use({ viewport: { width, height: 844 } })
+
+    test('Tab goes row to row through 40 rows, each opening its tooltip, never to the dialog or into a tooltip', async ({ page }) => {
+      await openGear(page)
+      await page.getByRole('button', { name: /^Head: / }).click({ position: { x: 20, y: 20 } })
+      const picker = page.getByRole('dialog', { name: 'Choose head' })
+      await picker.getByRole('radio', { name: 'All items' }).click()
+      await page.mouse.move(0, 0)
+      let rows = 0
+      for (let i = 0; i < 120 && rows < 40; i++) {
+        await page.keyboard.press('Tab')
+        const stop = await page.evaluate(() => {
+          const focused = document.activeElement!
+          const name = focused.querySelector('.sr-only')?.textContent?.split('. ')[0] ?? null
+          return {
+            what: focused.getAttribute('aria-label') ?? focused.textContent?.trim().slice(0, 50) ?? focused.tagName,
+            dialog: focused.getAttribute('role') === 'dialog',
+            inTooltip: !!focused.closest('[role="tooltip"]'),
+            // A row's own button, or a control in its row (a flag, the phone's info control).
+            inRow: !!focused.closest('ul[aria-label="Items"] > li'),
+            name,
+            open: [...document.querySelectorAll('[role="tooltip"][data-state="open"]')].map((tip) => tip.textContent ?? ''),
+          }
+        })
+        expect(stop.dialog, `Tab ${i} lands on the dialog`).toBe(false)
+        expect(stop.inTooltip, `Tab ${i} lands in a tooltip`).toBe(false)
+        if (rows > 0) expect(stop.inRow, `Tab ${i} stays in the list (${stop.what})`).toBe(true)
+        if (stop.name === null) continue
+        expect(stop.open, `${stop.name}'s tooltip is the one open`).toHaveLength(1)
+        expect(stop.open[0]).toContain(stop.name)
+        rows++
+      }
+      expect(rows).toBe(40)
+      await expect(picker).toBeVisible()
+      // The faded tooltips are gone, and the open one takes no focus: nothing in it is tabbable.
+      await expect(page.locator('[role="tooltip"]')).toHaveCount(1)
+      const tip = page.locator('[role="tooltip"]')
+      await expect(tip).toHaveAttribute('tabindex', '-1')
+      await expect(tip.locator('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])')).toHaveCount(0)
+    })
+  })
+}
+
 test.describe('the item picker at 1024 px', () => {
   test.use({ viewport: { width: 1024, height: 900 } })
 

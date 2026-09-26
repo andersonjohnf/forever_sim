@@ -146,12 +146,18 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
   const wide = useMediaQuery('(min-width: 640px)')
   const open = openedBy !== null
   const pinned = openedBy === 'press'
-  // The panel while it's drawn: from opening until it has faded out.
+  // The panel's element while it's drawn.
   const [panel, setPanel] = useState<HTMLDivElement | null>(null)
-  // Only a drawn tooltip builds its lines: a list of slots and picker rows holds many closed ones. A
-  // closing one keeps them while it fades: lines removed from a dialog as focus moves between its rows
-  // would make the dialog's focus trap take focus back to itself.
-  const drawn = open || panel !== null
+  // Drawn from opening until it has faded out. The tooltip decides when the panel goes, not Radix's
+  // Presence, which removes it in an update React can hold back and then commit inside the next focus
+  // move (the blur that closes the next row's tooltip). A dialog's focus trap takes a removal from it
+  // while focus is between two elements as focus lost, and pulls focus back to the dialog: tabbing
+  // down the picker's rows landed on the dialog itself. So the panel goes in its fade-out's own
+  // animationend, committed there and then, never in a focus move.
+  const [shown, setShown] = useState(false)
+  if (open && !shown) setShown(true)
+  const drawn = open || shown
+  // Only a drawn tooltip builds its lines: a list of slots and picker rows holds many closed ones.
   const lines = useMemo(() => (drawn ? itemTooltipLines(item, { enchantId, profile, worn }) : []), [drawn, item, enchantId, profile, worn])
   const infoRef = useRef<HTMLButtonElement | null>(null)
   const anchorRef = useRef<HTMLElement | null>(null)
@@ -255,6 +261,28 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
     },
     [openedBy],
   )
+  // Faded out, it goes in the fade-out's own event, committed there and then (`shown`, above). The
+  // fade-in a quick close cuts short is cancelled, and only the fade-out's own end counts. Closed with
+  // no fade to wait for (Escape's instant close, or animations switched off), it goes at once: Escape
+  // isn't a focus move, and the picker must hear the key with the panel gone (above).
+  useLayoutEffect(() => {
+    if (open || !shown) return
+    if (!panel || getComputedStyle(panel).animationName === 'none') {
+      // oxlint-disable-next-line react/set-state-in-effect -- the closed panel's animation is known only once it's committed
+      setShown(false)
+      return
+    }
+    const fadedOut = (e: globalThis.AnimationEvent) => {
+      const running = getComputedStyle(panel).animationName.split(',').map((name) => name.trim())
+      if (e.target === panel && running.includes(e.animationName)) flushSync(() => setShown(false))
+    }
+    panel.addEventListener('animationend', fadedOut)
+    panel.addEventListener('animationcancel', fadedOut)
+    return () => {
+      panel.removeEventListener('animationend', fadedOut)
+      panel.removeEventListener('animationcancel', fadedOut)
+    }
+  }, [open, shown, panel])
   const within = (ref: RefObject<HTMLElement | null>, target: EventTarget | null) => target instanceof Node && !!ref.current?.contains(target)
   // Pinned open (a long press or the info control), a tap or click outside only closes it: the item or
   // row it lands on doesn't also act, as in the game and most phone popovers. Another item's info
@@ -289,58 +317,62 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
       <Popover open={open} onOpenChange={(next) => !next && dispatch({ type: 'dismiss' })}>
         <PopoverAnchor virtualRef={virtualRef} />
         {children}
-        <PopoverPrimitive.Portal container={container ?? undefined}>
-          <PopoverPrimitive.Content
-            ref={placeContent}
-            data-slot="popover-content"
-            role="tooltip"
-            side={placement.side}
-            align={align}
-            sideOffset={GAP_PX}
-            collisionPadding={padding}
-            hideWhenDetached
-            // A drag on it scrolls it, rather than the phone's sheet.
-            data-vaul-no-drag=""
-            // The item keeps focus: the tooltip describes it, and closing it hands nothing back.
-            onOpenAutoFocus={(e) => e.preventDefault()}
-            onCloseAutoFocus={(e) => e.preventDefault()}
-            onPointerDownOutside={(e) => {
-              // The info control toggles it itself: a press on it isn't a press outside. Pinned open, the
-              // press's click closes it (above), so the press alone doesn't.
-              if (openedBy === 'press' || within(infoRef, e.target)) e.preventDefault()
-            }}
-            onFocusOutside={(e) => {
-              // Hover and focus have their own closing rules, so focus moving on doesn't dismiss those; nor
-              // does focus reaching the item or the info control (a long press's release focuses the item),
-              // nor a press's focus, whose click closes it (above).
-              if (openedBy !== 'press' || pressedOutside.current || within(anchorRef, e.target) || within(infoRef, e.target)) e.preventDefault()
-            }}
-            onClick={(e) => {
-              // Pinned, a tap on it closes it, as a tap outside does: where it covers its own info control
-              // (a touch screen's wide grid), that tap is the one the player makes.
-              if (openedBy !== 'press') return
-              e.stopPropagation()
-              dispatch({ type: 'dismiss' })
-            }}
-            className={cn(
-              'z-50 flex origin-(--radix-popover-content-transform-origin) flex-col rounded-md border p-2.5 text-sm shadow-lg outline-hidden [color-scheme:dark]',
-              // 20 rem at most, narrowing to the room beside the item (down to 16 rem: `tooltipSide`). Before
-              // it's placed, 20 rem, so the height measured as it opens is the height it will have.
-              'w-max max-w-[min(20rem,var(--radix-popover-content-available-width,20rem),calc(100vw-1rem))]',
-              'max-h-(--radix-popover-content-available-height) overflow-y-auto overscroll-contain',
-              'duration-100 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95',
-              'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-              instantClose ? 'data-closed:animate-none' : 'data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95',
-              // Resting on the item, the pointer never lands on the panel; a pinned one scrolls.
-              openedBy !== 'press' && 'pointer-events-none',
-            )}
-            // Inside a modal, Radix's DismissableLayer sets an inline `pointer-events: auto` that beats the
-            // class above; the style prop wins over it, so a hover or focus tooltip lets the pointer through (VT-1).
-            style={{ backgroundColor: panelColour, borderColor: border, color: tone.white, pointerEvents: openedBy === 'press' ? undefined : 'none' }}
-          >
-            <ItemTooltipCard id={linesId} lines={lines} />
-          </PopoverPrimitive.Content>
-        </PopoverPrimitive.Portal>
+        {drawn && (
+          <PopoverPrimitive.Portal container={container ?? undefined} forceMount>
+            <PopoverPrimitive.Content
+              ref={placeContent}
+              // Drawn while it's open or fading out: the tooltip removes it, not Radix (`shown`, above).
+              forceMount
+              data-slot="popover-content"
+              role="tooltip"
+              side={placement.side}
+              align={align}
+              sideOffset={GAP_PX}
+              collisionPadding={padding}
+              hideWhenDetached
+              // A drag on it scrolls it, rather than the phone's sheet.
+              data-vaul-no-drag=""
+              // The item keeps focus: the tooltip describes it, and closing it hands nothing back.
+              onOpenAutoFocus={(e) => e.preventDefault()}
+              onCloseAutoFocus={(e) => e.preventDefault()}
+              onPointerDownOutside={(e) => {
+                // The info control toggles it itself: a press on it isn't a press outside. Pinned open, the
+                // press's click closes it (above), so the press alone doesn't.
+                if (openedBy === 'press' || within(infoRef, e.target)) e.preventDefault()
+              }}
+              onFocusOutside={(e) => {
+                // Hover and focus have their own closing rules, so focus moving on doesn't dismiss those; nor
+                // does focus reaching the item or the info control (a long press's release focuses the item),
+                // nor a press's focus, whose click closes it (above).
+                if (openedBy !== 'press' || pressedOutside.current || within(anchorRef, e.target) || within(infoRef, e.target)) e.preventDefault()
+              }}
+              onClick={(e) => {
+                // Pinned, a tap on it closes it, as a tap outside does: where it covers its own info control
+                // (a touch screen's wide grid), that tap is the one the player makes.
+                if (openedBy !== 'press') return
+                e.stopPropagation()
+                dispatch({ type: 'dismiss' })
+              }}
+              className={cn(
+                'z-50 flex origin-(--radix-popover-content-transform-origin) flex-col rounded-md border p-2.5 text-sm shadow-lg outline-hidden [color-scheme:dark]',
+                // 20 rem at most, narrowing to the room beside the item (down to 16 rem: `tooltipSide`). Before
+                // it's placed, 20 rem, so the height measured as it opens is the height it will have.
+                'w-max max-w-[min(20rem,var(--radix-popover-content-available-width,20rem),calc(100vw-1rem))]',
+                'max-h-(--radix-popover-content-available-height) overflow-y-auto overscroll-contain',
+                'duration-100 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95',
+                'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+                instantClose ? 'data-closed:animate-none' : 'data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95',
+                // Resting on the item, the pointer never lands on the panel; a pinned one scrolls.
+                openedBy !== 'press' && 'pointer-events-none',
+              )}
+              // Inside a modal, Radix's DismissableLayer sets an inline `pointer-events: auto` that beats the
+              // class above; the style prop wins over it, so a hover or focus tooltip lets the pointer through (VT-1).
+              style={{ backgroundColor: panelColour, borderColor: border, color: tone.white, pointerEvents: openedBy === 'press' ? undefined : 'none' }}
+            >
+              <ItemTooltipCard id={linesId} lines={lines} />
+            </PopoverPrimitive.Content>
+          </PopoverPrimitive.Portal>
+        )}
       </Popover>
     </TooltipContext>
   )

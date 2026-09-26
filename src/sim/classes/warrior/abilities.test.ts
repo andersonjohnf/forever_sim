@@ -55,6 +55,7 @@ import {
 } from './abilities'
 import { BT_OVER_EXECUTE_AP_IMPROVED_1, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation, PREPULL_BLOODRAGE_MS, PREPULL_SHOUT_MS } from './fury'
 import { POPULAR_WARRIOR_TALENTS } from './popular-builds'
+import { TALENT_EFFECTS } from './talents'
 import {
   abilityCritMultiplier,
   costReduction,
@@ -606,7 +607,7 @@ describe('rage costs per build (warrior.md §2.3 "Cost reductions")', () => {
   const ranks = (code: string) => talentRanksByName(TALENT_DATA.warrior, code)
   const costs = (code: string, ids: string[]) => Object.fromEntries(ids.map((id) => [id, rageCost(id, baseCost(id), ranks(code))]))
 
-  it('W20: Protection default build (Focused Rage 3/3, Improved Sunder Armor 3/3, Improved Heroic Strike 3/3), and its Improved Thunder Clap preset', () => {
+  it('W20: Protection 8/5/38, the popular build (Focused Rage 3/3, Improved Sunder Armor 3/3, Improved Heroic Strike 3/3), and its Improved Thunder Clap preset', () => {
     const ids = ['sunderArmor', 'shieldSlam', 'revenge', 'heroicStrike', 'thunderClap', 'demoralizingShout', 'battleShout', 'shieldBlock', 'deathWish']
     expect(costs('35-05-552101233301210531', ids)).toEqual({
       sunderArmor: 9,
@@ -623,11 +624,29 @@ describe('rage costs per build (warrior.md §2.3 "Cost reductions")', () => {
     expect(costs('05-05-552131233301210531', ['heroicStrike', 'thunderClap'])).toEqual({ heroicStrike: 12, thunderClap: 11 })
   })
 
-  it('W21: Fury default build (Improved Heroic Strike 3/3, no Improved Execute)', () => {
-    // W21's Cleave rows (15, and 16 for Fury + Precision) wait for Cleave itself.
+  it('W20: the default since W4, 13/5/33 (Improved Heroic Strike 2/3, no Improved Sunder Armor): Sunder Armor 12, Heroic Strike 10, the rest as 8/5/38', () => {
+    expect(defaultTalents('warrior-protection')).toBe('25300003-05-552001233000210531')
+    const ids = ['sunderArmor', 'shieldSlam', 'revenge', 'heroicStrike', 'thunderClap', 'demoralizingShout', 'battleShout', 'shieldBlock']
+    expect(costs(defaultTalents('warrior-protection'), ids)).toEqual({
+      ...costs(POPULAR_WARRIOR_TALENTS['warrior-protection'], ids),
+      sunderArmor: 12,
+      heroicStrike: 10,
+    })
+  })
+
+  it('W21: the popular Fury 17/34/0 (Improved Heroic Strike 3/3, no Improved Execute)', () => {
+    // W21's Cleave rows (15, and 16 with Improved Cleave 2/3) wait for Cleave itself.
     expect(
-      costs('30305013002-050530035150010051-', ['heroicStrike', 'bloodthirst', 'whirlwind', 'execute', 'hamstring', 'overpower', 'battleShout', 'deathWish']),
+      costs(POPULAR_WARRIOR_TALENTS['warrior-fury'], ['heroicStrike', 'bloodthirst', 'whirlwind', 'execute', 'hamstring', 'overpower', 'battleShout', 'deathWish']),
     ).toEqual({ heroicStrike: 12, bloodthirst: 30, whirlwind: 25, execute: 15, hamstring: 10, overpower: 5, battleShout: 10, deathWish: 10 })
+  })
+
+  it('W21: the default since W4, 13/38/0 (Improved Heroic Strike 2/3, Improved Execute 2/2): Heroic Strike 13, Execute 10, Rend 10, the rest as 17/34/0', () => {
+    expect(defaultTalents('warrior-fury')).toBe('20303203-050520035152310051-')
+    const ids = ['heroicStrike', 'bloodthirst', 'whirlwind', 'execute', 'hamstring', 'overpower', 'battleShout', 'deathWish', 'rend']
+    expect(costs(defaultTalents('warrior-fury'), ids)).toEqual({ ...costs(POPULAR_WARRIOR_TALENTS['warrior-fury'], ids), heroicStrike: 13, execute: 10, rend: 10 })
+    // Its Cleave at 16 (Improved Cleave 2/3) waits for Cleave itself; the talent rank is there.
+    expect(ranks(defaultTalents('warrior-fury')).get('Improved Cleave')).toBe(2)
   })
 
   it('Improved Execute is a table (−3, −5), and the reductions stack', () => {
@@ -646,8 +665,21 @@ describe('Impale and Raging Blows (warrior.md §2.5, §3.1)', () => {
     expect(abilityCritMultiplier('battleShout', new Map([['Impale', 2]]))).toBe(2)
   })
 
-  it('applies the default Fury build to its abilities', () => {
-    const fury = talentRanksByName(TALENT_DATA.warrior, '30305013002-050530035150010051-')
+  it('applies the default Fury 13/38/0 to its abilities: no Impale, so crits deal ×2.0; +3% hit from Precision; a swap keeps 19 (warrior.md §5.2)', () => {
+    const fury = talentRanksByName(TALENT_DATA.warrior, defaultTalents('warrior-fury'))
+    expect(ABILITIES.map((a) => withTalents(a, fury)).map((a) => [a.id, a.costTenths, a.critMultiplier, a.offHand])).toEqual([
+      ['bloodthirst', 300, 2, false],
+      ['whirlwind', 250, 2, true],
+      ['heroicStrike', 130, 2, false],
+      ['hamstring', 100, 2, false],
+      ['execute', 100, 2, false],
+    ])
+    expect(TALENT_EFFECTS.Precision(fury.get('Precision')!)).toContainEqual({ kind: 'stat', stat: 'hit', value: 3 })
+    expect(stanceSwapKeepTenths(fury, FOREVER)).toBe(190)
+  })
+
+  it('applies the popular Fury 17/34/0 to its abilities', () => {
+    const fury = talentRanksByName(TALENT_DATA.warrior, POPULAR_WARRIOR_TALENTS['warrior-fury'])
     const resolved = ABILITIES.map((a) => withTalents(a, fury))
     expect(resolved.map((a) => [a.id, a.costTenths, a.critMultiplier, a.offHand])).toEqual([
       ['bloodthirst', 300, 2.2, false],

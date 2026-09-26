@@ -20,7 +20,7 @@ import { potionFallbackMaxRage, rageCap } from './shared'
  * for (popular-builds.ts; warrior.md §6.1). */
 const defaultConfig = (...args: Parameters<typeof todaysDefaultConfig>) => withPopularTalents(todaysDefaultConfig(...args))
 
-/** The default Arms build's talents by name (37/14/0, warrior.md §6.1). */
+/** The popular Arms build's talents by name (37/14/0, the default until W4; warrior.md §6.1), which these tests were written for. */
 const TALENTS = talentRanksByName(TALENT_DATA.warrior, defaultConfig('warrior-arms').talents)
 const noAura = () => -1
 type Rot = ReturnType<typeof armsRotation>
@@ -90,7 +90,7 @@ describe('Arms rotation options (warrior.md §5.1, §5.3)', () => {
     ])
   })
 
-  it('uses the §5.3 defaults with the default build: the best rotation found (D23, M2.5a)', () => {
+  it('uses the §5.3 defaults with the popular 37/14/0: the best rotation found (D23, M2.5a)', () => {
     expect(resolveRotationValues(ARMS_OPTIONS, {}, TALENTS)).toMatchObject({
       'warrior.arms.baseStance': 'battle',
       'warrior.arms.prepull.battleShout': true,
@@ -153,7 +153,7 @@ describe('Arms rotation options (warrior.md §5.1, §5.3)', () => {
 })
 
 describe('armsRotation (warrior.md §5.3)', () => {
-  it('builds the default list in §5.3 order with the default build', () => {
+  it('builds the default list in §5.3 order with the popular 37/14/0', () => {
     const r = armsRotation({}, TALENTS, noAura, { race: 'horde-orc', consumables: [MIGHTY_RAGE_POTION] })
     expect(ids(r)).toEqual([
       'battleShout', // 1
@@ -179,7 +179,7 @@ describe('armsRotation (warrior.md §5.3)', () => {
     expect(armsMaintainedBuffs({ 'warrior.arms.battleShout.enabled': false })).toEqual([])
   })
 
-  it('resolves the abilities with the default build: Improved Slam 2/2, Improved Rend 3/3, Improved Overpower 2/2, Impale 2/2', () => {
+  it('resolves the abilities with the popular 37/14/0: Improved Slam 2/2, Improved Rend 3/3, Improved Overpower 2/2, Impale 2/2', () => {
     // Heroic Strike is off by default (§5.3 row 13); turned on, Improved Heroic Strike 3/3 makes it 12 rage.
     const r = armsRotation({ 'warrior.arms.heroicStrike.enabled': true }, TALENTS, noAura)
     expect(r.abilities[at(r, 'slam')]).toMatchObject({ castMs: 1000, gcdMs: 1000, castStopsSwings: false, costTenths: 150 })

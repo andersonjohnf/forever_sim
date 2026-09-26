@@ -191,7 +191,7 @@ and it was the weakest imbue for a two-hander in Classic Era [C]
 | Per stack | −4% Lightning Bolt cast time and mana a rank: **−20% at 5/5** | [F] [client] (TraitDefinitionEffectPoints, CurvePoint 408498) |
 | At 5 stacks | Lightning Bolt is **instant and free** | [F] (5 × 20%); [Warcraft Tavern, Forever](https://www.warcrafttavern.com/forever/guides/shaman/): "Maelstrom Weapon stacks up to five times to let Enh Shamans cast an instant and free Lightning Bolt" |
 | Stacks from | "When you deal damage with a melee attack, you have a chance": any landed melee hit, white, special or extra attack (proc mask 0x10014) | [F] tooltip and SpellAuraOptions |
-| Chance a hit | **50%** in the sim: the talent's aura carries three dummy values, 20 (the stack's cut, which the rank curve sets), 50 and 5 (the stacks), and the sim reads the 50 as the chance. No source states the rate | [?] ([open question 1](#open-questions)) |
+| Chance a hit | **50%** in the sim: the talent's aura carries three dummy values, 20 (the stack's cut, which the rank curve sets), 50 and 5 (the stacks), and the sim reads the 50 as the chance. No allowed source states the rate. Forever reuses Season of Discovery's rune (408498), and Blizzard's SoD client carries the same three values, no procs-per-minute row (SpellAuraOptions `SpellProcsPerMinuteID` 0 in both clients) and a 100% proc chance, so its rate is server-side there too. Blizzard's SoD notes give only changes to it: "roughly 50% higher" with Windfury Weapon on the main hand ([hotfixes, 2024-02-12](https://news.blizzard.com/en-us/world-of-warcraft/24057474/hotfixes-february-12-2024)) and "a 25% extra chance" with a two-hander ([Eliquid, 2024-04-16](https://us.forums.blizzard.com/en/wow/t/shaman-patch-notes-4162024/1831264)), never the base; the 10 procs a minute other sims use cites no source. So the sim keeps the client's 50, the least-invented reading, and adds neither change: each is a change to an unknown base, made on SoD's servers, which Forever's may not share | [?] ([open question 1](#open-questions)) |
 | Used by | the next Lightning Bolt, which spends all the stacks when it's cast; the cut is read then | [F] tooltip; the timing [?] |
 
 A Lightning Bolt with fewer than 5 stacks still has a cast time: 2.5 s × (1 − 0.2 × stacks) and
@@ -247,8 +247,12 @@ Measured on the default setup (20,000 fights, seed 1): the rule is worth **+1.17
   ([open question 5](#open-questions)). Its travel time (speed 20) isn't simulated.
 - **Procs**: a spell crit fires Elemental Devastation ([Talents](#talents)); a spell triggers no
   melee procs (not Windfury Weapon, Flurry or Maelstrom Weapon).
-- **Threat** is the damage; any extra threat on Earth Shock isn't simulated [?]
-  ([open question 8](#open-questions)).
+- **Threat** is the damage, and Earth Shock's is **2 × its damage** [?]
+  ([open question 8](#open-questions)): its tooltip says "Causes a high amount of threat" in both
+  clients, and every Classic Era and Season of Discovery threat tool carries ×2 (LibThreatClassic2's
+  shaman module, wowsims' classic and sod sims), the lineage of the bear's Maul ×1.75
+  ([threat](../mechanics/threat.md#shaman-dps-context)). Never measured in Classic Era or Forever.
+  `EARTH_SHOCK_THREAT_MULT`.
 
 ---
 
@@ -1086,9 +1090,12 @@ sample size ([doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotia
 the default setup's DPS unless stated.
 
 1. **Maelstrom Weapon's chance a hit.** The sim reads the talent's dummy 50 as 50% per landed melee
-   hit (white, special and extra attacks). *Test:* count Maelstrom Weapon stacks gained against landed
-   melee hits over 500+ hits (the combat log's buff applications), with and without Windfury Weapon.
-   *Effect:* 25% → −1.31%, 100% → +2.35%.
+   hit (white, special and extra attacks); no allowed source states the rate
+   ([Maelstrom Weapon](#maelstrom-weapon)). *Test:* count Maelstrom Weapon stacks gained against landed
+   melee hits over 500+ hits (the combat log's buff applications), with and without Windfury Weapon,
+   and with a one-hander and a two-hander (Season of Discovery's notes raise it for both).
+   *Effect:* 25% → −1.31%, 100% → +2.35%; the SoD notes' two raises on the 50 (×1.5 with Windfury
+   Weapon, ×1.25 with a two-hander: 94%, as the default wears both) +2.2% (539.1 → 550.7, 10,000 fights).
 2. **Is Stormstrike's boost used up by a missed spell?** The sim keeps it. *Test:* Stormstrike, then
    Earth Shocks on a +3 mob until one misses, then one that lands; compare its damage. *Effect:* the
    boost is worth 1.31% in all, and about 9% of the spells miss: about −0.12%.
@@ -1112,8 +1119,11 @@ the default setup's DPS unless stated.
    placeholders. The base spell crit sources conflict: 2.3% (wowsims/classic) or −0.7% (RatingBuster).
    *Test:* a naked level-60 shaman's character sheet per race (the sheet shows spell crit). *Effect:*
    −0.7% instead of 2.3% is −0.49%; the attributes under ±0.5%.
-8. **Earth Shock's extra threat**: whether it still carries the extra threat Classic Era shaman
-   tanks relied on is unknown, and none is simulated. *Test:* a threat meter on a single Earth Shock. *Effect:* none on DPS; TPS only.
+8. **Earth Shock's extra threat**: the sim gives it 2 × its damage, the value every Classic Era
+   threat tool carries (never measured; [Shocks](#shocks-and-lightning-bolt)). *Test:* a threat
+   meter on a single Earth Shock against its damage in the combat log. *Effect:* none on DPS;
+   Enhancement's TPS +10.4% over ×1 (383.2 → 423.2, 10,000 fights); the Elemental default casts no
+   Earth Shock.
 9. **Resolved in K5: Nature-only and Frost-only spell damage on gear** counts for its school's
    spells, on the caster core ([Spell damage](#spell-damage)).
 10. **Rockbiter Weapon's value** in Forever: 653 AP from 16313's rows (554 + 16.5 a level). *Test:*

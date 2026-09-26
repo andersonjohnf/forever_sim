@@ -213,6 +213,7 @@ export const ASSUMPTION_GROUP = {
   windfuryWeaponTotem: 'class',
   shamanFlurry: 'class',
   stormstrikeBoost: 'class',
+  earthShockThreat: 'class',
   lightningBoltCast: 'class',
   shamanSpellDamage: 'class',
   shamanTotems: 'class',

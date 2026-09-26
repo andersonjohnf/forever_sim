@@ -1064,6 +1064,28 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   values for M4 and M5.
 - **Docs:** [spells.md § Trainer rows with no client data](data/spells.md#trainer-rows-with-no-client-data)
 
+#### B84. Earth Shock's threat
+**Medium · Enhancement shaman (TPS only) · ≤20 (Earth Shock r1, level 4)**
+- **Assumes** [?]: 2 × its damage, the value every Classic Era threat tool carries (never measured);
+  its tooltip says "Causes a high amount of threat".
+- **Test:** the threat macro before and after single Earth Shocks on a fresh mob, against each
+  shock's damage in the combat log; a Lightning Bolt the same way calibrates ×1.
+- **Samples:** ≥8 shocks.
+- **Changes:** Enhancement's TPS: ×1 would be −9.4% (423 → 383).
+- **Docs:** [shaman Shocks, open question 8](classes/shaman.md#shocks-and-lightning-bolt),
+  [threat § shaman](mechanics/threat.md#shaman-dps-context)
+
+#### B85. Maelstrom Weapon's rate
+**Medium · Enhancement shaman · ≤30 (tier 5)**
+- **Assumes** [?]: a stack on 50% of landed melee hits, white, special and extra attacks, read from
+  a value the talent carries. Blizzard never published the rate; its Season of Discovery notes raise
+  it about 50% with Windfury Weapon and 25% with a two-hander, which the sim doesn't add.
+- **Test:** count Maelstrom Weapon stacks gained against landed melee hits in the combat log, with a
+  one-hander and a two-hander, with and without Windfury Weapon.
+- **Samples:** 500+ landed hits per setup.
+- **Changes:** 25% would be −1.3%, 100% +2.4%; the SoD raises on 50% (94% for the default) +2.2%.
+- **Docs:** [shaman Maelstrom Weapon, open question 1](classes/shaman.md#maelstrom-weapon)
+
 ### Low
 
 #### B46. Weapon skill per point

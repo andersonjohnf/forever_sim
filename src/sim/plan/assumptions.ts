@@ -652,7 +652,7 @@ const REGISTRY = {
     docRef: `${SHAM}#weapon-imbues`,
   },
   maelstromWeapon: {
-    text: 'Maelstrom Weapon stacks on 50% of your landed melee hits, white, special and extra attacks: the rate is server-side and untested, read from a value the talent carries.',
+    text: 'Maelstrom Weapon stacks on 50% of your landed melee hits, white, special and extra attacks: the rate is server-side, never published and untested, so the sim reads it from a value the talent carries.',
     docRef: `${SHAM}#maelstrom-weapon`,
   },
   shamanFlurry: {
@@ -662,6 +662,10 @@ const REGISTRY = {
   stormstrikeBoost: {
     text: 'Stormstrike’s +20% goes to your next Lightning Bolt or Earth Shock that lands, which uses it up; a miss keeps it.',
     docRef: `${SHAM}#stormstrike`,
+  },
+  earthShockThreat: {
+    text: 'Earth Shock’s threat is twice its damage, as every Classic threat meter and simulator has it; it has never been measured, in Classic Era or Forever.',
+    docRef: `${SHAM}#shocks-and-lightning-bolt`,
   },
   lightningBoltCast: {
     text: 'A Lightning Bolt with a cast time stops your swings, which start again from full when it completes, as Slam does.',

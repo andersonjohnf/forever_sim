@@ -13,6 +13,7 @@ import { localExecutor } from '../../run/local'
 import type { RotationValue, SimConfig } from '../../types'
 import { ROTATION_GROUPS, rotationDefaultsNote, rotationOptions } from '../rotation'
 import { ENHANCEMENT_APL, ENHANCEMENT_IDS as ID, ENHANCEMENT_OPTIONS, enhancementRotation, PREPULL_IMBUE_MS, TOTEM_OF_RAGE } from './enhancement'
+import { EARTH_SHOCK_THREAT_MULT } from './abilities'
 import { auraOf, ENH, talentCode } from './test-helpers'
 
 /** The default Enhancement setup, with these settings, race, buffs and fight. */
@@ -190,10 +191,21 @@ describe('what the default fight does (shaman.md "Enhancement priority")', () =>
     expect(counter(plan, sim, 'windfuryWeapon', FIELD.casts)).toBeGreaterThan(0)
   })
 
+  it('Earth Shock’s threat is twice its damage, Lightning Bolt’s its damage (shaman.md open question 8)', () => {
+    const plan = planOf()
+    const sim = new Sim(plan)
+    for (let i = 0; i < 20; i++) sim.runFight(i)
+    const perDamage = (id: string) => counter(plan, sim, id, FIELD.threat) / counter(plan, sim, id, FIELD.damage)
+    expect(counter(plan, sim, 'earthShock', FIELD.damage)).toBeGreaterThan(0)
+    expect(perDamage('earthShock') / perDamage('lightningBolt')).toBeCloseTo(EARTH_SHOCK_THREAT_MULT, 9)
+    expect(EARTH_SHOCK_THREAT_MULT).toBe(2)
+    expect(buildPlan(config()).assumptions.find((a) => a.id === 'earthShockThreat')!.text).toContain('twice its damage')
+  })
+
   it('lists the [?] assumptions it relies on; a Lightning Bolt with a cast time adds its own, not Slam’s', () => {
     const notes = (o: Parameters<typeof config>[0] = {}) => buildPlan(config(o)).assumptions.map((a) => a.id)
     const d = notes()
-    for (const id of ['reactionTimeShaman', 'manaRegenShaman', 'windfuryWeapon', 'maelstromWeapon', 'shamanFlurry', 'stormstrikeBoost', 'shamanSpellDamage', 'shamanTotems', 'baseStatPlaceholders'])
+    for (const id of ['reactionTimeShaman', 'manaRegenShaman', 'windfuryWeapon', 'maelstromWeapon', 'shamanFlurry', 'stormstrikeBoost', 'earthShockThreat', 'shamanSpellDamage', 'shamanTotems', 'baseStatPlaceholders'])
       expect(d, id).toContain(id)
     for (const id of ['lightningBoltCast', 'slamCast', 'reactionTime', 'reactionTimeMana', 'windfuryWeaponTotem']) expect(d, id).not.toContain(id)
     const cast = notes({ rotation: { [ID.boltStacks]: 4 } })

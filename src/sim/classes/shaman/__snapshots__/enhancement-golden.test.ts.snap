@@ -74,9 +74,9 @@ exports[`golden run (fixed config and seed) > keeps the default Enhancement sham
     "spentPerFight": 9744.528,
   },
   "tps": {
-    "ci95": 1.8843278394950058,
-    "mean": 383.1994135672128,
-    "stdev": 30.402435342028756,
+    "ci95": 1.9091761159304865,
+    "mean": 423.531925045932,
+    "stdev": 30.80334653267009,
   },
 }
 `;

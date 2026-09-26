@@ -114,6 +114,14 @@ const SPELL = {
   takenScale: 0,
 } as const
 
+/**
+ * Earth Shock's threat: 2 × its damage [?] (shaman.md#shocks-and-lightning-bolt, open question 8). No client value or
+ * measurement exists; every Classic Era and Season of Discovery threat tool carries ×2 (LibThreatClassic2's
+ * shaman module, wowsims' classic and sod Earth Shock), the lineage Maul's ×1.75 has (threat.md), and
+ * Classic Era's shaman tanks leaned on it. Never measured on Classic Era or Forever.
+ */
+export const EARTH_SHOCK_THREAT_MULT = 2
+
 /** A rank's range at level 60: base × (1 ± variance / 2), plus its per-level points up to 60, truncated (docs/data/items.md#per-level-values). */
 const range = (base: number, variance: number, perLevel: number, baseLevel: number, maxLevel: number) => {
   const grow = atLevel60(0, perLevel, baseLevel, maxLevel)
@@ -124,7 +132,8 @@ const range = (base: number, variance: number, perLevel: number, baseLevel: numb
 /**
  * Earth Shock r7 (10414): 301 base points, variance 0.0527307, +1.9 a level from 60, so 293.06–308.94
  * at 60; coefficient 0.386; Nature [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). Classic
- * Era's rank 7 is 517–545 [C]. Stormstrike's aura boosts it.
+ * Era's rank 7 is 517–545 [C]. Stormstrike's aura boosts it. Its threat is twice its damage [?]
+ * (EARTH_SHOCK_THREAT_MULT).
  */
 export const EARTH_SHOCK_SPELL: SpellDef = {
   ...SPELL,
@@ -135,6 +144,7 @@ export const EARTH_SHOCK_SPELL: SpellDef = {
   ...range(301, 0.0527307, 1.9, 60, 65),
   spCoefficient: 0.386,
   boost: STORMSTRIKE_BOOST,
+  threatMult: EARTH_SHOCK_THREAT_MULT,
 }
 
 /**
@@ -280,7 +290,9 @@ export const MAELSTROM_AURA: AuraSpec = { id: 'maelstromWeapon', name: 'Maelstro
  * Maelstrom Weapon's chance per landed melee hit, white, special or extra attack ("When you deal damage
  * with a melee attack, you have a chance"): [?] no source states it. The talent's aura carries three
  * dummy values, 20 (the stack's cut, which its rank curve sets), 50 and 5 (the stacks), and the sim
- * reads the 50 as this chance [?] (shaman.md#maelstrom-weapon, open question 1).
+ * reads the 50 as this chance [?] (shaman.md#maelstrom-weapon, open question 1). Season of Discovery's
+ * client (the same rune) has the same values and no procs-per-minute row, and Blizzard's SoD notes give
+ * only changes to its rate (Windfury Weapon, a two-hander), never the base, so the 50 stays as is.
  */
 export const MAELSTROM_CHANCE_PCT = 50
 

@@ -1036,11 +1036,13 @@ const REGISTRY = {
     docRef: `${RANGED}#4-auto-shot-the-timer-the-wind-up-and-clipping`,
   },
   serpentStingCrits: {
-    text: 'Serpent Sting’s ticks can crit, as the Forever client’s flag says, at your spell crit when it lands, for 1.5 times the damage (Mortal Shots raises it). Untested in combat.',
+    // hunter.md §3.4, OQ-H1: ×2 measured in beta logs; the chance untested.
+    text: 'Serpent Sting’s ticks can crit, as the Forever client’s flag says, for double damage like a shot’s crit, as beta logs show (Mortal Shots raises it). The chance is assumed to be your spell crit when it lands; untested.',
     docRef: `${HUNTER}#34-serpent-sting-r8-13555`,
   },
   arcaneShotResists: {
-    text: 'Arcane Shot and Serpent Sting lose the boss’s average resist of their school (6% at level 63), as spells do; untested for shots.',
+    // spells.md §3; hunter.md OQ-H9 for their damage.
+    text: 'Arcane Shot and Serpent Sting lose the boss’s average resist of their school (6% at level 63), as spells do; untested for shots. They deal their flat damage with nothing from your attack power, as the Forever client gives them, though low-level beta logs show them hitting harder by an amount nobody has measured.',
     docRef: 'docs/mechanics/spells.md#3-resistances',
   },
   huntersMarkLands: {

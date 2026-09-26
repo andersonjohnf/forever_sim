@@ -34,6 +34,9 @@ describe('golden runs (fixed config and seed)', () => {
   // - D36, pre-Ahn'Qiraj ranks (W2): Serpent Sting r8 (83 a tick, 230 mana) for r9, Aspect of the Hawk r5 (+90)
   //   for r7 (+120; r6 is +55 in Forever), and the raid's buffs at the trainers' ranks (Battle Shout r6 +115, Blessing of Might r6 +112, Strength of Earth r4 +42, Grace of Air r2 +77, Blessing of Wisdom r5 36 mp5). Marksmanship 501.47 → 477.23,
   //   Beast Mastery 557.81 → 537.29, Survival 462.47 → 442.77 DPS.
+  // - Serpent Sting's tick crits ×2 as a shot's, measured in beta logs (hunter.md §3.4), for a spell's ×1.5
+  //   (×2.3 with Mortal Shots for ×1.65). Only its damage moves: Marksmanship 477.23 → 480.51, Beast
+  //   Mastery 537.29 → 538.51, Survival 442.77 → 444.49 DPS.
   for (const spec of SPECS) {
     it(`keeps the default ${spec}’s result unchanged`, () => {
       const bundle = buildPlan({ ...defaultConfig(spec), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

@@ -13,7 +13,7 @@ import { PET_INHERITANCE } from '../../plan/pet'
 import type { Plan } from '../../plan/types'
 import { rotationValues } from '../../index'
 import type { SimConfig } from '../../types'
-import { HUNTER_BASE_MANA } from './abilities'
+import { HUNTER_BASE_MANA, SERPENT_STING } from './abilities'
 import { CAT_DAMAGE, HAPPY_DAMAGE } from './pet'
 import { hunterIds, hunterUnusedSettings } from './rotation'
 import { withCritBonus } from './talents'
@@ -43,13 +43,14 @@ describe('worked examples (docs/classes/hunter.md §10)', () => {
     expectMean(damages(p, row, 20), 584.06)
   })
 
-  it('WE-H2: Mortal Shots 5/5: a shot’s crit ×2.3 and Serpent Sting’s tick crit ×1.65, on the default Marksmanship plan too', () => {
+  it('WE-H2: Mortal Shots 5/5: a shot’s crit ×2.3, Serpent Sting’s tick crit included (×2 as a shot’s, §3.4), on the default Marksmanship plan too', () => {
     expect(withCritBonus(2, 30)).toBeCloseTo(2.3, 12)
     expect(withCritBonus(1.5, 30)).toBeCloseTo(1.65, 12)
     const p = plan(defaultConfig(MM, 'horde-orc'))
     expect(spellOf(p, 'aimedShot').critMultiplier).toBeCloseTo(2.3, 12)
     expect(p.ranged!.critMultiplier).toBeCloseTo(2.3, 12)
-    expect(spellOf(p, 'serpentSting').critMultiplier).toBeCloseTo(1.65, 12)
+    expect(spellOf(p, 'serpentSting').critMultiplier).toBeCloseTo(2.3, 12)
+    expect(SERPENT_STING.spellDef!.critMultiplier).toBe(2)
   })
 
   it('WE-H3: Efficiency 5/5: Aimed Shot 263, Multi-Shot 203, Arcane Shot 161, Serpent Sting 195; Hunter’s Mark and Sniper Shot stay', () => {

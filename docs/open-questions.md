@@ -1544,6 +1544,20 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Docs:** [warrior §3.1](classes/warrior.md#31-damage-abilities),
   [Q37, Q38](classes/warrior.md#9-open-questions)
 
+#### B83. Attack power in Arcane Shot and Serpent Sting
+**Medium · hunters · ≤20**
+- **Assumes** [?]: none. The Forever client dropped Classic Era's spell damage coefficients and gives
+  no attack-power term, so Arcane Shot deals 217 and Serpent Sting 83 a tick [F].
+- **Why it's open:** public beta logs show more: Arcane Shot rank 1 (20) hits for 26–38, rank 3
+  (39) for 56–75, Serpent Sting rank 1 (2) ticks for 3–6. The logs carry only the melee
+  attack-power field, not the sheet's ranged attack power, so no coefficient is measured
+  ([hunter OQ-H9](classes/hunter.md#oq-h9-arcane-shot-and-serpent-sting-scaling)).
+- **Test:** as B82, with the sheet's ranged attack power (Aspect of the Hawk on and off, or Trueshot
+  Aura) and no talents that change the two.
+- **Samples:** ≥50 Arcane Shots and ≥100 ticks at each attack power.
+- **Changes:** both abilities' damage, most for Beast Mastery, which uses Arcane Shot.
+- **Docs:** [hunter §3.3, §3.4](classes/hunter.md#33-arcane-shot-r8-14287),
+  [OQ-H9](classes/hunter.md#oq-h9-arcane-shot-and-serpent-sting-scaling)
 
 ---
 

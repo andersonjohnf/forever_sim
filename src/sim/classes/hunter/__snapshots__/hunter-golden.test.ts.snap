@@ -24,7 +24,7 @@ exports[`golden runs (fixed config and seed) > keeps the default hunter-beast-ma
     [
       "serpentSting",
       null,
-      3434769.6443995778,
+      3654809.450399398,
       8466,
       34866,
       5530,
@@ -105,9 +105,9 @@ exports[`golden runs (fixed config and seed) > keeps the default hunter-beast-ma
     ],
   ],
   "dps": {
-    "ci95": 1.0377803254274918,
-    "mean": 537.2895652056487,
-    "stdev": 16.743927771875658,
+    "ci95": 1.0401195617287617,
+    "mean": 538.512694761337,
+    "stdev": 16.781669866912654,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -141,7 +141,7 @@ exports[`golden runs (fixed config and seed) > keeps the default hunter-marksman
     [
       "serpentSting",
       null,
-      7066975.452481147,
+      7656593.189761015,
       12035,
       49580,
       8074,
@@ -185,9 +185,9 @@ exports[`golden runs (fixed config and seed) > keeps the default hunter-marksman
     ],
   ],
   "dps": {
-    "ci95": 1.4134939323008584,
-    "mean": 477.225273942925,
-    "stdev": 22.80582867928313,
+    "ci95": 1.4191050522306623,
+    "mean": 480.50817746730104,
+    "stdev": 22.89636054284035,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -221,7 +221,7 @@ exports[`golden runs (fixed config and seed) > keeps the default hunter-survival
     [
       "serpentSting",
       null,
-      4717908.410000825,
+      5028545.040000811,
       11523,
       48526,
       7963,
@@ -287,9 +287,9 @@ exports[`golden runs (fixed config and seed) > keeps the default hunter-survival
     ],
   ],
   "dps": {
-    "ci95": 0.7719841879200968,
-    "mean": 442.7667433152955,
-    "stdev": 12.455475563423859,
+    "ci95": 0.7749892873640815,
+    "mean": 444.49381952707114,
+    "stdev": 12.50396093822286,
   },
   "durationSec": 179.690222,
   "mana": {

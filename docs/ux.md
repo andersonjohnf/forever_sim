@@ -1386,7 +1386,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   dimmed.
 - **Game icons:** WoW icons by icon name from Wowhead's CDN, lazy-loaded at a fixed size with
   a neutral placeholder on error. Nothing depends on them loading.
-- **Motion:** short and purposeful (sheets, disclosure). Respect `prefers-reduced-motion`.
+- **Motion:** short and purposeful (sheets, disclosure). Respect `prefers-reduced-motion`: there, every
+  dialog, sheet, popover, menu and select only fades (no zoom, slide, rotate or blur), and the phone's
+  drawer snaps instead of sliding (`src/index.css`, review VV-1; `e2e/reduced-motion.spec.ts`).
 
 ### Item tooltips
 

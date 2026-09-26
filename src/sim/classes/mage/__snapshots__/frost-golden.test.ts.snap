@@ -5,23 +5,23 @@ exports[`golden run (fixed config and seed) > keeps the default Frost mage’s r
   "abilities": [
     [
       "frostbolt",
-      69497066.16389546,
+      70051659.65633714,
       72472,
-      51313,
-      14547,
+      51812,
+      14048,
       6612,
       0,
       0,
     ],
   ],
   "dps": {
-    "ci95": 1.3113426616452077,
-    "mean": 386.65104064278813,
-    "stdev": 21.157682674049347,
+    "ci95": 1.3202074545353704,
+    "mean": 389.7375110134273,
+    "stdev": 21.30071048853829,
   },
   "durationSec": 179.690222,
   "mana": {
-    "max": 4968,
+    "max": 5238,
     "regeneratedPerFight": 8244.2942,
     "restored": [
       {
@@ -44,9 +44,9 @@ exports[`golden run (fixed config and seed) > keeps the default Frost mage’s r
     "spentPerFight": 14589.536,
   },
   "tps": {
-    "ci95": 0.9208194024214073,
-    "mean": 281.2808866305255,
-    "stdev": 14.856837412806579,
+    "ci95": 0.9264205434397227,
+    "mean": 283.441415889973,
+    "stdev": 14.94720827295189,
   },
 }
 `;

@@ -707,6 +707,30 @@ proc adds nothing to a paired run), so each such effect on a candidate is listed
 [known gaps](../known-gaps.md) and the list's note names it; the modelled ones are
 [below](#modelled-item-effects).
 
+**Whiteout Staff for the Horde casters** (EL-2, 2026-09-26). Alterac Valley reputation rewards are
+pre-raid sources as Arathi Basin's are, and Darkmoon Faire rewards stay out (the user's rules,
+2026-09-26). Whiteout Staff (Frostwolf Clan Revered, Horde, [equipping rule 2](#equipping-rules))
+beats Mindfang and the off hand for every caster default, all Horde, by the sim's own paired runs
+(10,000 fights, the default seed), so it takes rank 1 in the 9 caster lists' two-handers, the rest one
+rank lower, and a Horde character wears it with an empty off hand (`TWO_HANDERS_OVER_PAIR` in
+`src/sim/defaults.ts`). For an Alliance character nothing moves: the Alliance's Crackling Staff (+25 in
+Forever) is 14 to 22 DPS behind Sageclaw and the off hand, and Ironbark Staff 1 to 8 behind, so
+Sageclaw and the off hand stay. Crackling Staff isn't listed: it trails Ironbark Staff and Rod of the
+Ogre Magi, and where it passes a guide's last two-hander (Staff of Jordan on the Frost, Arcane and
+Shadow lists, by under 1 DPS) no default wears it, so the guide's pick keeps its place.
+
+| Spec (Horde default) | Before (Mindfang and the off hand) | Whiteout Staff | Gain |
+| --- | --: | --: | --: |
+| Balance (Tauren) | 406.8 | **419.4** | +3.1% |
+| Elemental (Orc) | 368.8 | **375.2** | +1.7% |
+| Fire (Troll) | 496.1 | **498.2** | +0.4% |
+| Frost (Troll) | 387.6 | **390.8** | +0.8% |
+| Arcane (Troll) | 374.3 | **377.4** | +0.8% |
+| Destruction (Orc) | 552.2 | **558.4** | +1.1% |
+| Affliction (Orc) | 467.1 | **471.2** | +0.9% |
+| Demonology (Orc) | 584.7 | **590.3** | +1.0% |
+| Shadow (Troll) | 538.2 | **539.4** | +0.2% |
+
 **Kept items.** When a list change leaves an item on no list, and the level rule wouldn't keep it, the
 file's `kept` section keeps it in the pool with no rank (`meta.preRaidBis.kept`), so saved setups and
 share links that wear it keep it. So far that's the five items only Wowhead's warlock list had (Deathmist
@@ -961,9 +985,14 @@ simulated.
 [Caveats](#caveats)). The engine gives an item to one faction by the first of these that
 applies:
 1. `races`, when every race listed is on one side. No item has one yet.
-2. The two rank-3 cloaks, because rank 3's title is "Sergeant" on both sides: Sergeant's Cape
-   (16342) is Horde's and Sergeant's Cloak (18461) Alliance's `[C]` (the pre-raid lists' notes,
-   [Selection](#sources-c)).
+2. By id, items neither the client nor the name places `[C]`: the two rank-3 cloaks, because rank
+   3's title is "Sergeant" on both sides: Sergeant's Cape (16342) is Horde's and Sergeant's Cloak
+   (18461) Alliance's (the pre-raid lists' notes, [Selection](#sources-c)); and the Alterac Valley
+   staves, which each side's Supply Officer sells at Revered with no requirement on the item: Whiteout
+   Staff (19101) the Frostwolf Clan's (Horde) and Crackling Staff (19102) the Stormpike Guard's
+   (Alliance) ([Wowhead Classic](https://www.wowhead.com/classic/item=19101)). They aren't twins:
+   Forever gives Whiteout Staff +74 spell power and Crackling Staff +25. The optimizer counts both as
+   PvP gear (`BATTLEGROUND_ITEM_IDS`).
 3. A reputation that the client's Faction table files under Alliance (891) or Horde (892) as
    `ParentFactionID` `[F]` (Faction, 1.60.1.69913):
    - Alliance: The League of Arathor, Stormpike Guard, Silverwing Sentinels, Theramore

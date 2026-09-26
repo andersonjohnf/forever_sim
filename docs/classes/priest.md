@@ -363,7 +363,11 @@ review, DG-2). They take rank 1, the guide's picks move to ranks 2 and 3, and th
 (523.3 → 559.7 DPS, 20,000 fights on seed 2701) while the sim gave them +94 spell power, the Rare
 caster-weapon rule extrapolated to Epic quality. Since 2026-09-26 they carry Classic Era's +30
 ([client.md "Epic caster weapons"](../data/client.md#weapon-damage)) with Forever's crit rating, and
-still lead the Scepter by 9 DPS (paired, 10,000 fights). A
+still lead the Scepter by 9 DPS (paired, 10,000 fights). **Since EL-2 (2026-09-26) a Horde priest
+wears Whiteout Staff** instead (the Frostwolf Clan's Alterac Valley staff, +74 spell power, Revered,
+Horde only; two-hand rank 1): a Troll 538.2 → **539.4** DPS, +1.2 (paired, 10,000 fights, the default
+seed) ([items.md "Whiteout Staff for the Horde casters"](../data/items.md#pre-raid-bis-lists)). A Human keeps Sageclaw and the off hand: the Alliance's
+Crackling Staff (+25 in Forever) is 19 DPS behind them. A
 sim-ranked list, as the warlocks' ([warlock.md §7.3](warlock.md#73-gear)), would gain a few percent
 more; it's a known gap. Briarwood Reed's Forever effect ("+15 Spell Power in
 certain areas") and Eye of the Beast's on-use +7% spell hit aren't simulated: they count as zero (E7 in

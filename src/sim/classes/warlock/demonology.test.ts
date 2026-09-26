@@ -161,7 +161,7 @@ describe('worked examples (warlock.md §11.8)', () => {
     // Briarwood Reed in the first trinket, where the default wears Draconic Infused Emblem since DV2-4:
     // its proc's +35 would be in the sheet only while it's up.
     const d = defaultConfig('warlock-demonology')
-    const { plan } = buildPlan(fixed(SUCCUBUS, { gear: { ...d.gear, trinket1: { itemId: 12930 } } }))
+    const { plan } = buildPlan(fixed(SUCCUBUS, { gear: { ...d.gear, ...MINDFANG_HANDS, trinket1: { itemId: 12930 } } }))
     expect(plan.pet).toMatchObject({ crit: 0, spellCrit: 0, hit: 0, spellHit: 0, inherit: PET_INHERITANCE })
     const sim = new Sim(plan)
     sim.runFight(0)
@@ -233,6 +233,11 @@ function fixed(rotation: SimConfig['rotation'] = {}, extra: Partial<SimConfig> =
 const SUCCUBUS = { [DEMONOLOGY_IDS.demon]: 'succubus', [DEMONOLOGY_IDS.sacrifice]: 'imp', [DEMONOLOGY_IDS.soulFire]: false }
 /** The Imp out with the Succubus sacrificed, Soul Fire on: the Fire build, the default until Q19's reading went (§11.6). */
 const IMP = { [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'succubus', [DEMONOLOGY_IDS.soulFire]: true }
+/**
+ * Mindfang and Therazane's Touch in the hands, as worked example 8 has them (warlock.md §11.8): the Horde
+ * default wears Whiteout Staff since EL-2, and an Alliance warlock Sageclaw, Mindfang's twin, with the tome.
+ */
+const MINDFANG_HANDS = { mainHand: { itemId: 20214, enchantId: 'weaponSpellPower' }, offHand: { itemId: 19315 } }
 const row = (plan: Plan, id: string) => plan.sources.findIndex((s) => s.id === id)
 const perFight = (plan: Plan, agg: Aggregate, id: string, field: keyof typeof FIELD) => agg.counters[row(plan, id) * FIELD_COUNT + FIELD[field]] / agg.fights
 const prepull = (plan: Plan) => plan.prepull.casts.map((c) => [plan.abilities[c.ability].id, c.atMs])
@@ -419,7 +424,8 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
   })
 
   it('the demon’s crit follows yours as it changes mid-fight: melee on its swings, with the aura-crit suppression, spell on its spells', () => {
-    const { plan } = buildPlan(fixed(SUCCUBUS))
+    const d = defaultConfig('warlock-demonology')
+    const { plan } = buildPlan(fixed(SUCCUBUS, { gear: { ...d.gear, ...MINDFANG_HANDS } }))
     // +10% spell crit and +5% melee crit on you for 5 s every 20 s, cast first on the list.
     const aura = addPlanAura(plan, 'testCrit', 5000, { spellCrit: 10, crit: 5 })
     const cast = addCast(plan, aura, 20000)
@@ -492,6 +498,8 @@ describe('golden runs (fixed config and seed)', () => {
   //   Mindfang +30, not the Rare rule's extrapolated +94.
   //   Improved Imp's hidden value given no effect (§11.3, Q19), so the default is the Succubus out with the
   //   Imp sacrificed and Soul Fire off (§11.6). Both together: 662.73 → 583.75 DPS.
+  // - EL-2: a Horde caster wears Whiteout Staff (+74 spell power, Frostwolf Clan Revered), which the sim
+  //   ranks above Mindfang and the off hand (docs/data/items.md#pre-raid-bis-lists): 583.75 → 590.18 DPS (EL-6's Demonic Embrace moved nothing).
   it('keeps the default warlock-demonology’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

@@ -764,6 +764,12 @@ nothing for a mage.
   guide's order stands. A sim-ranked list for Frost and Arcane, as the warlocks'
   ([warlock.md §7.3](warlock.md#73-gear)), would gain a few percent more; it's a known gap, and so is
   Draconic Infused Emblem, off their list: +10.8 (Frost) and +9.1 (Arcane) in a Troll's second trinket.
+- **Whiteout Staff for the Horde** (EL-2, 2026-09-26): the Frostwolf Clan's Alterac Valley staff (+74
+  spell power, Revered, Horde only) beats Mindfang and the off hand, so it's two-hand rank 1 on all
+  three lists and a Troll wears it with an empty off hand: Fire 496.1 → **498.2**, Frost 387.6 →
+  **390.8**, Arcane 374.3 → **377.4** (paired, 10,000 fights, the default seed) ([items.md "Whiteout Staff for the Horde casters"](../data/items.md#pre-raid-bis-lists)). A Human
+  keeps Sageclaw and the off hand: the Alliance's Crackling Staff (+25 in Forever) is 15 to 20 DPS
+  behind them.
 - **Random-suffix items** whose base item has no spell stats are dropped, and the entries below them
   move up; the lists' notes name them (`scripts/scrape/pre-raid-bis.json`).
 

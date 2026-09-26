@@ -285,11 +285,20 @@ const PVP_RANK_TITLES: Record<Faction, readonly string[]> = {
   ],
 }
 
-/** The rank-3 cloaks, whose title both factions share [C] (the pre-raid BiS lists' notes). */
+/**
+ * Items whose side neither the client nor the name says [C]: the rank-3 cloaks, whose title both
+ * factions share (the pre-raid BiS lists' notes), and the Alterac Valley staves, which each side's
+ * Supply Officer sells at Revered with no requirement on the item (Wowhead Classic, items 19101 and
+ * 19102: Frostwolf and Stormpike Supply Officers; docs/data/items.md#equipping-rules).
+ */
 const ITEM_FACTION: Record<number, Faction> = {
   16342: 'Horde', // Sergeant's Cape
   18461: 'Alliance', // Sergeant's Cloak
+  19101: 'Horde', // Whiteout Staff (Frostwolf Clan, Revered)
+  19102: 'Alliance', // Crackling Staff (Stormpike Guard, Revered)
 }
+/** The battleground rewards ITEM_FACTION places by id (the Alterac Valley staves): PvP gear to the optimizer. */
+export const BATTLEGROUND_ITEM_IDS: ReadonlySet<number> = new Set([19101, 19102])
 
 /** Alterac Valley rewards, which the client lists with no reputation requirement [C]. */
 const AV_PREFIX: [RegExp, Faction][] = [

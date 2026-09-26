@@ -454,11 +454,11 @@ the invasion's other bosses' loot: [items.md "Sources"](../data/items.md#sources
 (no known source yet); random-suffix items; and four weapons whose Classic Era source couldn't be
 confirmed when the lists were searched: Verimonde's Last Resort and Shivsprocket's Shiv (+74 Spell
 Power in Forever's tooltips; with Mindfang at +30 they would rank first and second in the main hand,
-21 to 23 DPS ahead of it), Whiteout Staff (+74 spell power: it would lead the two-handers, 4 to 6 DPS
-ahead of Mindfang and the off hand) and Amethyst War Staff. Wowhead Classic has since given two of
-them: Shivsprocket's Shiv is a raid quest's reward (The Perfect Poison), so it stays out; Verimonde's
-Last Resort is a Darkmoon Faire reputation reward, an event source the lists haven't ruled on
-([known gaps](../known-gaps.md)). A
+21 to 23 DPS ahead of it), Whiteout Staff and Amethyst War Staff. Wowhead Classic has since given three
+of them: Shivsprocket's Shiv is a raid quest's reward (The Perfect Poison), so it stays out; Verimonde's
+Last Resort is a Darkmoon Faire reputation reward, which the user's rules leave out; and **Whiteout
+Staff** is an Alterac Valley reputation reward (Frostwolf Clan Revered, Horde), a source the lists allow
+as they allow Mindfang's Arathi Basin reputation, so it's a candidate since EL-2 (Two-handers, below). A
 slot-by-slot paired search from the guide's gear (each spec's default Orc setup, 6,000 fights a
 candidate on seed 2701) swapped items until no swap helped. Each slot's alternatives are then ranked
 by their paired DPS in the finished set (20,000 fights), close calls on a direct paired run (40,000
@@ -556,8 +556,14 @@ DPS against Sageclaw and the off hand for Destruction, Affliction and Demonology
 −54.1, −48.7 and −52.7). **A Horde warlock has it too**: The Defilers' Ironbark Staff (20220), whose
 client row matches the League of Arathor's but for the faction and price, is its faction twin and takes
 the same rank. The hand-written lists had missed it (DV2-1), and the twins are now read from the client
-([items.md](../data/items.md#faction-twins)). Whiteout Staff (left out, above) would be second (−32.4
-for Destruction, a Human).
+([items.md](../data/items.md#faction-twins)). **Since EL-2 (2026-09-26) Whiteout Staff leads them for
+the Horde:** +74 spell power (the Rare rule's, as its Forever tooltip showed), Frostwolf Clan Revered,
+Horde only ([items.md "Equipping rules"](../data/items.md#equipping-rules)). Against Mindfang and the off
+hand it gains Destruction +6.2, Affliction +4.2 and Demonology +5.6 DPS (paired, each Orc default,
+10,000 fights), so it's two-hand rank 1 on the three lists, Ironbark Staff rank 2, and a Horde warlock
+wears it ([items.md "Whiteout Staff for the Horde casters"](../data/items.md#pre-raid-bis-lists)). An
+Alliance warlock keeps Sageclaw and the off hand: the Alliance's Crackling Staff (+25 in Forever) is 21
+to 22 DPS behind them.
 
 **The defaults** (20,000 fights on seed 2701):
 
@@ -572,7 +578,9 @@ The first three columns were measured on 1.60.1.69913; the lists give the same D
 had Mindfang at +94 and Demonology's former Imp default. **Since 2026-09-26** (Mindfang's Classic Era
 +30, and Demonology's Succubus default once Improved Imp's hidden value lost its reading, §11.6), the
 defaults deal Destruction **552.3**, Affliction **467.1** and Demonology **584.1** (20,000 fights on
-seed 2701). Demonology leads Destruction by 5.8% (32 DPS) and Affliction trails it by 15%. The items the guide's list alone brought into the pool (Deathmist Mask, Felcloth Robe and Pants,
+seed 2701). Demonology leads Destruction by 5.8% (32 DPS) and Affliction trails it by 15%. With
+Whiteout Staff for the Horde (EL-2) they make Destruction **558.4**, Affliction **471.2** and
+Demonology **590.3** (10,000 fights, the default seed; 552.2, 467.1 and 584.7 before, on the same fights). The items the guide's list alone brought into the pool (Deathmist Mask, Felcloth Robe and Pants,
 Band of the Unicorn and Inventor's Focal Sword) stay in it with no rank, so saved setups and share links
 that wear them keep them ([items.md](../data/items.md#pre-raid-bis-lists)).
 
@@ -1048,11 +1056,12 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
 8. **What the Succubus inherits, out with the Imp sacrificed** (§11.2; ranged-and-pets §6.1): attack
    power 240 + 0.1 × 138 = **253.8**; on its swings your **11.65%** melee crit and 5% hit (the gear's
    hit rating), so against the boss its special table crits 11.65 − 0.6 (its skill of 300) − 1.8 (aura
-   crit) = **9.25%** and misses 8 − 5 = **3%**. Lash of Pain's spell damage 60 + 0.1 × 634 (574 Shadow
-   + your Demonic Knowledge's 60) = **123.4**, so `(50 + 0.429 × 123.4) × 1.2 × 1.1 × 1.133` =
-   **153.95**; it crits at your spell crit, **14.42%**, and misses 17 − 7 = **10%**. (On Demonology's
+   crit) = **9.25%** and misses 8 − 5 = **3%**. Lash of Pain's spell damage 60 + 0.1 × 570 (510 Shadow
+   + your Demonic Knowledge's 60) = **117**, so `(50 + 0.429 × 117) × 1.2 × 1.1 × 1.133` =
+   **149.84**; it crits at your spell crit, **14.42%**, and misses 17 − 7 = **10%**. (On Demonology's
    sim-ranked list since 2026-09-24, §7.3, with Briarwood Reed in the first trinket, where the default
-   wears Draconic Infused Emblem since DV2-4: its proc adds its +35 only while it's up. On the guide's
+   wears Draconic Infused Emblem since DV2-4: its proc adds its +35 only while it's up; and with Mindfang
+   and Therazane's Touch in the hands, where a Horde default wears Whiteout Staff since EL-2. On the guide's
    list it was 9.65% and 2% hit, 486 Shadow, 108.6, 144.46, 11.73% and 13%.)
 9. **Improved Imp's hidden value** (§11.3): no effect, so Firebolt's cast stays **2,000 ms** at 0–3/3.
 10. **Demonic Brand with the Imp** (§11.3; `demonic-brand.test.ts`): 600 Fire spell damage and the Imp's

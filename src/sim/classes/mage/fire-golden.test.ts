@@ -43,6 +43,8 @@ describe('golden run (fixed config and seed)', () => {
   //   r7 + trunc(3.4) = 3 (166.28–195.72). 524.79 → 524.74 DPS.
   // - Epic caster weapons take their Classic Era item's spell power (docs/data/client.md#weapon-damage):
   //   Mindfang +30, not the Rare rule's extrapolated +94. 524.74 → 494.13 DPS.
+  // - EL-2: a Horde caster wears Whiteout Staff (+74 spell power, Frostwolf Clan Revered), which the sim
+  //   ranks above Mindfang and the off hand (docs/data/items.md#pre-raid-bis-lists): 494.13 → 496.72 DPS.
   it('keeps the default Fire mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

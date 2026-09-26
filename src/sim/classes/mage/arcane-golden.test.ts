@@ -44,6 +44,8 @@ describe('golden run (fixed config and seed)', () => {
   //   Arcane Missile 174 (171 + trunc(3.6)). 399.64 → 398.88 DPS.
   // - Epic caster weapons take their Classic Era item's spell power (docs/data/client.md#weapon-damage):
   //   Mindfang +30, not the Rare rule's extrapolated +94. 398.88 → 374.47 DPS.
+  // - EL-2: a Horde caster wears Whiteout Staff (+74 spell power, Frostwolf Clan Revered), which the sim
+  //   ranks above Mindfang and the off hand (docs/data/items.md#pre-raid-bis-lists): 374.47 → 377.45 DPS.
   it('keeps the default Arcane mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

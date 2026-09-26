@@ -366,6 +366,8 @@ describe('golden run and determinism (docs/doctrine.md#4-engine)', () => {
   //   r6 and Moonfire r10 add trunc(4.6) = 4 (313.21–368.79, 128.46–149.54). 445.04 → 444.80 DPS.
   // - Epic caster weapons take their Classic Era item's spell power (docs/data/client.md#weapon-damage):
   //   Mindfang +30, not the Rare rule's extrapolated +94. 444.80 → 407.25 DPS.
+  // - EL-2: a Horde caster wears Whiteout Staff (+74 spell power, Frostwolf Clan Revered), which the sim
+  //   ranks above Mindfang and the off hand (docs/data/items.md#pre-raid-bis-lists): 407.25 → 419.71 DPS.
   it('keeps the default Balance druid’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(BALANCE), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

@@ -464,6 +464,17 @@ const itemById = new Map(items.map((i) => [i.id, i]))
 const TWO_HAND_SPECS: ReadonlySet<SpecId> = new Set(['druid-feral-cat', 'druid-feral-bear', 'shaman-enhancement'])
 
 /**
+ * Two-handers the sim ranks above the spec's main hand and off hand (D29, paired runs; docs/data/items.md
+ * "Sim-ranked lists"): a race that can wear one takes it, and any other race the main hand and off hand.
+ * Whiteout Staff (+74 spell power, Frostwolf Clan Revered, Horde only) beats Mindfang and the off hand
+ * for every Horde caster; the Alliance's Crackling Staff (+25 in Forever) doesn't, so an Alliance
+ * caster keeps Sageclaw and its off hand (docs/classes/warlock.md#73-gear).
+ */
+const TWO_HANDERS_OVER_PAIR: Partial<Record<SpecId, readonly number[]>> = Object.fromEntries(
+  (['druid-balance', 'shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'priest-shadow'] as const).map((spec) => [spec, [19101]]),
+)
+
+/**
  * The hunter's default ammo and quiver (docs/classes/hunter.md#73-gear): Thorium Headed Arrows or
  * Thorium Shells (17.715 damage per second, crafted), and the 15% Harpy Hide Quiver or Gnoll Skin
  * Bandolier (required level 55), by what the ranged weapon fires.
@@ -574,7 +585,10 @@ export function preRaidListGear(
 
   const twoHands = bisFor(spec, 'twoHand')
   const mainHands = bisFor(spec, 'mainHand')
-  if (twoHands.length > 0 && (mainHands.length === 0 || TWO_HAND_SPECS.has(spec))) {
+  const overPair = (TWO_HANDERS_OVER_PAIR[spec] ?? []).flatMap((id) => itemById.get(id) ?? []).filter((i) => canUse(classId, i) && fitsFaction(race, i))
+  if (overPair.length > 0) {
+    put('mainHand', overPair)
+  } else if (twoHands.length > 0 && (mainHands.length === 0 || TWO_HAND_SPECS.has(spec))) {
     put('mainHand', twoHands)
   } else {
     put('mainHand', mainHands)

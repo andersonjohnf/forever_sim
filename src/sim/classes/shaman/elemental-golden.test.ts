@@ -53,6 +53,8 @@ describe('golden run (fixed config and seed)', () => {
   //   Lightning Bolt r10 + 4, Chain Lightning r4 + 3 (189.38–210.62, 119.17–132.83). 401.62 → 401.41 DPS.
   // - Epic caster weapons take their Classic Era item's spell power (docs/data/client.md#weapon-damage):
   //   Mindfang +30, not the Rare rule's extrapolated +94. 401.41 → 369.78 DPS.
+  // - EL-2: a Horde caster wears Whiteout Staff (+74 spell power, Frostwolf Clan Revered), which the sim
+  //   ranks above Mindfang and the off hand (docs/data/items.md#pre-raid-bis-lists): 369.78 → 376.07 DPS.
   it('keeps the default Elemental shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-elemental'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

@@ -938,17 +938,22 @@ Fire), but its items are almost all every-school ones: Affliction's Shadow list 
 583.9 against its own 584.1, so it keeps its list. The optimizer (D30, O4) confirms the build on a fresh
 seed.
 
-**Talents: Demonology 0/31/20** (`-0325003221120001351-0450305003`): Improved Imp 3, Demonic Embrace 2,
+**Talents: Demonology 0/31/20** (`-0055003221120001351-0450305003`): Demonic Embrace 5,
 Unholy Power 5, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 2, Demonic Sacrifice, Master
 Summoner 1, Decimation 2, Soul Link, Demonic Knowledge 3, Master Demonologist 5, Demonic Pact; Improved
 Shadow Bolt 4, Bane 5, Cataclysm 3, Ruin 5, Agonizing Flames 3. Demonic Pact needs 30 points in the
 tiers above it and the first pass's 0/32/19 (`-0325003231120001351-0350305003`) had 31 there, so one
 point could leave them: Improved Shadow Bolt 4/5 (+16% Shadow Vulnerability) takes Improved Sayaad's
 3rd point, **+0.4%** for the Imp build (531.9 → 534.2, on the guide's list) and more for the Succubus
-build, now the default (499.5 → 502.2), since it casts Shadow. Improved Imp's 3 points now do nothing
-for the default (the Imp is sacrificed); they fill the first tier's 5, as Demonic Embrace's would.
-Demonic Embrace's 2 and Master Summoner's 1 add no DPS in the sim; they only fill the tiers.
-**Demonic Brand would do more:** moved into Demonic Brand 3/3 (`-0305003221020301351-0450305003`),
+build, now the default (499.5 → 502.2), since it casts Shadow. Until 2026-09-26 the first tier held
+Improved Imp 3 and Demonic Embrace 2 (`-0325003221120001351-0450305003`); with the Imp sacrificed,
+Improved Imp does nothing, so its 3 points went to Demonic Embrace 5/5 (+15% Stamina), as a player
+would put them: the same tiers and the same result (the golden run is unchanged). The Imp build
+wants Improved Imp back (+30% Firebolt). Demonic Embrace's 5 and Master Summoner's 1 add no DPS in
+the sim; they only fill the tiers.
+**Demonic Brand would do more:** moved into Demonic Brand 3/3 (`-0305003221020301351-0450305003`,
+measured with the former first tier, Improved Imp 3; Demonic Embrace's 3 in their place leave the
+Succubus build's result the same),
 with Searing Pain's row, the default deals **629.9** against 584.1, **+7.8%** (20,000 fights on seed
 2701, since 2026-09-26; the Imp build with it 617.5). The default talents stay as they are until the
 optimizer's talent search (O4) and a test of the brand (Q21) confirm it. (With Improved Imp's hidden
@@ -994,7 +999,7 @@ Each with its estimated effect on Demonology's DPS.
   moment the boss reaches 35%. Under 0.2% with Soul Fire on.
 - **Q21 Demonic Brand** (§11.3) is simulated since issue #17, from the client's formula: 65–68 + 0.078
   × your spell damage a charge, with the demon's multipliers and spell crit. With Demonic Brand 3/3 for
-  the 3 points the default spends on Demonic Embrace and Master Summoner, the default gains **+7.8%**
+  3 of the points the default spends on Demonic Embrace and Master Summoner, the default gains **+7.8%**
   (584.1 → 629.9, §11.6), each brand hit scaling with your spell damage and the demon's multipliers
   (on the Imp build, while the sim read Q19 as a 1 s Firebolt, it was +12.4%: that Imp spent the 6
   charges in about 7 s). Unknown: whether a charge goes with every Firebolt (the proc mask says any

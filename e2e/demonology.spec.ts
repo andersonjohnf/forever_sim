@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { linkFor } from './links.ts'
 
 // The Demonology warlock (docs/classes/warlock.md §11), shipped in H3: the switcher and its Talents
 // preset, its Rotation tab (the demon kept out beside the sacrificed one), a run whose results show its
@@ -130,7 +131,10 @@ test.describe('Demonology warlock', () => {
   })
 
   test('with the Imp out, its Firebolts are on their own row, and Improved Imp’s hidden value is an assumption', async ({ page }) => {
-    await switchToDemonology(page)
+    // The default spends nothing on Improved Imp (warlock.md §11.6), so a build with it at 3/3.
+    await page.goto('about:blank')
+    await page.goto(`./${await linkFor(page, { version: 2, spec: 'warlock-demonology', talents: '-0325003221120001351-0450305003' })}`)
+    await expect(page.getByRole('button', { name: DEMONOLOGY })).toBeVisible()
     const tab = await openTab(page, 'Rotation')
     await choice(tab, 'Demonic Sacrifice', 'Succubus').click()
     await choice(tab, 'Demon', 'Imp').click()

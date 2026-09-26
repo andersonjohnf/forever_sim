@@ -267,9 +267,9 @@ slice is worked:
     pre-existing, Destruction too): wrap the four choices 2 × 2 at phone width, or pad the button.
   - **The default is the Succubus build since 2026-09-26** (Q19): Improved Imp's hidden value has no
     effect now, and the Imp build is 4.3% behind. The optimizer (O4) confirms it on a fresh seed; a
-    Firebolt cast-bar test with Improved Imp 0/3 and 3/3 would settle Q19. The default talents still
-    spend 3 points on Improved Imp, which does nothing with the Imp sacrificed: they fill the first
-    tier, as Demonic Embrace's would, for O4's talent search.
+    Firebolt cast-bar test with Improved Imp 0/3 and 3/3 would settle Q19. The default talents put
+    the first tier's points in Demonic Embrace 5/5, not Improved Imp, which does nothing with the Imp
+    sacrificed; a player who keeps the Imp out should take Improved Imp back.
 - **The caster core's gaps** (K1, [spells.md](mechanics/spells.md#open-questions)):
   - **The paladin doesn't get Curse of the Elements** though the buffs doc's presets list it for
     them (§6.2): K1 left every shipped result unchanged, as its brief required. It's +10% on every

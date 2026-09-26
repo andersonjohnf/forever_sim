@@ -45,6 +45,9 @@ const curve = (name: string, index = 0) => clientTalents.find((t) => t.name === 
 const DEMONOLOGY = talentRanksByName(TALENT_DATA.warlock, defaultConfig('warlock-demonology').talents)
 /** The first pass's talents (warlock.md §11.6): the default's with Improved Sayaad 3/3 and Improved Shadow Bolt 3/5. */
 const FIRST_PASS_TALENTS = '-0325003231120001351-0350305003'
+/** The default's build with Improved Imp 3/3 in place of Demonic Embrace's last 3 (the default until EL-6): the Imp's talent. */
+const IMPROVED_IMP_TALENTS = '-0325003221120001351-0450305003'
+const WITH_IMPROVED_IMP = talentRanksByName(TALENT_DATA.warlock, IMPROVED_IMP_TALENTS)
 const ranks = (entries: [string, number][]) => new Map(entries)
 
 describe('rows against the Forever client (warlock.md §11.1)', () => {
@@ -113,7 +116,7 @@ describe('worked examples (warlock.md §11.8)', () => {
   it('1. Firebolt: 42.50–47.50 at 60; 113.34 with Demonic Knowledge, Improved Imp and Master Demonologist; 128.42 with Unholy Power and Soul Link', () => {
     expect(FIREBOLT.min).toBeCloseTo(42.5, 6)
     expect(FIREBOLT.max).toBeCloseTo(47.5, 6)
-    const imp = demonPet('imp', DEMONOLOGY)!
+    const imp = demonPet('imp', WITH_IMPROVED_IMP)!
     const bolt = imp.abilities[0]
     const avg = (bolt.min + bolt.max) / 2 + bolt.spCoefficient * imp.stats.spellDamage!
     expect(avg).toBeCloseTo(113.3418, 4)
@@ -292,7 +295,9 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
   it('Demonic Energies keeps the Imp casting: without it, it runs dry', () => {
     const cfg = fixed({ [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'succubus' })
     const withDE = buildPlan(cfg).plan
-    const without = buildPlan({ ...cfg, talents: cfg.talents.replace('03250032', '03250030') }).plan
+    const noEnergies = cfg.talents.replace('-00550032', '-00550030')
+    expect(talentRanksByName(TALENT_DATA.warlock, noEnergies).get('Demonic Energies') ?? 0).toBe(0)
+    const without = buildPlan({ ...cfg, talents: noEnergies }).plan
     expect(without.abilities.find((a) => a.id === 'lifeTap')!.petPowerTenths).toBeUndefined()
     const a = perFight(withDE, runFights(withDE, 200), 'imp.firebolt', 'casts')
     const b = perFight(without, runFights(without, 200), 'imp.firebolt', 'casts')
@@ -354,7 +359,10 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     expect(result.assumptions.map((a) => a.id)).not.toContain('warlockNoPet')
     // Improved Imp's hidden value is the Imp's alone (Q19), and says it's given no effect.
     expect(result.assumptions.map((a) => a.id)).not.toContain('improvedImpHidden')
-    const imp = buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'succubus' }))
+    const impRotation = { [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'succubus' }
+    // The default spends nothing on Improved Imp (EL-6), so the Imp out raises it only with the talent.
+    expect(buildPlan(fixed(impRotation)).assumptions.map((a) => a.id)).not.toContain('improvedImpHidden')
+    const imp = buildPlan(fixed(impRotation, { talents: IMPROVED_IMP_TALENTS }))
     expect(imp.assumptions.find((a) => a.id === 'improvedImpHidden')!.text).toContain('(−1000 at your rank). Nothing says what it does, so the sim gives it no effect')
   })
 

@@ -348,7 +348,11 @@ SpellCooldowns 3 min; SpellDuration 15 s). Off the GCD and free.
   it's up, and it ends Power Infusion as it goes up, as patch 1.12 had it: a [?] placeholder (D24)
   that no 2019+ Classic Era source confirms
   ([buffs "Power Infusion"](../mechanics/buffs-debuffs-consumables.md#power-infusion), open question
-  23, testable on Classic Era or on Forever). Both at the pull, Power Infusion gives the Arcane mage nothing.
+  23, testable on Classic Era or on Forever). So a priest holds Power Infusion until Arcane Power
+  ends (user decision, 2026-09-25): the Arcane mage's one Power Infusion comes at 15 s, as its Arcane
+  Power from the pull ends, and is up from 15 to 30 s (+1.58% DPS with it selected in Buffs). Its
+  line waits for Arcane Power to be on cooldown and down, wherever the rows sit; without Arcane
+  Power it comes at the pull.
 
 ---
 
@@ -627,7 +631,7 @@ Setting ids are `mage.arcane.<x>`.
 | --- | --- | --- | --- |
 | 1 | Arcane Power, off the GCD | `arcanePower.enabled`, with the talent; ready | on |
 | 2 | Presence of Mind, off the GCD | `presenceOfMind.enabled`, with the talent; ready | on |
-| 3–8 | Berserking, trinkets, Power Infusion, mana gems, Major Mana Potion, Demonic Rune | as Fire's 2–7 | as Fire's |
+| 3–8 | Berserking, trinkets, Power Infusion, mana gems, Major Mana Potion, Demonic Rune | as Fire's 2–7, but Power Infusion waits for Arcane Power (with row 1 on): Arcane Power on cooldown and its aura down, so once, as it ends ([Arcane Power](#arcane-power)) | as Fire's |
 | 9 | Evocation | `evocation.enabled`; mana ≤ `evocation.maxManaPct`, or below Arcane Missiles' cost | on, 0% |
 | 10 | Pyroblast | with Presence of Mind and Pyroblast; while Presence of Mind's aura is up | on (with Presence of Mind) |
 | 11 | Arcane Missiles | always | — |
@@ -662,7 +666,8 @@ has each row's cited conditions. A row's conditions are its own wherever it sits
 Barrier (`iceBarrier`, switch `iceBarrier.enabled`, 9), and Frostbolt (`frostbolt`, the filler, 10).
 
 **Arcane** (`ARCANE_APL`): Arcane Power (`arcanePower`, 1), Presence of Mind (`presenceOfMind`, 2),
-the shared rows (3–9, Evocation below Arcane Missiles' cost), Pyroblast with Presence of Mind
+the shared rows (3–9, Evocation below Arcane Missiles' cost; Power Infusion "once, as Arcane Power
+ends (at the pull without it)", waiting for it wherever it sits), Pyroblast with Presence of Mind
 (`pyroblast`, 10: no switch of its own, it goes with `presenceOfMind.enabled` and needs Pyroblast;
 it waits for Presence of Mind's aura wherever it sits), and Arcane Missiles (`arcaneMissiles`, the
 filler, 11).

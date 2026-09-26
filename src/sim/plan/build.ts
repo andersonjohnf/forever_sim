@@ -1716,7 +1716,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...onUseItems,
   ]
   if (setup.simulated && notPressed.length) notes.add('onUseConsumables', notPressed.join(', '))
-  // buffs doc §1.1 "Power Infusion": once, at the pull; with Arcane Power, they don't stack: [?] placeholder (D24), OQ 23.
+  // buffs doc §1.1 "Power Infusion": once, at the pull; with Arcane Power, once as it ends, since they
+  // don't stack: [?] placeholder (D24), OQ 23.
   if (abilities.some((a) => a.id === POWER_INFUSION.id))
     notes.addText('powerInfusion', powerInfusionText(abilities.some((a) => a.id === 'arcanePower')))
   // buffs doc §3.7: the bomb's throw and table [?].

@@ -106,7 +106,10 @@ function sharedOptions(spec: Spec): { cooldowns: RotationOption[]; mana: Rotatio
         id: ID.powerInfusion,
         group: COOLDOWNS,
         label: 'Power Infusion',
-        help: 'Take a priest’s Power Infusion, cast on you once at the pull: +20% spell damage for 15 s.',
+        help:
+          spec === 'arcane'
+            ? 'Take a priest’s Power Infusion, cast on you once: +20% spell damage for 15 s. It doesn’t stack with Arcane Power, so with Arcane Power on it comes as Arcane Power ends; without, at the pull.'
+            : 'Take a priest’s Power Infusion, cast on you once at the pull: +20% spell damage for 15 s.',
         default: true,
         requiresBuff: POWER_INFUSION,
       },
@@ -354,7 +357,15 @@ function sharedRows(spec: Spec): { cooldowns: AplRow[]; mana: AplRow[] } {
     cooldowns: [
       { id: 'racial', label: 'Racial cooldown', icon: 'racial_troll_berserk', enabledId: ID.racial, optionIds: [], summary: ON_COOLDOWN },
       { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: ON_COOLDOWN },
-      { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'once, at the pull' }] },
+      {
+        id: 'powerInfusion',
+        label: 'Power Infusion',
+        icon: 'spell_holy_powerinfusion',
+        enabledId: ID.powerInfusion,
+        optionIds: [],
+        // An Arcane mage's waits for Arcane Power to end (buffs doc §1.1 "Power Infusion").
+        summary: [{ text: spec === 'arcane' ? 'once, as Arcane Power ends (at the pull without it)' : 'once, at the pull' }],
+      },
     ],
     mana: [
       { id: 'manaGems', label: 'Mana gems', icon: MANA_RUBY.icon, enabledId: ID.gems, optionIds: [], summary: [{ text: 'each when you’re missing all it restores' }] },
@@ -520,6 +531,8 @@ export function mageRotation(
   /** What the rotation presses, used or not: the on-use items, Power Infusion and the mana consumables selected. */
   const pressed: string[] = [...ctx.items.map((i) => i.id), ...(pi ? [POWER_INFUSION] : []), ...mana.map((c) => c.id)]
   const pom = v.on(ID.presenceOfMind) && has('Presence of Mind')
+  /** Arcane's Arcane Power is in the rotation (its switch and its talent). */
+  const apOn = spec === 'arcane' && v.on(ID.arcanePower) && has('Arcane Power')
 
   // The rows every spec shares (mage.md "Cooldowns", "Mana"). The cooldowns are off the GCD, on
   // cooldown from the pull.
@@ -532,8 +545,18 @@ export function mageRotation(
     trinkets: () => {
       if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
     },
+    // buffs doc §1.1 "Power Infusion": once, at the pull; an Arcane mage's waits for its Arcane Power
+    // to be used and end (user decision, PIV-5), as a priest would hold it, since the two don't stack
+    // ([?] placeholder, D24). Gated on both wherever the rows sit, so a list that moves Power Infusion
+    // above Arcane Power still waits.
     powerInfusion: () => {
-      if (pi && v.on(ID.powerInfusion)) add(consumable(pi))
+      if (!pi || !v.on(ID.powerInfusion)) return
+      if (!apOn) return add(consumable(pi))
+      const ap = index(ARCANE_POWER)
+      add(consumable(pi), [
+        { code: COND.cooldownAtLeast, a: ap, b: 1 },
+        { code: COND.abilityAuraDown, a: ap, b: 0 },
+      ])
     },
     // Mana, off the GCD, before the spells by default so a gem or potion goes as soon as it fits: the
     // gems, then the rune (they share category 1153), and the potion on its own cooldown.
@@ -625,7 +648,7 @@ export function mageRotation(
   } else {
     compileAplRows(ARCANE_APL, order, {
       arcanePower: () => {
-        if (v.on(ID.arcanePower) && has('Arcane Power')) add(ARCANE_POWER)
+        if (apOn) add(ARCANE_POWER)
       },
       presenceOfMind: () => {
         if (pom) add(PRESENCE_OF_MIND)

@@ -107,9 +107,10 @@ describe('worked example 14: Power Infusion at the pull', () => {
           if (a === pi) casts.push(t)
         }
         sim.runFight(0)
-        expect(casts, at).toEqual([0])
-        // The Arcane mage's Arcane Power, at the pull too, keeps it out (patch 1.12's rule, a [?] placeholder, D24).
-        expect(sim.auraUpMs[auraOf(plan, PI)], at).toBe(spec === 'mage-arcane' ? 0 : 15000)
+        // The Arcane mage's waits for its Arcane Power, used at the pull, to end (PIV-5): they don't
+        // stack (patch 1.12's rule, a [?] placeholder, D24).
+        expect(casts, at).toEqual([spec === 'mage-arcane' ? 15000 : 0])
+        expect(sim.auraUpMs[auraOf(plan, PI)], at).toBe(15000)
       }
     }
   })
@@ -135,7 +136,7 @@ describe('worked example 14: Power Infusion at the pull', () => {
   })
 })
 
-describe('Power Infusion and Arcane Power don’t stack: Arcane Power wins (patch 1.12’s rule, a [?] placeholder per D24; worked example 14)', () => {
+describe('Power Infusion and Arcane Power don’t stack, so an Arcane mage’s comes as Arcane Power ends (patch 1.12’s rule, a [?] placeholder per D24; worked example 14)', () => {
   const arcane = (on: boolean, patch: Partial<SimConfig> = {}) =>
     withPi('mage-arcane', on, { fight: { ...defaultConfig('mage-arcane').fight, durationSec: 180, durationVariationPct: 0 }, ...patch })
   const run = (config: SimConfig) => {
@@ -157,27 +158,49 @@ describe('Power Infusion and Arcane Power don’t stack: Arcane Power wins (patc
     expect(plan.auras[auraOf(plan, PI)].yieldsTo).toBe('arcanePower')
   })
 
-  it('the default order: Arcane Power at the pull, then Power Infusion’s cast, which doesn’t land (×1.30, not ×1.56)', () => {
+  it('the default order: Arcane Power at the pull, then Power Infusion as it ends, at 15 s, for 15 s (PIV-5)', () => {
     const { casts, pi, ap } = run(arcane(true))
-    expect(casts).toEqual([0])
-    expect(pi).toEqual({ upMs: 0, applications: 0 })
-    expect(ap.upMs).toBeGreaterThanOrEqual(15000)
-    // So the fight is the same as without it: every hit, at the same time, for the same damage.
+    expect(casts).toEqual([15000])
+    expect(pi).toEqual({ upMs: 15000, applications: 1 })
+    expect(ap).toEqual({ upMs: 15000, applications: 1 })
+    // The first 15 s are the same fight as without it; from 15 s to 30 s each spell is ×1.20, never
+    // ×1.30 × 1.20: Arcane Power's ×1.30 is over by then.
     const [off, on] = [false, true].map((o) => events(buildPlan(arcane(o)).plan, 2).log)
-    expect(on).toEqual(off)
+    const before = (log: typeof on) => log.filter((e) => e.t < 15000)
+    expect(before(on)).toEqual(before(off))
+    const k = on.findIndex((e) => e.t > 15000)
+    expect(on[k].t).toBe(off[k].t)
+    expect(on[k].damage / off[k].damage).toBeCloseTo(1.2, 9)
   })
 
-  it('Power Infusion moved above Arcane Power: it lands at the pull, and Arcane Power, at the pull too, ends it', () => {
+  it('Power Infusion moved above Arcane Power: it still waits for Arcane Power, used at the pull, to end', () => {
     const order = ARCANE_APL.rows.map((r) => r.id).sort((a, b) => (a === PI ? -1 : b === PI ? 1 : 0))
     expect(order.indexOf(PI)).toBeLessThan(order.indexOf('arcanePower'))
     const { casts, pi, ap } = run(arcane(true, { rotationOrder: order }))
-    expect(casts).toEqual([0])
-    expect(pi).toEqual({ upMs: 0, applications: 1 })
-    expect(ap.upMs).toBeGreaterThanOrEqual(15000)
+    expect(casts).toEqual([15000])
+    expect(pi).toEqual({ upMs: 15000, applications: 1 })
+    expect(ap.upMs).toBe(15000)
   })
 
-  it('without Arcane Power it lands as on any caster: up 15 s', () => {
-    const { plan, pi } = run(arcane(true, { rotation: { ...defaultConfig('mage-arcane').rotation, 'mage.arcane.arcanePower.enabled': false } }))
+  it('the engine’s rule stays as a safety net: pressed while Arcane Power is up, it doesn’t land (×1.30, not ×1.56)', () => {
+    const plan = buildPlan(arcane(true)).plan
+    const pi = plan.abilities.findIndex((a) => a.id === PI)
+    // Power Infusion's line without its wait for Arcane Power: pressed at the pull, just after it.
+    const ungated: Plan = { ...plan, rotation: plan.rotation.map((e) => (e.ability === pi ? { ...e, conditions: [] } : e)) }
+    const sim = new Sim(ungated)
+    const casts: number[] = []
+    sim.castTrace = (a, t) => {
+      if (a === pi) casts.push(t)
+    }
+    sim.runFight(0)
+    expect(casts).toEqual([0])
+    expect(sim.auraApplications[auraOf(plan, PI)]).toBe(0)
+    expect(sim.auraUpMs[auraOf(plan, PI)]).toBe(0)
+  })
+
+  it('without Arcane Power it lands at the pull, as on any caster: up 15 s', () => {
+    const { plan, casts, pi } = run(arcane(true, { rotation: { ...defaultConfig('mage-arcane').rotation, 'mage.arcane.arcanePower.enabled': false } }))
+    expect(casts).toEqual([0])
     expect(pi).toEqual({ upMs: 15000, applications: 1 })
     expect(auraOf(plan, ARCANE_POWER_AURA.id)).toBe(-1)
   })
@@ -296,12 +319,12 @@ describe('who sees Power Infusion, and its default', () => {
     }
   })
 
-  it('on, the results say it’s cast once at the pull; an Arcane mage’s add that it doesn’t stack with Arcane Power', () => {
+  it('on, the results say it’s cast once at the pull; an Arcane mage’s, once as its Arcane Power ends, since they don’t stack', () => {
     for (const spec of FOR) {
       const text = buildPlan(withPi(spec, true)).assumptions.find((a) => a.id === PI)?.text
-      expect(text, spec).toMatch(/once, at the pull/)
       expect(text?.includes('Arcane Power'), spec).toBe(spec === 'mage-arcane')
-      if (spec === 'mage-arcane') expect(text).toMatch(/doesn’t stack with your Arcane Power, as patch 1\.12 had it: .* Untested in Classic Era or Forever\.$/)
+      if (spec !== 'mage-arcane') expect(text, spec).toMatch(/once, at the pull/)
+      else expect(text).toMatch(/^A priest casts Power Infusion on you once, as your Arcane Power ends: .* don’t stack, as patch 1\.12 had it .* Untested in Classic Era or Forever\.$/)
       expect(buildPlan(withPi(spec, false)).assumptions.some((a) => a.id === PI), spec).toBe(false)
     }
   })

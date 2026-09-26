@@ -250,22 +250,24 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [buffs OQ 20](mechanics/buffs-debuffs-consumables.md#open-questions)
 
 #### A9. Power Infusion with Arcane Power
-**Low · Arcane mage (0% in every default setup; ±2.4% with Power Infusion on)**
+**Low · Arcane mage (0% in every default setup; about 0.8% with Power Infusion on)**
 - **Assumes** [?]: they don't stack, and Arcane Power wins: Power Infusion doesn't land while Arcane
   Power is up ("A more powerful spell is already active"), and Arcane Power going up ends it. A
   [D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)-style placeholder: its
   origin is the 1.10.2 and 1.12.0 patch notes, not evidence, and no 2019+ Classic Era source
   confirms that Classic Era, which runs 1.12's rules, keeps it. Neither client's tables show it (no
-  aura restriction, different aura types), so it's the server's rule. Power Infusion is off in every
-  preset, so no default moves; with it on, an Arcane mage's at the pull gives +0.0 DPS, and if they
-  stack it would give about +2.4%.
+  aura restriction, different aura types), so it's the server's rule, and the sim has the priest
+  hold an Arcane mage's Power Infusion until its Arcane Power ends (+1.58% DPS). Power Infusion is
+  off in every preset, so no default moves; with it on, if they stack, a priest would cast it at the
+  pull with Arcane Power (×1.56 while both are up), about +2.4%, some 0.8% more than the sim gives.
 - **Test:** a level-60 Arcane mage uses Arcane Power, then a priest casts Power Infusion on them:
   does it land, or say "A more powerful spell is already active"? Then the other way round: with
   Power Infusion up, the mage uses Arcane Power; read the buffs, and a Frostbolt's damage with both
   up against one with Arcane Power alone. Repeat on Forever at 60, since Forever's server may differ.
 - **Samples:** one try each way; 5+ Frostbolts each if both land.
-- **Changes:** Power Infusion's `yieldsTo` (drop it if they stack), and the tag: [C] if Classic
-  Era keeps the rule, [F] once Forever is tested.
+- **Changes:** if they stack, Power Infusion's `yieldsTo` and the Arcane mage's wait for Arcane
+  Power go, and it comes at the pull; the tag becomes [C] if Classic Era keeps the rule, [F] once
+  Forever is tested.
 - **Docs:** [buffs "Power Infusion"](mechanics/buffs-debuffs-consumables.md#power-infusion),
   [buffs OQ 23](mechanics/buffs-debuffs-consumables.md#open-questions);
   [mage "Arcane Power"](classes/mage.md#arcane-power)

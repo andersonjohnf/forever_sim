@@ -372,7 +372,9 @@ export const EZ_THRO_DARK_BOMB: OnUseSpec = {
  * more powerful spell is already active"), and Arcane Power going up ends it (`yieldsTo`): [?]
  * placeholder (D24); origin: the 1.10.2 and 1.12.0 patch notes (warcraft.wiki.gg: Arcane Power
  * (Classic)), not evidence. Neither client's tables show it, and no 2019+ Classic Era source confirms
- * it (buffs doc open question 23, testable on Classic Era or on Forever).
+ * it (buffs doc open question 23, testable on Classic Era or on Forever). So an Arcane mage's line
+ * holds it until Arcane Power ends (classes/mage/rotation.ts, user decision PIV-5); `yieldsTo` stays
+ * as the engine's safety net.
  */
 export const POWER_INFUSION: OnUseSpec = {
   id: 'powerInfusion',

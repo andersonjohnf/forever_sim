@@ -46,6 +46,21 @@ test('a Protection paladin’s and a mage’s Buffs tab list it, off in every pr
   await expect(results.getByText(/A priest casts Power Infusion on you once, at the pull: \+20% spell damage from 0 to 15 s\./)).toBeVisible()
 })
 
+test('an Arcane mage’s comes as its Arcane Power ends, and the results say why', async ({ page }) => {
+  await page.goto('./')
+  await switchSpec(page, 'Mage', /^Arcane/, /^Spec: Arcane Mage/)
+  await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+  const pi = page.getByRole('tabpanel', { name: 'Buffs' }).getByRole('switch', { name: 'Power Infusion', exact: true })
+  await pi.click()
+  await expect(pi).toBeChecked()
+  const results = page.getByRole('complementary', { name: 'Results' })
+  await results.getByRole('button', { name: /^(Simulate|Run again)$/ }).click()
+  await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+  await expect(results.getByRole('alert')).toHaveCount(0)
+  await results.getByRole('button', { name: /^Assumptions \(\d+\)$/ }).click()
+  await expect(results.getByText(/A priest casts Power Infusion on you once, as your Arcane Power ends: \+20% spell damage for the 15 s after it\. The two don’t stack/)).toBeVisible()
+})
+
 test('a Fury warrior’s Buffs tab doesn’t list it', async ({ page }) => {
   await page.goto('./')
   await expect(page.getByRole('button', { name: /^Spec: Fury Warrior/ })).toBeVisible()

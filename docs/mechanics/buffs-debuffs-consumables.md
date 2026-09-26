@@ -186,7 +186,7 @@ Blessing of Might or Wisdom is on.
 | Improved Mark of the Wild | talent (C: 17050) | **Removed** (C: +35% at 5/5) | — | — | — | [F] | [fc-changes] |
 | Leader of the Pack | 17007 (aura 24932) | +3% crit to the party within 45 yd. The Forever tooltip says "critical strike chance", and the aura is all-crit (aura 290 = 3) (C: melee and ranged crit) | While the druid is in Cat, Bear or Dire Bear Form | **Exclusive with Moonkin Aura** (Forever tooltip); several druids don't stack | Feral druid talent | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
 | Moonkin Aura (Moonkin Form) | 24907 | **+3% crit (all)** to the party within 45 yd (C: +3% *spell* crit, 30 yd) | While in Moonkin Form | Exclusive with Leader of the Pack | Balance druid talent. The casters' Buffs entry ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)); a Balance druid's own Moonkin Form brings it, so its Buffs tab shows it on and locked, and a Leader of the Pack in its group adds nothing ([druid §11.1](../classes/druid.md#111-moonkin-form)) | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
-| Power Infusion | 10060 | +20% spell damage and +20% healing done (every magic school), 15 s. No mana-cost cut | 3 min cooldown | Doesn't stack with Arcane Power, which wins: [?] placeholder (D24), patch 1.12's rule ([Power Infusion](#power-infusion), OQ 23) | Priest talent, cast on another player. The casters' and the Protection paladin's Buffs entry, **cast on you once, at the pull**; off in every preset ([Power Infusion](#power-infusion)) | [F] | [client] (SpellEffect, SpellMisc, SpellDuration, SpellCooldowns, 1.60.1.70009) |
+| Power Infusion | 10060 | +20% spell damage and +20% healing done (every magic school), 15 s. No mana-cost cut | 3 min cooldown | Doesn't stack with Arcane Power, which wins: [?] placeholder (D24), patch 1.12's rule ([Power Infusion](#power-infusion), OQ 23) | Priest talent, cast on another player. The casters' and the Protection paladin's Buffs entry, **cast on you once, at the pull** (an Arcane mage's as its Arcane Power ends); off in every preset ([Power Infusion](#power-infusion)) | [F] | [client] (SpellEffect, SpellMisc, SpellDuration, SpellCooldowns, 1.60.1.70009) |
 | Trueshot Aura (r5) | 20906 (r1 1299346) | **Ranged AP only** in Forever: 30 / 40 / 50 / 75 / 50 by rank (C: +50 / 75 / 100 melee **and** ranged AP) | 30 min | Party within 45 yd | Hunter talent | [F] | [fc-sb-hunter] · [fc-changes] |
 | Strength of Earth Totem (r4) | 10442 (aura 10441) | **+42** Str (C: 61). Rank 5 (25361, +53) is an Ahn'Qiraj tablet (D36) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Earth totem, so it excludes Stoneskin Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] · [client] (SpellEffect, 1.60.1.70009) |
 | Grace of Air Totem (r2) | 10627 (aura 10626) | **+77** Agi (C: 67). Rank 3 (25359, +89) is an Ahn'Qiraj tablet (D36) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Air totem, so it excludes Windfury Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] · [client] (SpellEffect, 1.60.1.70009) |
@@ -322,8 +322,8 @@ SpellDuration, SpellCooldowns, SpellPower, SpellCategories, both builds):
   it: "Power Infusion is for casters and Protection paladins only, so it was turned off."
 - **Off by default, in every preset** (§6.2): it's another priest's cooldown, which you turn on if
   a priest gives it to you.
-- **Once, at the pull** (user decision, 2026-09-25). Turned on, it's up from 0 to 15 s and never
-  again: its 3-minute cooldown would allow a second cast in a fight over 3 minutes (about half the
+- **Once, at the pull** (user decision, 2026-09-25), or for an Arcane mage, as its Arcane Power
+  ends (below). Turned on, it's up from 0 to 15 s and never again: its 3-minute cooldown would allow a second cast in a fight over 3 minutes (about half the
   default fights, 180 s ± 10%), but the sim assumes the priest keeps it for others, and the results
   say so (the `powerInfusion` assumption). The cast carries one charge (`OnUseSpec.charges` 1, so
   `usesPerFight` 1). A caster's rotation presses it from its Power Infusion row, off the GCD, which
@@ -350,21 +350,26 @@ SpellDuration, SpellCooldowns, SpellPower, SpellCategories, both builds):
   source confirms it, and Forever may not keep it either: [open question 23](#open-questions), which
   a test on Classic Era or on Forever settles. The rule is kept as a placeholder because the only
   alternative, stacking them, is as unsourced and less likely; its error in every default setup is
-  0%, since Power Infusion is off in every preset. The sim models it as an aura that
-  **yields** to another (`AuraSpec.yieldsTo`): Power Infusion doesn't go up while Arcane Power is, and
-  Arcane Power going up ends it. Both come at the pull, so in either order Power Infusion gives an
-  Arcane mage nothing: in the default order Arcane Power (row 1) goes up first and the priest's cast
-  fails, and with Power Infusion's row moved above it, Arcane Power ends it at 0 s. Either way the
-  one cast is spent (the sim doesn't have the priest try again when Arcane Power ends). Without
-  Arcane Power (its row off, or no talent) it lands as on any caster. The results say so for a setup
-  with both.
+  0%, since Power Infusion is off in every preset.
+- **So an Arcane mage's comes as its Arcane Power ends** (user decision, 2026-09-25, PIV-5). A priest
+  who knows the two don't stack holds Power Infusion until Arcane Power is over, so the one cast
+  lands at 15 s, the moment Arcane Power, used at the pull, ends, and is up from 15 to 30 s: each
+  spell is ×1.30 for the first 15 s and ×1.20 for the next 15, never ×1.56. The Arcane mage's Power
+  Infusion line waits for Arcane Power to have been used (its cooldown running) and to be down, so
+  a list that moves the Power Infusion row above Arcane Power's still waits
+  (`classes/mage/rotation.ts`). Without Arcane Power (its row off, or no talent) it comes at the
+  pull, as for any caster. The results say which. Still one cast a fight.
+- **The engine keeps the rule as a safety net**: an aura **yields** to another (`AuraSpec.yieldsTo`),
+  so Power Infusion doesn't go up while Arcane Power is, and Arcane Power going up ends it. With the
+  Arcane line's wait it never fires in a normal fight; it covers any other way the two could meet.
+  Only one aura may yield to a given aura (the `Sim` refuses a second).
 
 **What it's worth** in each spec's default setup (Standard raid, seed 424242, 20,000 fights,
 2026-09-25; each ± under 0.5), off → on:
 
 - **Protection paladin:** 747.3 → 755.1 TPS (+7.8, +1.05%; +8.1 while it wrongly raised a raid druid's Thorns).
-- **Mages:** Fire 526.3 → 536.4 DPS (+10.1, +1.93%); Arcane 398.8 → 398.8 (+0.0: its Arcane Power
-  at the pull keeps it out, and the fights are identical); Frost 414.7 → 421.3 (+6.6, +1.59%).
+- **Mages:** Fire 526.3 → 536.4 DPS (+10.1, +1.93%); Arcane 398.8 → 405.2 (+6.3, +1.58%: from 15 to
+  30 s, after its Arcane Power); Frost 414.7 → 421.3 (+6.6, +1.59%).
 - **Warlocks:** Destruction 591.4 → 606.0 (+14.6, +2.46%); Affliction 501.9 → 516.1 (+14.2, +2.83%);
   Demonology 662.7 → 674.9 (+12.2, +1.84%).
 - **Balance druid** 444.3 → 451.4 (+7.1, +1.59%); **Elemental shaman** 400.5 → 408.4 (+7.9, +1.97%);
@@ -373,7 +378,8 @@ SpellDuration, SpellCooldowns, SpellPower, SpellCategories, both builds):
 15 s of a 180 s fight is 8.3%, and 20% of that is 1.7% of spell damage. The DoT specs gain more,
 their DoTs from the first 15 s keeping it; the Protection paladin gains less, since some of its
 threat is physical, Judgement of the Crusader's flat bonus or a raid druid's Thorns; the Arcane mage
-gains nothing, its Arcane Power keeping it out.
+gains about as much as the Frost mage, its Power Infusion coming after its Arcane Power (before the
+hold it gained nothing: its Arcane Power at the pull kept the priest's cast out).
 
 ### Windfury Totem
 
@@ -1647,10 +1653,10 @@ These become unit tests. Boss armor 3731 is an *input* here; its value is owned 
 14. **Power Infusion at the pull** ([Power Infusion](#power-infusion)). In a 180 s fight it's up from
     0 to 15 s, 15 / 180 = **8.33%** of the fight, and cast once; in a 400 s fight still once, though
     its 3-minute cooldown would allow two more. While it's up each magic school's damage is ×1.20: a
-    Frostbolt of 1,000 deals **1,200**, and one that lands after 15 s the same as without it. With
-    Arcane Power up, it doesn't land, so an Arcane mage's spell is ×1.30, **not ×1.30 × 1.20 = ×1.56**
-    ([?] placeholder (D24), patch 1.12's rule; open question 23): its Arcane Power at the pull keeps
-    it out, or, pressed after it, ends it.
+    Frostbolt of 1,000 deals **1,200**, and one that lands after 15 s the same as without it. The two
+    don't stack ([?] placeholder (D24), patch 1.12's rule; open question 23), so an Arcane mage's
+    comes as its Arcane Power ends: an Arcane Missiles of 1,000 deals **1,300** from 0 to 15 s (Arcane
+    Power), **1,200** from 15 to 30 s (Power Infusion) and 1,000 after, **never ×1.30 × 1.20 = ×1.56**.
 
 ---
 
@@ -1784,13 +1790,14 @@ Each item says what was found and how the guild can check it on the Forever beta
     trainer window, without the librams.
 23. **Power Infusion with Arcane Power** [?] ([Power Infusion](#power-infusion)). The sim takes
     patch 1.12's rule as a placeholder (D24; origin: the 1.10.2 and 1.12.0 patch notes, not
-    evidence): they don't stack, and Arcane Power wins, so an Arcane mage's Power Infusion at the pull
-    gives nothing (+0.0 DPS). Neither client's tables show the rule (no aura restrictions, different
-    aura types), so it's the server's. Classic Era runs 1.12's rules and very likely keeps it, but no
-    2019+ Classic Era source confirms it, and Forever may not keep it either. If they stack, both
-    would be ×1.30 × 1.20 = ×1.56 while up, and the Arcane mage would gain about +2.4% of its DPS from
-    Power Infusion (the sim's figure when it stacked them); with Power Infusion off, as in every
-    preset, the error is 0%. *Check (on Classic Era or on Forever):* an Arcane mage uses Arcane Power,
+    evidence): they don't stack, and Arcane Power wins, so the sim has the priest hold an Arcane
+    mage's Power Infusion until its Arcane Power ends (+1.58% DPS). Neither client's tables show the
+    rule (no aura restrictions, different aura types), so it's the server's. Classic Era runs 1.12's
+    rules and very likely keeps it, but no 2019+ Classic Era source confirms it, and Forever may not
+    keep it either. If they stack, a priest would cast it at the pull, both would be ×1.30 × 1.20 =
+    ×1.56 while up, and the Arcane mage would gain about +2.4% of its DPS from Power Infusion (the
+    sim's figure when it stacked them), about 0.8% more than the sim gives it; with Power Infusion
+    off, as in every preset, the error is 0%. *Check (on Classic Era or on Forever):* an Arcane mage uses Arcane Power,
     and a priest casts Power Infusion on them: does it land, or say "A more powerful spell is already
     active"? Then the other way round, and read the buffs and a Frostbolt's damage.
 

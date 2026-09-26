@@ -167,24 +167,66 @@ export const PROTECTION_PRESET_MEASURES = {
   maxTpsOverBalanced: { tpsPct: 0.44, dpsPct: -0.24, damageTakenPct: 0.09 },
 } as const
 
-const M = PROTECTION_PRESET_MEASURES
-/** A measured percent for the help, whole (7%) or to a tenth (7.3%), unsigned. */
-const helpPct = (x: number, digits = 0) => `${Math.abs(x).toFixed(digits)}%`
-/** A measured change for the help, to a tenth, with its direction: "0.4% more", "0.2% less". */
-const moreOrLess = (x: number) => `${helpPct(x, 1)} ${x < 0 ? 'less' : 'more'}`
+/** A preset measured against another: its TPS, DPS and damage taken a second, in percent. */
+interface PresetDelta {
+  tpsPct: number
+  dpsPct: number
+  damageTakenPct: number
+}
+
+/** What the presets' words are built from: PROTECTION_PRESET_MEASURES, or a re-measure's (the test's words check). */
+export interface ProtectionPresetMeasures {
+  defensive: { tps: number; dps: number; damageTaken: number }
+  balanced: PresetDelta
+  maxTps: PresetDelta
+  maxTpsOverBalanced: PresetDelta
+}
+
+/** A measured percent, whole (7%) or to a tenth (7.3%), unsigned. */
+const helpPct = (x: number, digits: number) => `${Math.abs(x).toFixed(digits)}%`
+/** Whether a measured change shows as zero at `digits`: under 0.5% whole, under 0.05% to a tenth. */
+const shownAsZero = (x: number, digits: number) => Number(Math.abs(x).toFixed(digits)) === 0
+/** A measured change with its direction: "0.4% more", "0.2% less", or "the same" when it shows as zero. */
+const moreOrLess = (x: number, digits: number) => (shownAsZero(x, digits) ? 'the same' : `${helpPct(x, digits)} ${x < 0 ? 'less' : 'more'}`)
+/** A measured change for a short line, signed: "+6%", "−0.2%", "±0%". */
+const signedPct = (x: number, digits: number) => `${shownAsZero(x, digits) ? '±' : x < 0 ? '−' : '+'}${helpPct(x, digits)}`
+/** Damage taken against another preset, whole percent, so "the same" is anything under 0.5%: "21% more damage taken", "the same damage taken". */
+const damageTaken = (x: number) => `${moreOrLess(x, 0)} damage taken`
+/** The same for a short line, naming the other preset: "21% more damage taken than Defensive", "the same damage taken as Defensive". */
+const damageTakenVs = (x: number, other: string) => `${damageTaken(x)} ${shownAsZero(x, 0) ? 'as' : 'than'} ${other}`
 
 /**
  * The presets' help, which the preset picker's info lists, and their short lines, which the picker
  * shows under it for the one picked (docs/ux.md "Rotation"): what each keeps and drops, with what it
  * measures against Defensive in the default setup, and Max TPS against Balanced too, since the two
- * share their rows (PROTECTION_PRESET_MEASURES).
+ * share their rows. Every figure's direction comes from its value (W4U-6), so a re-measure that turns
+ * one round, or brings damage taken within 0.5%, can't print a wrong word.
  */
-const DEFENSIVE_SUMMARY = 'Shield Block, Thunder Clap and Demoralizing Shout kept up: the least damage taken. Tuned on threat.'
-const DEFENSIVE_HELP = `Keeps Shield Block up, and Thunder Clap’s slow and Demoralizing Shout on the boss from the pull, so you take the least damage, and is tuned on threat: ${Math.round(M.defensive.tps)} TPS, ${Math.round(M.defensive.dps)} DPS and ${Math.round(M.defensive.damageTaken)} damage taken a second in the default setup. Pick it for progression fights.`
-const BALANCED_SUMMARY = `Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +${helpPct(M.balanced.tpsPct)} TPS, +${helpPct(M.balanced.dpsPct)} DPS, ${helpPct(M.balanced.damageTakenPct)} more damage taken than Defensive.`
-const BALANCED_HELP = `The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from ${BALANCED_FILLER_PCT}% of your max rage (${BALANCED_FILLER_PCT} rage without Boundless Rage), and Heroic Strike from ${BALANCED_HS_PCT}%. Against Defensive in the default setup: ${helpPct(M.balanced.tpsPct, 1)} more TPS, ${helpPct(M.balanced.dpsPct, 1)} more DPS and ${helpPct(M.balanced.damageTakenPct)} more damage taken. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
-const MAX_TPS_SUMMARY = `Sunder Armor filler from its cost, Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage: about +${helpPct(M.maxTpsOverBalanced.tpsPct, 1)} TPS over Balanced for the same damage taken.`
-const MAX_TPS_HELP = `Balanced’s rotation spending more rage on threat: the Sunder Armor filler from its cost (12 rage with the default talents, 9 with Improved Sunder Armor 3/3) rather than ${BALANCED_FILLER_PCT}% of your max rage, and Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage rather than ${BALANCED_HS_PCT}% of your max rage. Like Balanced, it drops Thunder Clap and Demoralizing Shout and keeps Shield Block and Shield Slam, which make more threat than they cost. Against Balanced in the default setup: ${moreOrLess(M.maxTpsOverBalanced.tpsPct)} TPS, ${moreOrLess(M.maxTpsOverBalanced.dpsPct)} DPS and the same damage taken; against Defensive, ${moreOrLess(M.maxTps.tpsPct)} TPS, ${moreOrLess(M.maxTps.dpsPct)} DPS and ${helpPct(M.maxTps.damageTakenPct)} more damage taken. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
+export function protectionPresetText(m: ProtectionPresetMeasures) {
+  const vsBalanced = m.maxTpsOverBalanced
+  // Max TPS's advice follows its damage taken against Balanced (W4U-8): no more for a little more threat, or more.
+  const takesMore = !shownAsZero(vsBalanced.damageTakenPct, 0) && vsBalanced.damageTakenPct > 0
+  const maxTpsAdvice = takesMore
+    ? `It takes ${helpPct(vsBalanced.damageTakenPct, 0)} more damage than Balanced for about ${moreOrLess(vsBalanced.tpsPct, 1)} threat: pick it when another tank or the raid covers your survival.`
+    : `It takes ${shownAsZero(vsBalanced.damageTakenPct, 0) ? 'no more' : `${helpPct(vsBalanced.damageTakenPct, 0)} less`} damage than Balanced for about ${moreOrLess(vsBalanced.tpsPct, 1)} threat: pick it when every bit of threat counts.`
+  const buffsNote = 'The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.'
+  return {
+    defensive: {
+      summary: 'Shield Block, Thunder Clap and Demoralizing Shout kept up: the least damage taken. Tuned on threat.',
+      help: `Keeps Shield Block up, and Thunder Clap’s slow and Demoralizing Shout on the boss from the pull, so you take the least damage, and is tuned on threat: ${Math.round(m.defensive.tps)} TPS, ${Math.round(m.defensive.dps)} DPS and ${Math.round(m.defensive.damageTaken)} damage taken a second in the default setup. Pick it for progression fights.`,
+    },
+    balanced: {
+      summary: `Shield Block and 5 Sunders kept, no Thunder Clap or Shout: ${signedPct(m.balanced.tpsPct, 0)} TPS, ${signedPct(m.balanced.dpsPct, 0)} DPS, ${damageTakenVs(m.balanced.damageTakenPct, 'Defensive')}.`,
+      help: `The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from ${BALANCED_FILLER_PCT}% of your max rage (${BALANCED_FILLER_PCT} rage without Boundless Rage), and Heroic Strike from ${BALANCED_HS_PCT}%. Against Defensive in the default setup: ${moreOrLess(m.balanced.tpsPct, 1)} TPS, ${moreOrLess(m.balanced.dpsPct, 1)} DPS and ${damageTaken(m.balanced.damageTakenPct)}. ${buffsNote}`,
+    },
+    maxTps: {
+      summary: `Sunder Armor filler from its cost, Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage: about ${signedPct(vsBalanced.tpsPct, 1)} TPS over Balanced for ${damageTaken(vsBalanced.damageTakenPct)}.`,
+      help: `Balanced’s rotation spending more rage on threat: the Sunder Armor filler from its cost (12 rage with the default talents, 9 with Improved Sunder Armor 3/3) rather than ${BALANCED_FILLER_PCT}% of your max rage, and Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage rather than ${BALANCED_HS_PCT}% of your max rage. Like Balanced, it drops Thunder Clap and Demoralizing Shout and keeps Shield Block and Shield Slam, which make more threat than they cost. Against Balanced in the default setup: ${moreOrLess(vsBalanced.tpsPct, 1)} TPS, ${moreOrLess(vsBalanced.dpsPct, 1)} DPS and ${damageTaken(vsBalanced.damageTakenPct)}; against Defensive, ${moreOrLess(m.maxTps.tpsPct, 1)} TPS, ${moreOrLess(m.maxTps.dpsPct, 1)} DPS and ${damageTaken(m.maxTps.damageTakenPct)}. ${maxTpsAdvice} ${buffsNote}`,
+    },
+  }
+}
+
+const PRESET_TEXT = protectionPresetText(PROTECTION_PRESET_MEASURES)
 
 /**
  * Defaults from warrior.md §5.4's table, in priority order. The duties' timing is D26's fixed rule;
@@ -312,8 +354,8 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     maintainsBuff: 'sunderArmor',
   },
   {
-    ...rageOption(ID.fillerMinRage, 'Sunder Armor filler from', 'Use it only at or above this much rage. It costs 12 with the default talents and 9 with Improved Sunder Armor 3/3, so the default 9 uses it from its cost with either.', 9, ID.fillerEnabled, 'Fillers'),
-    help: `Use it only at or above this much rage. It costs 12 with the default talents and 9 with Improved Sunder Armor 3/3, so the default 9 uses it from its cost with either. With Balanced it’s ${BALANCED_FILLER_PCT}% of your max rage by default (${BALANCED_FILLER_PCT} of 100, ${Math.round(1.3 * BALANCED_FILLER_PCT)} with Boundless Rage 3/3), so the filler spends only rage you have to spare.`,
+    ...rageOption(ID.fillerMinRage, 'Sunder Armor filler from', 'Use it only at or above this much rage. At 9 it’s used whenever you can pay for it: 12 rage with the default talents, 9 with Improved Sunder Armor 3/3.', 9, ID.fillerEnabled, 'Fillers'),
+    help: `Use it only at or above this much rage. At 9 it’s used whenever you can pay for it: 12 rage with the default talents, 9 with Improved Sunder Armor 3/3. With Balanced it’s ${BALANCED_FILLER_PCT}% of your max rage by default (${BALANCED_FILLER_PCT} of 100, ${Math.round(1.3 * BALANCED_FILLER_PCT)} with Boundless Rage 3/3), so the filler spends only rage you have to spare.`,
     defaultWhen: [{ ...BALANCED, default: BALANCED_FILLER_PCT, pctOfMaxRage: true }],
   },
   {
@@ -545,22 +587,22 @@ export const PROTECTION_APL: AplDefinition = {
     {
       id: 'defensive',
       label: 'Defensive',
-      summary: DEFENSIVE_SUMMARY,
-      help: DEFENSIVE_HELP,
+      summary: PRESET_TEXT.defensive.summary,
+      help: PRESET_TEXT.defensive.help,
       values: { [ID.priority]: PROTECTION_PRIORITY.defensive },
     },
     {
       id: DEFAULT_APL_PRESET,
       label: 'Balanced',
-      summary: BALANCED_SUMMARY,
-      help: BALANCED_HELP,
+      summary: PRESET_TEXT.balanced.summary,
+      help: PRESET_TEXT.balanced.help,
       values: {},
     },
     {
       id: 'maxTps',
       label: 'Max TPS',
-      summary: MAX_TPS_SUMMARY,
-      help: MAX_TPS_HELP,
+      summary: PRESET_TEXT.maxTps.summary,
+      help: PRESET_TEXT.maxTps.help,
       values: { [ID.priority]: PROTECTION_PRIORITY.maxTps },
     },
   ],

@@ -235,9 +235,9 @@ const REGISTRY = {
   },
   // warrior.md §2.5 (the rolling model, D36, Q21) and Q36: the tick spell's "ignore caster damage modifiers" flag.
   // The restart model's cost, measured with only `deepWoundsRolls` off at the default seed (1) over 5,000
-  // fights: Fury 802.4 → 695.7 DPS (−13.3%), Arms 795.4 → 692.7 (−12.9%), as warrior.md Q21 gives.
+  // fights, on the defaults since W4: Fury 842.3 → 727.0 DPS (−13.7%), Arms 821.8 → 710.4 (−13.6%), as warrior.md Q21 gives.
   deepWounds: {
-    text: 'Deep Wounds rolls, as the bleed spell the Forever client uses does: each crit adds 60% of the critting weapon’s average hit (less for an off-hand crit) to the bleed, dealt over its next 4 ticks, and none of it is lost. Each crit’s share is set when it lands, raised by Death Wish, Enrage and Two-Handed Weapon Specialization if they’re up, though the client says the ticks ignore them. It can’t crit. Under Classic Era rules each crit restarts it and loses what was left: about 13% less DPS for the default Fury and Arms warriors. Untested in Forever.',
+    text: 'Deep Wounds rolls, as the bleed spell the Forever client uses does: each crit adds 60% of the critting weapon’s average hit (less for an off-hand crit) to the bleed, dealt over its next 4 ticks, and none of it is lost. Each crit’s share is set when it lands, raised by Death Wish, Enrage and Two-Handed Weapon Specialization if they’re up, though the client says the ticks ignore them. It can’t crit. Under Classic Era rules each crit restarts it and loses what was left: about 14% less DPS for the default Fury and Arms warriors. Untested in Forever.',
     docRef: `${WAR}#25-crits-impale-flurry-deep-wounds`,
   },
   angerManagement: {

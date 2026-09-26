@@ -169,11 +169,21 @@ test.describe('talents', () => {
     await expect(presets).toHaveText('Fury (default)')
     await presets.click()
     // Only the builds of specs the app offers (docs/ux.md principle 8): Protection's since it
-    // shipped. One "(default)": another spec's default reads plainly (TU10).
-    await expect(page.getByRole('option')).toHaveText(['Fury (default)', 'Fury + Precision', 'Arms default', 'Protection default', 'Protection + Improved Thunder Clap'])
-    await page.getByRole('option', { name: 'Fury + Precision' }).click()
-    await expect(page.getByText('15 / 36 / 0')).toBeVisible()
-    await expect(presets).toHaveText('Fury + Precision')
+    // shipped. One "(default)": another spec's default reads plainly (TU10). Each shows its point
+    // split, and each spec's popular build, its default until W4, stays a preset (warrior.md §6.1).
+    await expect(page.getByRole('option')).toHaveText([
+      'Fury (default) 13/38/0',
+      'Fury popular build (better in short fights) 17/34/0',
+      'Arms default 35/16/0',
+      'Arms popular build 37/14/0',
+      'Protection default 13/5/33',
+      'Protection earlier default 8/5/38',
+      'Protection + Improved Thunder Clap 5/5/41',
+    ])
+    await page.getByRole('option', { name: 'Fury popular build' }).click()
+    await expect(page.getByText('17 / 34 / 0')).toBeVisible()
+    // The closed menu shows the name alone.
+    await expect(presets).toHaveText('Fury popular build (better in short fights)')
   })
 
   test('adds a point with a click and removes it with a right-click', async ({ page }) => {

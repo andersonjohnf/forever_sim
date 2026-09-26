@@ -52,8 +52,8 @@ Both specs need the following. Each item links to its section.
 9. **Target type** from [encounter.md](../mechanics/encounter.md) gates Exorcism and Holy
    Wrath.
 10. **Level scaling of lower-rank spells.** A rank learned below 60 grows by
-    `EffectRealPointsPerLevel` per level up to its max level, truncated to a whole number
-    ([Conventions](#conventions-used-below)).
+    `EffectRealPointsPerLevel` per level up to its max level, truncated to a whole number by the
+    datasets' rule, the client's own rounding [?] ([Conventions](#conventions-used-below)).
 
 ---
 
@@ -188,8 +188,10 @@ and the docs it links; this list only summarizes them, with the same tags.
   rates are server-side ([hotfix caveat](../data/client.md#hotfix-caveat)).
 - **Rank at level 60.** Every table uses the max rank a level-60 paladin has. Where
   `SpellLevels.BaseLevel` < 60, add `EffectRealPointsPerLevel × (min(60, MaxLevel) −
-  BaseLevel)` to the base, truncated toward zero to a whole number as the client renders it
-  ([per-level values](../data/items.md#per-level-values)): JoR r8 +8 (8.2), JoF r7 +7 (7.38),
+  BaseLevel)` to the base, truncated toward zero to a whole number, the datasets' rendering by the
+  same rule; how the client itself rounds it is [?]
+  ([per-level values](../data/items.md#per-level-values),
+  [open-questions B74](../open-questions.md#b74-per-level-tooltip-values)): JoR r8 +8 (8.2), JoF r7 +7 (7.38),
   SoR r8 dummy +94, SotC r6 AP +19 (19.2).
   foreverchanges tooltips show the unscaled base ("Numbers are base values, before talents,
   gear and level scaling",

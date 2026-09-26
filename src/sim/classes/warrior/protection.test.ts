@@ -48,7 +48,7 @@ const AURA = { armor: 22, block: 51, ap: 99, slow: 319 }
 /** `EquippedItemSubclass` 64: shields (item class 4, armor). */
 const SHIELD = 64
 
-/** The default Protection build's talents by name (8/5/38, warrior.md §6.1). */
+/** The popular Protection build's talents by name (8/5/38, the default until W4; warrior.md §6.1), which these tests were written for. */
 const TALENTS = talentRanksByName(TALENT_DATA.warrior, defaultConfig('warrior-protection').talents)
 /** The Defensive preset, the default before Balanced (D28): the duties first, tuned on threat. */
 const DEFENSIVE = { [ID.priority]: PROTECTION_PRIORITY.defensive }
@@ -189,7 +189,7 @@ describe('Protection talents on its abilities (warrior.md §4.3, W14, W20)', () 
     expect(r.flatDamage * 1.1 * 0.9).toBeCloseTo(191.66, 2)
   })
 
-  it('W26: threat per GCD and per rage, the default build (×1.495, block value 62, 1,400 attack power, average hits, no armor or crits)', () => {
+  it('W26: threat per GCD and per rage, the popular 8/5/38 (×1.495, block value 62, 1,400 attack power, average hits, no armor or crits)', () => {
     const m = 1.3 * 1.15 // W16
     const dmg = 0.99 // Bastion 5/5 × Defensive Stance
     const threat = (def: typeof SUNDER_ARMOR) => {
@@ -205,7 +205,7 @@ describe('Protection talents on its abilities (warrior.md §4.3, W14, W20)', () 
     expect(threat(DEMORALIZING_SHOUT)).toEqual([64.58, 7, 9.23])
   })
 
-  it('W20: the default build’s costs (Focused Rage 3/3, Improved Sunder Armor 3/3)', () => {
+  it('W20: the popular 8/5/38’s costs (Focused Rage 3/3, Improved Sunder Armor 3/3)', () => {
     const costs = [SUNDER_ARMOR, SHIELD_SLAM, REVENGE, THUNDER_CLAP, DEMORALIZING_SHOUT, SHIELD_BLOCK].map((a) => withTalents(a, TALENTS).costTenths / 10)
     expect(costs).toEqual([9, 17, 2, 17, 7, 10])
   })

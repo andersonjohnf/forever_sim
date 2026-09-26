@@ -1396,7 +1396,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Test:** at the current level, read tooltips whose values scale: Demoralizing Shout rank 1–2
   and Battle Shout (warrior), Cat Form's attack power (druid), Vindication 1/3 (paladin, if the
   cap allows the tier). Compare with the formula at that level: from `SpellLevel`, truncated,
-  and the `BaseLevel` alternative.
+  and the `BaseLevel` alternative. At 60, the rounding itself: Frostbolt rank 10's tooltip low
+  end reads **382** if the client truncates the term (386 × (1 − 0.0381) + trunc(2.9 × 4) =
+  371.29 + 11) and **383** if it rounds (371.29 + 11.6 = 382.89); the class docs' spell tables
+  and every rank below 60 in the engine assume truncation.
 - **Samples:** one read per spell, at two levels if possible.
 - **Changes:** the rendered tooltips, and the tank-side boss AP reduction of Demoralizing
   Shout.
@@ -2022,7 +2025,7 @@ new build, re-run `npm run scrape:client -- --claims` instead of checking in a b
 
 - **Warrior build variants**: settled by the sim in W4 (warrior §6.1): "Fury + Precision" 15/36 is +0.44%
   over the popular 17/34, and WarriorSim's 13/38 (Precision and Improved Execute, no Impale) +3.5%, now the
-  default. **Arms base stance** (Battle vs Berserker): simulate once M2 and M3 exist
+  default; 17/34 stays a preset for short fights without an execute phase, and 15/36 is no longer one. **Arms base stance** (Battle vs Berserker): simulate once M2 and M3 exist
   ([warrior Q23, Q24](classes/warrior.md#9-open-questions)). The base stance's first run (M2.3c):
   Battle 630 DPS, Berserker 604, Berserker dancing for Rend and Overpower 631, so Battle stays
   the default.

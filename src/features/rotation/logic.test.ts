@@ -185,7 +185,7 @@ describe('rotation rows', () => {
     expect(grouped.map((o) => o.id)).toContain('warrior.fury.execute.btOverExecuteAp')
     for (const option of grouped) expect(option.help, option.id).not.toMatch(/\b\d{4,}\b/)
     const fury = getSpec('warrior-fury').rotationOptions.find((o) => o.id === 'warrior.fury.execute.btOverExecuteAp')!
-    expect(fury.help).toContain('2,434 is the break-even at Execute’s 10 rage cost with Improved Execute 2/2, as the default talents have; use 2,220 without Improved Execute.')
+    expect(fury.help).toContain('The default is the break-even for your talents: 2,434 with Improved Execute, as the default talents have (Execute costs 10 rage at 2/2), or 2,220 without it (15 rage).')
   })
 
   it('locks Shield Block and Shield Slam off without a shield or the talent, and dims the filler’s wait for Shield Slam (Protection, PU4)', () => {
@@ -386,7 +386,7 @@ describe('a priority list’s rows (decision D31)', () => {
     const fillers = { 'warrior.fury.hamstring.enabled': true, 'warrior.fury.slam.enabled': true }
     expect(summary('bloodthirst')).toBe('On cooldown · not in the execute phase')
     expect(summary('overpower')).toBe('Up to 45 rage · while Bloodthirst and Whirlwind cool down')
-    expect(summary('rend')).toBe('Again with 3 s left · up to 25 rage · not in the execute phase · while Bloodthirst and Whirlwind cool down')
+    expect(summary('rend')).toBe('Up to 25 rage · not in the execute phase · while Bloodthirst and Whirlwind cool down')
     expect(summary('hamstring', fillers)).toBe('From 60 rage · not in the execute phase · while Bloodthirst and Whirlwind cool down')
     expect(summary('slam', fillers)).toBe('Not in the execute phase · while Bloodthirst and Whirlwind cool down')
     // Execute off, or no phase: they don't stop for it.

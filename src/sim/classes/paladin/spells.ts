@@ -16,9 +16,9 @@ import type { SpellDef } from '../../plan/types'
 /**
  * A rank's base points at level 60: base + trunc(per level × levels), counting levels from the
  * spell's level up to min(60, max level) and never below 0. The per-level term is truncated toward
- * zero to a whole number, as the client renders it and the datasets are generated
+ * zero to a whole number, the datasets' rendering, by the same rule
  * (docs/data/items.md#per-level-values; paladin.md#conventions-used-below): Frostbolt r10's
- * 2.9 × 4 = 11.6 adds 11.
+ * 2.9 × 4 = 11.6 adds 11. How the client itself rounds it is [?] (docs/open-questions.md B74).
  */
 export const atLevel60 = (base: number, perLevel: number, baseLevel: number, maxLevel = Infinity) =>
   base + Math.trunc(perLevel * Math.max(0, Math.min(60, maxLevel) - baseLevel))

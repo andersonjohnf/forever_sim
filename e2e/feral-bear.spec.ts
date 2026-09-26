@@ -89,7 +89,7 @@ test.describe('Feral bear in the switcher', () => {
     await expect(page.getByText('9 / 42 / 0')).toBeVisible()
     await presets.click()
     // Both druid builds now that both ship; only the bear's is marked "(default)" here.
-    await expect(page.getByRole('option')).toHaveText(['Feral cat default', 'Feral bear (default)', 'Balance default'])
+    await expect(page.getByRole('option')).toHaveText(['Feral cat default 9/37/5', 'Feral bear (default) 9/42/0', 'Balance default 41/5/0'])
     await page.keyboard.press('Escape')
     // About names both druid specs.
     await page.getByRole('button', { name: 'More' }).click()

@@ -82,8 +82,8 @@ export function removeReason(data: TalentData, ranks: TalentRanksById, talent: T
 }
 
 /**
- * The spec a talent preset is for: the class's spec whose name starts the preset's ("Fury + Precision"
- * is Fury's, "Feral cat (default)" is Feral (Cat)'s). Presets are listed only for specs the app
+ * The spec a talent preset is for: the class's spec whose name starts the preset's ("Arms popular build"
+ * is Arms', "Feral cat (default)" is Feral (Cat)'s). Presets are listed only for specs the app
  * offers (docs/ux.md principle 8), so the menu grows with them.
  */
 export function presetSpec<S extends { name: string }>(presetName: string, specs: readonly S[]): S | undefined {

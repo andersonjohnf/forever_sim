@@ -82,7 +82,7 @@ export const IMPALE: ReadonlySet<string> = new Set([
 ])
 
 /** Improved Execute's reduction by rank: a table, not per rank (warrior.md §2.3, §7) [F]. */
-const IMPROVED_EXECUTE = [0, 3, 5]
+export const IMPROVED_EXECUTE = [0, 3, 5]
 
 /**
  * Improved Rend's bonus on Rend's bleed by rank, in %: a table, the talent's rank curve 12 / 23 /

@@ -54,7 +54,7 @@ test.describe('Combat rogue', () => {
     await expect(page.getByText('18 / 33 / 0')).toBeVisible()
     await presets.click()
     // Every rogue build; only this spec's reads "(default)".
-    await expect(page.getByRole('option')).toHaveText(['Combat (default)', 'Assassination default', 'Subtlety default'])
+    await expect(page.getByRole('option')).toHaveText(['Combat (default) 18/33/0', 'Assassination default 38/11/2', 'Subtlety default 15/0/36'])
     await page.keyboard.press('Escape')
     // About names the rogue, after the shaman (and before the mage, since K2).
     await page.getByRole('button', { name: 'More' }).click()

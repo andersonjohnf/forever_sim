@@ -71,7 +71,7 @@ for (const width of [1280, 390]) {
       const whirlwind = list.locator('[data-apl-row="whirlwind"]')
       await expect(whirlwind).toContainText('Bloodthirst 0.5 s away')
       // The Rend dance (W4), below the Overpower dance, on by default.
-      await expect(list.locator('[data-apl-row="rend"]')).toContainText('Again with 3 s left · up to 25 rage · not in the execute phase')
+      await expect(list.locator('[data-apl-row="rend"]')).toContainText('Up to 25 rage · not in the execute phase')
       await expect(list.getByRole('switch', { name: 'Rend (stance dance)', exact: true })).toBeChecked()
       for (const target of [
         whirlwind.getByRole('button', { name: 'Move Whirlwind, position 11' }),

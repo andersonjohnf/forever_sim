@@ -1,6 +1,8 @@
 // The popular warrior builds that were the defaults until W4 (warrior.md §6.1): Fury 17/34/0, Arms
-// 37/14/0 and Protection 8/5/38. Many of the worked examples (W1, W10, W18, W20, W21, W24, W26) and the
-// mechanics tests were written for them, so those tests pin them rather than follow today's defaults.
+// 37/14/0 and Protection 8/5/38. The Talents tab offers each as a preset, the one-click way back to the
+// build most players ran (src/sim/defaults.ts). Many of the worked examples (W1, W10, W18, W20, W21, W24,
+// W26) and the mechanics tests were written for them, so those tests pin them rather than follow
+// today's defaults.
 import type { SimConfig, SpecId } from '../../types'
 
 export const POPULAR_WARRIOR_TALENTS = {

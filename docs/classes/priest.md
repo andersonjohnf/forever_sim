@@ -74,8 +74,9 @@ trainer row teaches it in this build, so the sim doesn't cast it ([OQ-P7](#9-ope
 - The caster core's rules apply ([spells.md](../mechanics/spells.md)): spell hit (17% miss at a
   level-63 boss, 0% floor in Forever), spell crit ×1.5, the boss's 24 resistance (6% on average),
   DoTs that snapshot your side and read the boss's at each tick, channels, the five-second rule.
-- A rank learned below 60 grows by its per-level points to 60, truncated to a whole number
-  ([per-level values](../data/items.md#per-level-values)); a range is base × (1 ± variance / 2)
+- A rank learned below 60 grows by its per-level points to 60, truncated to a whole number by the
+  datasets' rule ([per-level values](../data/items.md#per-level-values); how the client itself
+  rounds it is [?], [open-questions B74](../open-questions.md#b74-per-level-tooltip-values)); a range is base × (1 ± variance / 2)
   ([paladin conventions](paladin.md#conventions-used-below)).
 - Mana costs are whole mana, rounded down after every cut ([§4](#4-talents)).
 

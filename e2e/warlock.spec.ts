@@ -87,7 +87,7 @@ test.describe('Destruction warlock', () => {
     await expect(presets).toHaveText('Destruction (default)')
     await expect(page.getByText('7 / 11 / 33')).toBeVisible()
     await presets.click()
-    await expect(page.getByRole('option')).toHaveText(['Destruction (default)', 'Affliction default', 'Demonology default'])
+    await expect(page.getByRole('option')).toHaveText(['Destruction (default) 7/11/33', 'Affliction default 35/11/5', 'Demonology default 0/31/20'])
     await page.keyboard.press('Escape')
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()

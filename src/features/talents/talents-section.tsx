@@ -54,9 +54,11 @@ export function TalentsSection() {
       const spec = presetSpec(p.name, offered)
       if (!spec) return []
       const label = spec.id === meta.id ? p.name : p.name.replace(/ \(default\)$/, ' default')
-      return [{ ...p, label }]
+      // Its point split ("17/34/0") beside the name in the menu, so builds tell apart before one is picked.
+      return [{ ...p, label, points: pointsPerTree(data, safeDecode(data, p.code)).join('/') }]
     })
-  }, [meta.classId, meta.id])
+  }, [meta.classId, meta.id, data])
+  const selected = presets.find((p) => p.code === code)
   const isDesktop = useIsDesktop()
   // From 1440 px the talents report the pointer and focus to the detail panel beside the trees,
   // which shows from a 73 rem setup pane (talent-detail-panel.tsx). While it shows, the pointer
@@ -99,7 +101,7 @@ export function TalentsSection() {
 
       <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:items-center">
         <Select
-          value={presets.find((p) => p.code === code)?.code ?? ''}
+          value={selected?.code ?? ''}
           onValueChange={(presetCode) => {
             const preset = presets.find((p) => p.code === presetCode)
             if (!preset) return
@@ -109,12 +111,13 @@ export function TalentsSection() {
         >
           {/* The trigger's size attribute sets its height, so the 44 px target overrides that (docs/ux.md "Accessibility"). */}
           <SelectTrigger ref={presetsRef} className="col-span-3 w-full data-[size=default]:h-11 sm:w-auto sm:min-w-48" aria-label="Talent build presets">
-            <SelectValue placeholder="Custom build" />
+            {/* The name alone: the section's description above already shows the build's points. */}
+            <SelectValue placeholder="Custom build">{selected?.label}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {presets.map((p) => (
               <SelectItem key={p.code} value={p.code} className="min-h-11">
-                {p.label}
+                <span>{p.label}</span> <span className="text-muted-foreground tabular-nums">{p.points}</span>
               </SelectItem>
             ))}
           </SelectContent>

@@ -67,6 +67,7 @@ import {
   type RotationContext,
   seconds,
   sharedIds,
+  timeLeftAtLeast,
   trinketLines,
 } from './shared'
 
@@ -142,7 +143,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
     id: ID.rendRefresh,
     group: 'Core abilities',
     label: 'Rend again with',
-    help: 'Refresh it when this much of it is left, unless it lasts to the end of the fight.',
+    help: 'Refresh it when this much of it is left, unless it lasts to the end of the fight. It’s never cast with under 3 s of the fight left, where it wouldn’t tick.',
     unit: 's left',
     min: 0,
     max: 21,
@@ -538,14 +539,19 @@ export function armsRotation(
     // Row 1: Battle Shout (shared.ts).
     battleShout: () => battleShoutLine(b, v, ID, ctx),
     // Row 2: Rend when your Rend is missing or has at most refreshBelowSec of ticks left, unless it
-    // lasts to the end of the fight (the upkeep condition, §7 "Rend is a bleed ability"). On by
+    // lasts to the end of the fight (the upkeep condition, §7 "Rend is a bleed ability"), and not
+    // with less than one tick (3 s) of the fight left, when it would never tick (W4L-2). On by
     // default with Bloodthrill, whose proc needs it.
     rend: () => {
       if (!v.on(ID.rendEnabled)) return
       const def = rend(ctx.profile)
       const at = index(def)
       const to = danceTo(def, STANCE.battle)
-      b.line(def, to, [{ code: COND.abilityAuraRefresh, a: at, b: seconds(v, ID.rendRefresh) }, ...(to ? [swapCap] : [])])
+      b.line(def, to, [
+        { code: COND.abilityAuraRefresh, a: at, b: seconds(v, ID.rendRefresh) },
+        timeLeftAtLeast(def.dotTickMs!),
+        ...(to ? [swapCap] : []),
+      ])
     },
     // Row 16, with the talent: Death Wish, as Fury's row 2. By default it comes before row 3, whose
     // racial and trinkets wait for it wherever they sit (shared.ts).

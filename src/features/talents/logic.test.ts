@@ -2,8 +2,9 @@
 // #prerequisite-arrows): arrows need the prerequisite at max rank, tier N needs 5·N points in
 // lower tiers of the same tree, and the cap is 51 points.
 import { describe, expect, it } from 'vitest'
-import { decodeTalentCode, talentsInCodeOrder, type Talent, type TalentData } from '@/data/talents/types'
+import { decodeTalentCode, pointsPerTree, talentsInCodeOrder, type Talent, type TalentData } from '@/data/talents/types'
 import { SPEC_META } from '@/sim'
+import { POPULAR_WARRIOR_TALENTS } from '@/sim/classes/warrior/popular-builds'
 import { defaultTalents, TALENT_DATA, talentPresets } from '@/sim/defaults'
 import { canAdd, canRemove, lockReason, presetSpec, readBuildCode, removeReason, withRank } from './logic'
 
@@ -88,6 +89,8 @@ describe('talent presets per spec (docs/ux.md principle 8)', () => {
       'warrior-fury',
       'warrior-fury',
       'warrior-arms',
+      'warrior-arms',
+      'warrior-protection',
       'warrior-protection',
       'warrior-protection',
     ])
@@ -101,9 +104,19 @@ describe('talent presets per spec (docs/ux.md principle 8)', () => {
     const offered = [SPEC_META['warrior-fury'], SPEC_META['warrior-arms']]
     expect(talentPresets('warrior').filter((p) => presetSpec(p.name, offered)).map((p) => p.name)).toEqual([
       'Fury (default)',
-      'Fury + Precision',
+      'Fury popular build (better in short fights)',
       'Arms (default)',
+      'Arms popular build',
     ])
+  })
+
+  it('keeps each warrior spec’s popular build, its default until W4, as a preset (warrior.md §6.1)', () => {
+    const byName = Object.fromEntries(talentPresets('warrior').map((p) => [p.name, p.code]))
+    expect(byName['Fury popular build (better in short fights)']).toBe(POPULAR_WARRIOR_TALENTS['warrior-fury'])
+    expect(byName['Arms popular build']).toBe(POPULAR_WARRIOR_TALENTS['warrior-arms'])
+    expect(byName['Protection earlier default']).toBe(POPULAR_WARRIOR_TALENTS['warrior-protection'])
+    const split = (code: string) => pointsPerTree(TALENT_DATA.warrior, decodeTalentCode(TALENT_DATA.warrior, code)).join('/')
+    expect(Object.values(POPULAR_WARRIOR_TALENTS).map(split)).toEqual(['17/34/0', '37/14/0', '8/5/38'])
   })
 })
 

@@ -7,10 +7,10 @@ import { describe, expect, it } from 'vitest'
 import spellsJson from '@/data/client/spells.json'
 import talentsJson from '@/data/client/talents.json'
 import type { ClientSpells, ClientTalents } from '@/data/client/types'
-import { TALENT_DATA } from '../../defaults'
+import { defaultTalents, TALENT_DATA } from '../../defaults'
 import { COND, STANCE, STANCE_ANY, weaponPercentVs } from '../../plan/types'
 import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
-import type { CreatureType } from '../../types'
+import type { CreatureType, RotationValue } from '../../types'
 import { talentRanksByName } from '../index'
 import { BUFFS_BY_ID, JUJU_FLURRY, MIGHTY_RAGE_POTION } from '../../effects/buffs'
 import { ITEM_EFFECTS } from '../../effects/items'
@@ -53,7 +53,9 @@ import {
   stanceSwapKeepTenths,
   WHIRLWIND,
 } from './abilities'
-import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation, PREPULL_BLOODRAGE_MS, PREPULL_SHOUT_MS } from './fury'
+import { BT_OVER_EXECUTE_AP_IMPROVED_1, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation, PREPULL_BLOODRAGE_MS, PREPULL_SHOUT_MS } from './fury'
+import { POPULAR_WARRIOR_TALENTS } from './popular-builds'
+import { TALENT_EFFECTS } from './talents'
 import {
   abilityCritMultiplier,
   costReduction,
@@ -605,7 +607,7 @@ describe('rage costs per build (warrior.md §2.3 "Cost reductions")', () => {
   const ranks = (code: string) => talentRanksByName(TALENT_DATA.warrior, code)
   const costs = (code: string, ids: string[]) => Object.fromEntries(ids.map((id) => [id, rageCost(id, baseCost(id), ranks(code))]))
 
-  it('W20: Protection default build (Focused Rage 3/3, Improved Sunder Armor 3/3, Improved Heroic Strike 3/3), and its Improved Thunder Clap preset', () => {
+  it('W20: Protection 8/5/38, the popular build (Focused Rage 3/3, Improved Sunder Armor 3/3, Improved Heroic Strike 3/3), and its Improved Thunder Clap preset', () => {
     const ids = ['sunderArmor', 'shieldSlam', 'revenge', 'heroicStrike', 'thunderClap', 'demoralizingShout', 'battleShout', 'shieldBlock', 'deathWish']
     expect(costs('35-05-552101233301210531', ids)).toEqual({
       sunderArmor: 9,
@@ -622,11 +624,29 @@ describe('rage costs per build (warrior.md §2.3 "Cost reductions")', () => {
     expect(costs('05-05-552131233301210531', ['heroicStrike', 'thunderClap'])).toEqual({ heroicStrike: 12, thunderClap: 11 })
   })
 
-  it('W21: Fury default build (Improved Heroic Strike 3/3, no Improved Execute)', () => {
-    // W21's Cleave rows (15, and 16 for Fury + Precision) wait for Cleave itself.
+  it('W20: the default since W4, 13/5/33 (Improved Heroic Strike 2/3, no Improved Sunder Armor): Sunder Armor 12, Heroic Strike 10, the rest as 8/5/38', () => {
+    expect(defaultTalents('warrior-protection')).toBe('25300003-05-552001233000210531')
+    const ids = ['sunderArmor', 'shieldSlam', 'revenge', 'heroicStrike', 'thunderClap', 'demoralizingShout', 'battleShout', 'shieldBlock']
+    expect(costs(defaultTalents('warrior-protection'), ids)).toEqual({
+      ...costs(POPULAR_WARRIOR_TALENTS['warrior-protection'], ids),
+      sunderArmor: 12,
+      heroicStrike: 10,
+    })
+  })
+
+  it('W21: the popular Fury 17/34/0 (Improved Heroic Strike 3/3, no Improved Execute)', () => {
+    // W21's Cleave rows (15, and 16 with Improved Cleave 2/3) wait for Cleave itself.
     expect(
-      costs('30305013002-050530035150010051-', ['heroicStrike', 'bloodthirst', 'whirlwind', 'execute', 'hamstring', 'overpower', 'battleShout', 'deathWish']),
+      costs(POPULAR_WARRIOR_TALENTS['warrior-fury'], ['heroicStrike', 'bloodthirst', 'whirlwind', 'execute', 'hamstring', 'overpower', 'battleShout', 'deathWish']),
     ).toEqual({ heroicStrike: 12, bloodthirst: 30, whirlwind: 25, execute: 15, hamstring: 10, overpower: 5, battleShout: 10, deathWish: 10 })
+  })
+
+  it('W21: the default since W4, 13/38/0 (Improved Heroic Strike 2/3, Improved Execute 2/2): Heroic Strike 13, Execute 10, Rend 10, the rest as 17/34/0', () => {
+    expect(defaultTalents('warrior-fury')).toBe('20303203-050520035152310051-')
+    const ids = ['heroicStrike', 'bloodthirst', 'whirlwind', 'execute', 'hamstring', 'overpower', 'battleShout', 'deathWish', 'rend']
+    expect(costs(defaultTalents('warrior-fury'), ids)).toEqual({ ...costs(POPULAR_WARRIOR_TALENTS['warrior-fury'], ids), heroicStrike: 13, execute: 10, rend: 10 })
+    // Its Cleave at 16 (Improved Cleave 2/3) waits for Cleave itself; the talent rank is there.
+    expect(ranks(defaultTalents('warrior-fury')).get('Improved Cleave')).toBe(2)
   })
 
   it('Improved Execute is a table (−3, −5), and the reductions stack', () => {
@@ -645,8 +665,21 @@ describe('Impale and Raging Blows (warrior.md §2.5, §3.1)', () => {
     expect(abilityCritMultiplier('battleShout', new Map([['Impale', 2]]))).toBe(2)
   })
 
-  it('applies the default Fury build to its abilities', () => {
-    const fury = talentRanksByName(TALENT_DATA.warrior, '30305013002-050530035150010051-')
+  it('applies the default Fury 13/38/0 to its abilities: no Impale, so crits deal ×2.0; +3% hit from Precision; a swap keeps 19 (warrior.md §5.2)', () => {
+    const fury = talentRanksByName(TALENT_DATA.warrior, defaultTalents('warrior-fury'))
+    expect(ABILITIES.map((a) => withTalents(a, fury)).map((a) => [a.id, a.costTenths, a.critMultiplier, a.offHand])).toEqual([
+      ['bloodthirst', 300, 2, false],
+      ['whirlwind', 250, 2, true],
+      ['heroicStrike', 130, 2, false],
+      ['hamstring', 100, 2, false],
+      ['execute', 100, 2, false],
+    ])
+    expect(TALENT_EFFECTS.Precision(fury.get('Precision')!)).toContainEqual({ kind: 'stat', stat: 'hit', value: 3 })
+    expect(stanceSwapKeepTenths(fury, FOREVER)).toBe(190)
+  })
+
+  it('applies the popular Fury 17/34/0 to its abilities', () => {
+    const fury = talentRanksByName(TALENT_DATA.warrior, POPULAR_WARRIOR_TALENTS['warrior-fury'])
     const resolved = ABILITIES.map((a) => withTalents(a, fury))
     expect(resolved.map((a) => [a.id, a.costTenths, a.critMultiplier, a.offHand])).toEqual([
       ['bloodthirst', 300, 2.2, false],
@@ -671,6 +704,20 @@ describe('Execute worked examples', () => {
     expect(executeBreakEvenAp(15)).toBeCloseTo(2220, 9)
     expect(executeBreakEvenAp(10)).toBeCloseTo(2434.2857142857, 9)
     expect(executeBreakEvenAp(12)).toBeCloseTo(2348.5714285714, 9)
+  })
+
+  it('W11 in the rotation: Bloodthirst over Execute defaults to the build’s break-even, 2220 without Improved Execute and 2434 with it (W4L-4)', () => {
+    const option = FURY_OPTIONS.find((o) => o.id === 'warrior.fury.execute.btOverExecuteAp')!
+    expect(option).toMatchObject({ default: 2220, defaultWhen: [{ talent: 'Improved Execute', default: 2434 }] })
+    expect(BT_OVER_EXECUTE_AP_IMPROVED_1).toBe(2349)
+    const btFrom = (code: string, values: Record<string, RotationValue> = {}) => {
+      const r = furyRotation(values, talentRanksByName(TALENT_DATA.warrior, code), () => -1)
+      return r.rotation.flatMap((e) => e.conditions).find((c) => c.code === COND.apAtLeast)?.a
+    }
+    expect(btFrom(defaultTalents('warrior-fury'))).toBe(2434) // 13/38/0, Improved Execute 2/2
+    expect(btFrom(POPULAR_WARRIOR_TALENTS['warrior-fury'])).toBe(2220) // 17/34/0, none
+    // A saved value wins over either.
+    expect(btFrom(defaultTalents('warrior-fury'), { 'warrior.fury.execute.btOverExecuteAp': 2000 })).toBe(2000)
   })
 })
 
@@ -724,7 +771,8 @@ describe('Fury rotation options (warrior.md §5.1, §5.2)', () => {
     expect(defaults).toMatchObject({
       'warrior.fury.execute.enabled': true,
       'warrior.fury.execute.minExtraRage': 0,
-      'warrior.fury.execute.btOverExecuteAp': 2434,
+      // Without Improved Execute; with it, 2434 (defaultWhen, below).
+      'warrior.fury.execute.btOverExecuteAp': 2220,
       'warrior.fury.execute.whirlwindInExecute': false,
       'warrior.fury.execute.heroicStrikeInExecute': true,
       'warrior.fury.bloodthirst.enabled': true,
@@ -815,14 +863,14 @@ describe('furyRotation', () => {
     expect(rotation.map((e) => e.ability)).toEqual([0, 1, 0, 2, 3, 3, 3, 4])
     const upTo45 = { code: COND.maxRage, a: 450, b: 0 }
     expect(rotation.map((e) => e.conditions)).toEqual([
-      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }], // 6: Bloodthirst in the execute phase
+      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }], // 6: Bloodthirst in the execute phase
       [{ code: COND.minRage, a: 150, b: 0 }], // 7: Execute
       [notExec], // 8: Bloodthirst
       [notExec, { code: COND.minRage, a: 250, b: 0 }, { code: COND.cooldownAtLeast, a: 0, b: 500 }], // 9: Whirlwind
       // 10: the Overpower dance at rage ≤ 45, GCD-safe as Berserker Rage is in each phase (row 13).
       [notExec, { code: COND.gcdSafe, a: 0b101, b: 1500 }, upTo45],
-      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }, { code: COND.gcdSafe, a: 0b1, b: 1500 }, upTo45],
-      [inExec, { code: COND.apBelow, a: 2434, b: 0 }, upTo45],
+      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, { code: COND.gcdSafe, a: 0b1, b: 1500 }, upTo45],
+      [inExec, { code: COND.apBelow, a: 2220, b: 0 }, upTo45],
       [{ code: COND.minRage, a: 400, b: 0 }], // 11: Heroic Strike, in both phases
     ])
     expect(rotation.slice(4, 7).map((e) => e.danceTo)).toEqual([STANCE.battle, STANCE.battle, STANCE.battle])
@@ -902,8 +950,8 @@ describe('furyRotation', () => {
     const btWait = { code: COND.cooldownAtLeast, a: 0, b: 500 }
     expect(rotation.filter((e) => e.ability === ww).map((e) => e.conditions)).toEqual([
       [notExec, minRage, btWait],
-      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }, minRage, btWait],
-      [inExec, { code: COND.apBelow, a: 2434, b: 0 }, minRage],
+      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, minRage, btWait],
+      [inExec, { code: COND.apBelow, a: 2220, b: 0 }, minRage],
     ])
     // Without Bloodthirst there is nothing to wait on: one line for both phases.
     const noBt = furyRotation({ ...NO_CD, 'warrior.fury.execute.whirlwindInExecute': true }, new Map(), noAura)
@@ -1021,8 +1069,8 @@ describe('furyRotation: the cooldowns (warrior.md §5.2 rows 2–5 and 13)', () 
     expect(linesOf(r, 'berserkerRage')).toEqual([
       [{ code: COND.executePhase, a: 0, b: 0 }, safe((1 << bt) | (1 << ww)), limit],
       // In the phase: Bloodthirst counts only while row 6 uses it; Whirlwind only with whirlwindInExecute.
-      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apAtLeast, a: 2434, b: 0 }, safe(1 << bt), limit],
-      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apBelow, a: 2434, b: 0 }, limit],
+      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apAtLeast, a: 2220, b: 0 }, safe(1 << bt), limit],
+      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apBelow, a: 2220, b: 0 }, limit],
     ])
     expect(r.abilities[at(r, 'berserkerRage')].rageTenths).toBe(100)
     const withWw = furyRotation({ 'warrior.fury.execute.whirlwindInExecute': true }, talents, noAura)
@@ -1194,14 +1242,17 @@ describe('furyRotation: the Overpower dance and Slam (warrior.md §5.2 rows 10 a
     expect(ids(r).slice(ids(r).lastIndexOf('overpower') + 1, ids(r).indexOf('heroicStrike'))).toEqual(['rend'])
     const lines = linesOf(r, 'rend')
     expect(lines.map((e) => e.danceTo)).toEqual([STANCE.battle])
-    // Again with 3 s left (unless it lasts to the end), up to 25 rage.
-    expect(lines.map((e) => e.conditions)).toEqual([[notExec, { code: COND.abilityAuraRefresh, a: rend, b: 3000 }, { code: COND.maxRage, a: 250, b: 0 }, safe((1 << bt) | (1 << ww))]])
+    // Again with 3 s left (unless it lasts to the end), never with under a tick (3 s) of the fight left (W4L-2), up to 25 rage.
+    const tickLeft = { code: COND.timeLeftAtLeast, a: 3000, b: 0 }
+    expect(lines.map((e) => e.conditions)).toEqual([
+      [notExec, { code: COND.abilityAuraRefresh, a: rend, b: 3000 }, tickLeft, { code: COND.maxRage, a: 250, b: 0 }, safe((1 << bt) | (1 << ww))],
+    ])
     // Its ticks add 0.02 × AP in `forever` (D36), and Improved Rend isn't in these talents.
     expect(r.abilities[rend]).toMatchObject({ costTenths: 100, stances: STANCE.battle | STANCE.defensive, dotTickApCoefficient: 0.02 })
     // The settings: the refresh window and the rage limit; without Execute, no phase condition; off, no Rend.
     const set = furyRotation({ 'warrior.fury.execute.enabled': false, 'warrior.fury.rend.refreshBelowSec': 0, 'warrior.fury.rend.maxRage': 40 }, talents, noAura)
     expect(linesOf(set, 'rend').map((e) => e.conditions)).toEqual([
-      [{ code: COND.abilityAuraRefresh, a: at(set, 'rend'), b: 0 }, { code: COND.maxRage, a: 400, b: 0 }, safe((1 << at(set, 'bloodthirst')) | (1 << at(set, 'whirlwind')))],
+      [{ code: COND.abilityAuraRefresh, a: at(set, 'rend'), b: 0 }, tickLeft, { code: COND.maxRage, a: 400, b: 0 }, safe((1 << at(set, 'bloodthirst')) | (1 << at(set, 'whirlwind')))],
     ])
     expect(ids(furyRotation({ 'warrior.fury.rend.enabled': false }, talents, noAura))).not.toContain('rend')
   })
@@ -1215,8 +1266,8 @@ describe('furyRotation: the Overpower dance and Slam (warrior.md §5.2 rows 10 a
     expect(lines.map((e) => e.danceTo)).toEqual([STANCE.battle, STANCE.battle, STANCE.battle])
     expect(lines.map((e) => e.conditions)).toEqual([
       [notExec, safe((1 << bt) | (1 << ww)), limit],
-      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }, safe(1 << bt), limit],
-      [inExec, { code: COND.apBelow, a: 2434, b: 0 }, limit],
+      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, safe(1 << bt), limit],
+      [inExec, { code: COND.apBelow, a: 2220, b: 0 }, limit],
     ])
     expect(r.abilities[op]).toMatchObject({ costTenths: 50, stances: STANCE.battle, unavoidable: true, window: OVERPOWER_WINDOW })
     // Its window's opener comes with it: a dodge; Bloodthrill too when talented (the plan drops it without Rend).

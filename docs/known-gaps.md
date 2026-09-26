@@ -313,16 +313,16 @@ slice is worked:
   the white-threat note ("stance or form"); Max TPS results naming "your" roar when it's off; the
   bear's swings table listing 0% parry and block; Enrage's damage-taken figure (0.16% vs 0.14%);
   setup-store tests for a known but hidden spec.
-- **The bear threat review's lows** (M5.6, `.cache/probes/tank-review-bear/report.md`; the guild's
+- **The bear threat review's lows** (M5.6, `.cache/probes/tank-review-bear/report.md`; in-game
   tests decide them, so the model keeps its Forever reading until then):
   - **BR7, rage from hits divides by the bear's maximum health.** Rage from hits taken is 46% of the
     bear's rage, and Forever's rule (`10 × damage before mitigation ÷ max health`,
     [rage.md](mechanics/rage.md#forever-)) divides by health that Dire Bear Form's +1,240 and Heart
     of the Wild raise, so a bear gets less rage a hit than a warrior of the same gear; the evidence
-    for bears is 33 low-level hits [?]. ±20% rage moves TPS about ±10%. Guild test G3: 30+ hits at
+    for bears is 33 low-level hits [?]. ±20% rage moves TPS about ±10%. In-game test G3: 30+ hits at
     two maximum-health levels, fit rage = k × damage ÷ max health.
   - **BR9, spell 414647** (20% weapon damage, server-triggered) may be Lacerate's hit; the model
-    follows the tooltip's 10% a stack already there (druid.md Q16). Guild test G5.
+    follows the tooltip's 10% a stack already there (druid.md Q16). In-game test G5.
 - **The shaman's review lows** ([its log](reviews/2026-09-24-enhancement-shaman.md)): Rockbiter
   with Windfury Totem (+3.6%, untried by the first pass); the imbue help's +653 AP against 783.6
   with Elemental Weapons; derived Dwarf and Skyborne base rows; the inferred 16361 link;

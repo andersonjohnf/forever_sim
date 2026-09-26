@@ -58,7 +58,7 @@ import {
   withRogueTalents,
 } from './modifiers'
 import { rogueAssumptions, rogueEnergy } from './setup'
-import { rogueFinisherApText } from '../../plan/assumptions'
+import { rogueFinisherApText, rogueFinisherTalentsText } from '../../plan/assumptions'
 import { ROGUE_TALENT_EFFECTS } from './talents'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
@@ -609,6 +609,32 @@ describe('worked examples (rogue.md §9)', () => {
     for (const spec of ['rogue-combat', 'rogue-assassination', 'rogue-subtlety'] as const) {
       for (const a of buildPlan(classic(defaultConfig(spec))).assumptions) expect(a.text, `${spec} ${a.id}`).not.toMatch(/Discord/)
     }
+  })
+
+  it('words the talents that may count twice for the plan: only the finishers it uses and the talents you have that raise them (rogue.md Q3, AV2-8)', () => {
+    const texts = (config: SimConfig) => new Map(buildPlan(config).assumptions.map((a) => [a.id, a.text]))
+    // Combat's and Assassination's defaults use Eviscerate and no Rupture: no Rupture or Serrated Blades.
+    for (const spec of ['rogue-combat', 'rogue-assassination'] as const) {
+      const config = defaultConfig(spec)
+      expect(buildPlan(config).plan.abilities.some((a) => a.id === 'rupture'), spec).toBe(false)
+      const t = texts(config).get('rogueFinisherTalents')!
+      expect(t, spec).toMatch(/Eviscerate/)
+      expect(t, spec).not.toMatch(/Rupture|Serrated Blades/)
+    }
+    // Subtlety's default keeps Rupture up with Serrated Blades, and takes neither Eviscerate talent:
+    // only Rupture is named.
+    const sub = texts(defaultConfig('rogue-subtlety')).get('rogueFinisherTalents')!
+    expect(sub).toMatch(/of Rupture by your Serrated Blades,/)
+    expect(sub).not.toMatch(/Eviscerate|Aggression/)
+    // Only the talents you have, and one talent reads in the singular.
+    const one = rogueFinisherTalentsText({ eviscerate: true, rupture: true, talents: new Map([['Aggression', 1]]) })
+    expect(one).toBe('The sim raises the attack-power part of Eviscerate by your Aggression, as it raises the rest of the damage: if the tests’ numbers already included this talent, it’s counted twice. Whether they did is untested.')
+    const all = rogueFinisherTalentsText({ eviscerate: true, rupture: true, talents: new Map([['Improved Eviscerate', 3], ['Aggression', 3], ['Serrated Blades', 3]]) })
+    expect(all).toMatch(/Eviscerate and Rupture by your Improved Eviscerate, Aggression and Serrated Blades/)
+    expect(all).toMatch(/these talents, they’re counted twice/)
+    // AV2-9: two finishers' shares are plural in `classicEra`.
+    expect(rogueFinisherApText({ eviscerate: true, rupture: true, classicEra: true })).toMatch(/Rupture \(1% per combo point a tick, up to 3%\) are the shares Classic Era sims use/)
+    expect(rogueFinisherApText({ eviscerate: true, rupture: false, classicEra: true })).toMatch(/\) is the share Classic Era sims use/)
   })
 
   it('lists the finishers’ Discord-tested attack-power shares whenever the plan uses Eviscerate or Rupture, talents or not (rogue.md Q3)', () => {

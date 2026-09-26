@@ -1127,8 +1127,24 @@ export const rogueFinisherApText = (o: { eviscerate: boolean; rupture: boolean; 
   if (parts.length === 0) return REGISTRY.rogueFinisherAp.text
   const what = parts.join(' and of ')
   return o.classicEra
-    ? `The attack-power part of ${what} is the share Classic Era sims use; the game’s data doesn’t give it. Untested.`
+    ? `The attack-power part of ${what} ${parts.length > 1 ? 'are the shares' : 'is the share'} Classic Era sims use; the game’s data doesn’t give it. Untested.`
     : `A player’s in-game tests, shared on Discord and not yet repeated, measured the attack-power part of ${what}, without saying which talents the tester had.`
+}
+
+/**
+ * The talents that may count twice on the Discord-tested shares (rogue.md Q3), naming only the
+ * finishers the plan uses and the talents you have that raise them: Improved Eviscerate and
+ * Aggression raise Eviscerate, Serrated Blades raises Rupture.
+ */
+export const rogueFinisherTalentsText = (o: { eviscerate: boolean; rupture: boolean; talents: ReadonlyMap<string, number> }): string => {
+  const has = (name: string) => (o.talents.get(name) ?? 0) > 0
+  const eviscerate = o.eviscerate ? ['Improved Eviscerate', 'Aggression'].filter(has) : []
+  const rupture = o.rupture ? ['Serrated Blades'].filter(has) : []
+  const finishers = [...(eviscerate.length ? ['Eviscerate'] : []), ...(rupture.length ? ['Rupture'] : [])]
+  const talents = [...eviscerate, ...rupture]
+  if (talents.length === 0) return REGISTRY.rogueFinisherTalents.text
+  const them = talents.length > 1 ? 'these talents' : 'this talent'
+  return `The sim raises the attack-power part of ${prose(finishers)} by your ${prose(talents)}, as it raises the rest of the damage: if the tests’ numbers already included ${them}, ${talents.length > 1 ? 'they’re' : 'it’s'} counted twice. Whether they did is untested.`
 }
 
 /** Items in prose: "a", "a and b", "a, b and c". */

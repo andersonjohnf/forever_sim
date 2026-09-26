@@ -27,7 +27,7 @@ import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance,
 import { explosiveThrowDetail, swingsInMelee, withSharedConsumables } from '../classes/shared-consumables'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
-import { BUFFS_BY_ID, EZ_THRO_DARK_BOMB } from '../effects/buffs'
+import { BUFFS_BY_ID, EZ_THRO_DARK_BOMB, POWER_INFUSION } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from '../effects/items'
 import { buffGroupFillers, buffProvided, buffUnusedReason, forSpecClass } from '../effects/presets'
@@ -39,7 +39,7 @@ import { SPEC_META } from '../specs'
 import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
-import { Assumptions, BEAR_TEXT, preAqRanksText } from './assumptions'
+import { Assumptions, BEAR_TEXT, powerInfusionText, preAqRanksText } from './assumptions'
 import { PET_BUFFS, petInheritanceDetail, petPlan } from './pet'
 import { firesAmmo, isRangedWeapon, noRangedMods, rangedPlan, type RangedMods } from './ranged'
 import {
@@ -846,6 +846,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.holy ? { holy: spec.mods.holy } : {}),
       ...(spec.mods.holyTaken ? { holyTaken: spec.mods.holyTaken } : {}),
       ...(spec.group ? { group: spec.group } : {}),
+      // buffs doc §1.1 "Power Infusion": an aura that outranks it (Arcane Power, Power Infusion's): [?] placeholder (D24).
+      ...(spec.yieldsTo ? { yieldsTo: spec.yieldsTo } : {}),
       // Debuffs the player keeps on the boss (Faerie Fire, druid.md §3.8; warrior.md §7 "Debuffs on
       // the boss"), and an item-armor aura (Enrage, druid.md §4.5), only when set.
       ...(spec.mods.targetArmor ? { targetArmor: spec.mods.targetArmor } : {}),
@@ -1141,9 +1143,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       }),
     }
   }
-  // An on-use item's charges cap its uses a fight, whichever class presses it (the Manual Crowd
-  // Pummeler's 3; effects/types.ts OnUseSpec.charges, docs/classes/druid.md §7.3).
-  const itemCharges = new Map(itemUses.flatMap((u) => (u.charges ? [[u.id, u.charges] as const] : [])))
+  // An on-use item's or consumable's charges cap its uses a fight, whichever class presses it (the
+  // Manual Crowd Pummeler's 3, docs/classes/druid.md §7.3; Power Infusion's one, at the pull, buffs
+  // doc §1.1 "Power Infusion"; effects/types.ts OnUseSpec.charges).
+  const itemCharges = new Map([...itemUses, ...consumables].flatMap((u) => (u.charges ? [[u.id, u.charges] as const] : [])))
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
     const {
       offHand,
@@ -1713,6 +1716,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...onUseItems,
   ]
   if (setup.simulated && notPressed.length) notes.add('onUseConsumables', notPressed.join(', '))
+  // buffs doc §1.1 "Power Infusion": once, at the pull; with Arcane Power, once as it ends, since they
+  // don't stack: [?] placeholder (D24), OQ 23.
+  if (abilities.some((a) => a.id === POWER_INFUSION.id))
+    notes.addText('powerInfusion', powerInfusionText(abilities.some((a) => a.id === 'arcanePower')))
   // buffs doc §3.7: the bomb's throw and table [?].
   if (abilities.some((a) => a.id === EZ_THRO_DARK_BOMB.id)) notes.add('explosiveThrow', explosiveThrowDetail(config.spec))
   if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add(classId === 'paladin' ? 'weaknessAnalyzerPaladin' : 'weaknessAnalyzer')

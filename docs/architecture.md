@@ -337,7 +337,8 @@ A spec is data plus small ability modules, never its own loop.
   kind `spell` cast one (and one per tick: Consecration), and procs can too (the seals', on a
   trigger after a white swing's own procs). The paladin pays for them from the one mana pool (the
   resources below), and gets mana back when an ability lands (Sanctified Judgement); abilities can
-  share a cooldown category, and auras can form an exclusive group (one seal). Holy damage and Holy
+  share a cooldown category, and auras can form an exclusive group (one seal), or yield to one that
+  outranks them (`yieldsTo`: Power Infusion to Arcane Power). Holy damage and Holy
   threat have their own multipliers (Vengeance, Righteous Fury). Warrior and druid plans have none
   of these, and the paladin has no rage pool, so its hits give no rage.
   A warrior's Thunder Clap and Demoralizing Shout roll the spell table too, but as their own kind,
@@ -372,7 +373,8 @@ A spec is data plus small ability modules, never its own loop.
     proc's `schools` or one spell (`fromSource`) in the gated lists; condition `auraUp` (38).
   - **Mana hooks** for the class slices: auras' `spiritRegen` and `castingRegen`, and each class's
     Spirit regeneration (`SPIRIT_REGEN`). The caster buffs and debuffs (Curse of the Elements,
-    Moonkin Aura, Power Infusion) are the caster specs' entries (`forSpecs: 'caster'`), and what
+    Moonkin Aura, Power Infusion) are the caster specs' entries (`forSpecs: 'caster'`; Power Infusion
+    the Protection paladin's too, `alsoForSpecs`), and what
     changes only attacks is the melee's (`forSpecs: 'melee'`); `SpecMeta.caster` makes a spec a
     caster (the mage's since K2), and its sheet shows spell damage by school.
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost

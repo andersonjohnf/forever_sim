@@ -21,10 +21,11 @@ client-data check the same day ([client.md](data/client.md)); B9, B14, C2 and C2
 ([rage.md](mechanics/rage.md#rounding)); B9, B14 and C2 noted 2026-09-24 from two bears' logs
 ([rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-)), defaults unchanged; B79 added
 2026-09-24 from the ability-counts review (Deep Wounds' refresh,
-[its review](reviews/2026-09-24-ability-counts.md)) · Forever beta 1.60.1.69913 · Classic Era
+[its review](reviews/2026-09-24-ability-counts.md)); A9 and B81 added 2026-09-25 from the Power
+Infusion review (buffs OQ 23 and 21) · Forever beta 1.60.1.69913 · Classic Era
 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids unlock 2026-12-09
 
-**147 entries, 124 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 79 (22 / 27 / 30) ·
+**150 entries, 127 open:** Route A 9 (High 1, Medium 2, Low 6) · Route B 81 (22 / 27 / 32) ·
 Route C 37 (9 / 14 / 14) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
 7 items settled by the sim or a guild decision. The client-data check added in-game checks to
 B41, C11 and C12 rather than new entries.
@@ -247,6 +248,29 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Changes:** the stone's crit per weapon, and the Max preset's value for dual wielders.
 - **Docs:** [buffs §3.6](mechanics/buffs-debuffs-consumables.md#36-weapon-enhancements-temporary),
   [buffs OQ 20](mechanics/buffs-debuffs-consumables.md#open-questions)
+
+#### A9. Power Infusion with Arcane Power
+**Low · Arcane mage (0% in every default setup; about 0.8% with Power Infusion on)**
+- **Assumes** [?]: they don't stack, and Arcane Power wins: Power Infusion doesn't land while Arcane
+  Power is up ("A more powerful spell is already active"), and Arcane Power going up ends it. A
+  [D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)-style placeholder: its
+  origin is the 1.10.2 and 1.12.0 patch notes, not evidence, and no 2019+ Classic Era source
+  confirms that Classic Era, which runs 1.12's rules, keeps it. Neither client's tables show it (no
+  aura restriction, different aura types), so it's the server's rule, and the sim has the priest
+  hold an Arcane mage's Power Infusion until its Arcane Power ends (+1.58% DPS). Power Infusion is
+  off in every preset, so no default moves; with it on, if they stack, a priest would cast it at the
+  pull with Arcane Power (×1.56 while both are up), about +2.4%, some 0.8% more than the sim gives.
+- **Test:** a level-60 Arcane mage uses Arcane Power, then a priest casts Power Infusion on them:
+  does it land, or say "A more powerful spell is already active"? Then the other way round: with
+  Power Infusion up, the mage uses Arcane Power; read the buffs, and a Frostbolt's damage with both
+  up against one with Arcane Power alone. Repeat on Forever at 60, since Forever's server may differ.
+- **Samples:** one try each way; 5+ Frostbolts each if both land.
+- **Changes:** if they stack, Power Infusion's `yieldsTo` and the Arcane mage's wait for Arcane
+  Power go, and it comes at the pull; the tag becomes [C] if Classic Era keeps the rule, [F] once
+  Forever is tested.
+- **Docs:** [buffs "Power Infusion"](mechanics/buffs-debuffs-consumables.md#power-infusion),
+  [buffs OQ 23](mechanics/buffs-debuffs-consumables.md#open-questions);
+  [mage "Arcane Power"](classes/mage.md#arcane-power)
 
 ---
 
@@ -1469,6 +1493,32 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Samples:** one look.
 - **Changes:** the trees, once a client build carries the swap (the talent scraper reports it).
 - **Docs:** [warrior §4.3](classes/warrior.md#43-protection-18-talents)
+
+#### B81. EZ-Thro Dark Bomb's rules
+**Low · M2 · ≤20 (once you have bombs: `RequiredLevel` 1, no skill [F client ItemSparse])**
+- **Assumes** [?]: the client gives its damage (225–675 Fire), 1 s cast, 60 s shared cooldown and
+  range [F]; the sim assumes the rest: it's a **binary** spell (its stun makes it resisted whole at
+  the boss's average Fire resistance, and a landed one takes no partial resist); its throw
+  **stops both melee swings**, which restart from full as it lands, and holds your other
+  abilities, off-GCD ones too (a caster's next cast, a hunter's Auto Shot); its threat is its
+  damage × your threat multipliers, with nothing of its own; **no class talents** reach it (spell
+  1269334 has no `SpellClassOptions` row: no Critical Mass, Elemental Precision, Fire Power,
+  Combustion or Ignite, and none of your school multipliers); and a druid can throw it in Cat or
+  Bear Form. It's off in every preset, so no default moves; picked, it costs a melee spec 0.3–2.8%
+  of DPS (an upper bound, thrown wherever the swing timer is) and moves a caster or hunter by
+  under ±1%.
+- **Test:** throw 30+ bombs at mobs three levels above you with a swing-timer addon on and the
+  combat log recording. Watch whether the swing bar restarts, pauses or runs on through the throw,
+  and whether a Heroic Strike or potion can be used during it. In the log, count full resists and
+  look for partial ones ("(x resisted)"), and count crits and their size (×1.5). As a Fire mage,
+  compare the bombs' crit rate with Fireball's, which Critical Mass raises, and see whether an
+  Ignite follows a bomb crit or a Combustion charge goes. With a second player on a mob, read the
+  threat a bomb adds with the threat macro. As a druid, try it in Cat and Bear Form.
+- **Samples:** 30+ throws; more for the resist count (a 6% rate needs 100+ to tell from 0%).
+- **Changes:** the bomb's hit and resist, its swing cost (the melee presets' "no bomb" rests on
+  it), its threat and which talents reach it.
+- **Docs:** [buffs §3.7](mechanics/buffs-debuffs-consumables.md#37-engineering-and-explosives),
+  [buffs OQ 21](mechanics/buffs-debuffs-consumables.md#open-questions)
 
 ---
 

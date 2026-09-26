@@ -224,8 +224,8 @@ adapted, and §6.3's search picks the biggest settings.
 ### 6.1 Destruction (shipped)
 
 1. Demonic Sacrifice before the pull (the Succubus by default).
-2. Off the GCD: the racial cooldown, Power Infusion (if Buffs has it), then the Major Mana Potion and
-   Demonic Rune once their most fits.
+2. Off the GCD: the racial cooldown, Power Infusion (if Buffs has it; once, at the pull,
+   [buffs](../mechanics/buffs-debuffs-consumables.md#power-infusion)), then the Major Mana Potion and Demonic Rune once their most fits.
 3. Curse of the Elements, recast when it's down.
 4. Immolate, recast as it runs out (from its cast time before its end).
 5. Conflagrate on cooldown, while Immolate is up.
@@ -316,7 +316,7 @@ its place in the priority changes.
 | --- | --- | --- | --- |
 | Racial cooldown (`racial`) | `racial.enabled` | | Off the GCD, on cooldown |
 | On-use trinkets (`trinkets`) | `trinkets.enabled` | | Off the GCD, on cooldown (none of the modelled ones is a caster's yet) |
-| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | Off the GCD, on cooldown, with a priest's in Buffs. The mana potion and rune take their turn here |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | Off the GCD, once, at the pull, with a priest's in Buffs. The mana potion and rune take their turn here |
 | Curse of the Elements (`curse`) | `curseOfTheElements.enabled` | | Recast when it's down |
 | Immolate (`immolate`) | `immolate.enabled` | | Recast as it runs out (from its cast time before its end) |
 | Conflagrate (`conflagrate`) | `conflagrate.enabled` | | On cooldown while Immolate is up; needs the talent and Immolate's row on |

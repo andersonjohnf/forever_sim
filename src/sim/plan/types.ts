@@ -278,6 +278,13 @@ export interface SpellDef {
    * spell of your class's.
    */
   itemSpell?: boolean
+  /**
+   * Another player's spell that deals its damage from you (a raid druid's Thorns on the tank, buffs
+   * doc §1.2 "Thorns on the tank"): your school damage auras (Power Infusion's +20%, a school talent)
+   * are yours, not its caster's, so they don't reach it [?]. Everything else is as for any spell.
+   * Absent: your own spell.
+   */
+  othersSpell?: boolean
 }
 
 export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura'> {
@@ -425,6 +432,12 @@ export interface AuraPlan {
    * paladin, one judgement debuff per paladin on the target; paladin.md#seals).
    */
   group?: string
+  /**
+   * The id of an aura that outranks it (`AuraSpec.yieldsTo`): while that one is up this one doesn't
+   * go up, and that one going up ends it (Power Infusion yields to Arcane Power, a [?] placeholder (D24), buffs doc §1.1
+   * "Power Infusion"). Absent, or an aura not in the plan: none.
+   */
+  yieldsTo?: string
   /**
    * Debuffs the player keeps on the boss, as auras (Faerie Fire, druid.md §3.8; warrior.md §5.4, §7
    * "Debuffs on the boss"), per stack, absent = 0: armor removed (Faerie Fire's 505, Sunder Armor's

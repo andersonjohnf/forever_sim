@@ -262,6 +262,7 @@ const BUFF_CATALOGUES = perProfile((profile): BuffDefinition[] =>
     ...(b.selfCast ? { selfCast: true } : {}),
     ...(b.forClasses ? { forClasses: b.forClasses } : {}),
     ...(b.forSpecs ? { forSpecs: b.forSpecs } : {}),
+    ...(b.alsoForSpecs ? { alsoForSpecs: b.alsoForSpecs } : {}),
     ...(b.forCasterSpecs ? { forCasterSpecs: true } : {}),
     ...(b.exclusiveGroup ? { exclusiveGroup: b.exclusiveGroup } : {}),
     ...(onBossMeleeOnly(b) ? { bossMelee: true as const } : {}),

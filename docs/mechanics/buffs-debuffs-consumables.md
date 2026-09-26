@@ -186,7 +186,7 @@ Blessing of Might or Wisdom is on.
 | Improved Mark of the Wild | talent (C: 17050) | **Removed** (C: +35% at 5/5) | — | — | — | [F] | [fc-changes] |
 | Leader of the Pack | 17007 (aura 24932) | +3% crit to the party within 45 yd. The Forever tooltip says "critical strike chance", and the aura is all-crit (aura 290 = 3) (C: melee and ranged crit) | While the druid is in Cat, Bear or Dire Bear Form | **Exclusive with Moonkin Aura** (Forever tooltip); several druids don't stack | Feral druid talent | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
 | Moonkin Aura (Moonkin Form) | 24907 | **+3% crit (all)** to the party within 45 yd (C: +3% *spell* crit, 30 yd) | While in Moonkin Form | Exclusive with Leader of the Pack | Balance druid talent. The casters' Buffs entry ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)); a Balance druid's own Moonkin Form brings it, so its Buffs tab shows it on and locked, and a Leader of the Pack in its group adds nothing ([druid §11.1](../classes/druid.md#111-moonkin-form)) | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
-| Power Infusion | 10060 | +20% spell damage (every magic school), 15 s | 3 min cooldown | — | Priest talent, cast on another player. The casters' Buffs entry, which a caster's rotation presses on cooldown ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)) | [F] | [client] (SpellEffect, SpellCooldowns, 1.60.1.69913) |
+| Power Infusion | 10060 | +20% spell damage and +20% healing done (every magic school), 15 s. No mana-cost cut | 3 min cooldown | Doesn't stack with Arcane Power, which wins: [?] placeholder (D24), patch 1.12's rule ([Power Infusion](#power-infusion), OQ 23) | Priest talent, cast on another player. The casters' and the Protection paladin's Buffs entry, **cast on you once, at the pull** (an Arcane mage's as its Arcane Power ends); off in every preset ([Power Infusion](#power-infusion)) | [F] | [client] (SpellEffect, SpellMisc, SpellDuration, SpellCooldowns, 1.60.1.70009) |
 | Trueshot Aura (r5) | 20906 (r1 1299346) | **Ranged AP only** in Forever: 30 / 40 / 50 / 75 / 50 by rank (C: +50 / 75 / 100 melee **and** ranged AP) | 30 min | Party within 45 yd | Hunter talent | [F] | [fc-sb-hunter] · [fc-changes] |
 | Strength of Earth Totem (r4) | 10442 (aura 10441) | **+42** Str (C: 61). Rank 5 (25361, +53) is an Ahn'Qiraj tablet (D36) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Earth totem, so it excludes Stoneskin Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] · [client] (SpellEffect, 1.60.1.70009) |
 | Grace of Air Totem (r2) | 10627 (aura 10626) | **+77** Agi (C: 67). Rank 3 (25359, +89) is an Ahn'Qiraj tablet (D36) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Air totem, so it excludes Windfury Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] · [client] (SpellEffect, 1.60.1.70009) |
@@ -222,7 +222,10 @@ Retribution Aura's is ([paladin](../classes/paladin.md#other-abilities)): it alw
 crits [?], and as a pure Nature damage spell the boss's resistance takes its average share (6% at
 24 resistance, [spells §3](spells.md)). Its threat is its damage × the tank's threat multipliers
 (stance, form; not Righteous Fury, which is Holy only) [?]: no tooltip gives it a threat of its
-own ([threat.md's wording table](threat.md#threat-wording-table): no threat words). It's two
+own ([threat.md's wording table](threat.md#threat-wording-table): no threat words). A raid druid's
+is the druid's spell, not yours, so your school damage auras don't reach it: a Protection paladin's
+[Power Infusion](#power-infusion) raises its Holy damage, not the druid's Thorns (`othersSpell`) [?].
+It's two
 entries, by its caster (PR-4): **a raid druid's** (`thorns`), which a Restoration druid puts on the
 main tank, and **the bear's own** (`thornsOwn`, "Thorns (your own)", druids only), cast on itself
 before the pull (it lasts 10 min) where no other druid does. They don't stack (one `thorns` group),
@@ -289,6 +292,94 @@ Unconfirmed on the site: whether camps work in instances, and whether you must b
 to get another player's camp buff. The 1-hour buff can be picked up outside the raid either
 way. The Legacy perk *Permanence* lengthens class raid buffs and camp buffs by 50 / 100%,
 which doesn't matter inside one fight [F] [[fc-camping]].
+
+### Power Infusion
+
+A Discipline priest's 31-point talent, cast on another player: "Infuses the target with power,
+increasing their spell damage and healing done by 20% for 15 sec." [F] (Spell, 1.60.1.70009).
+
+Its client rows, the same in Forever 1.60.1.70009 and Classic Era 1.15.9.69722 (Classic's base
+points are 19 + 1), so Forever didn't change it [F] [C] [client] (SpellEffect, SpellMisc,
+SpellDuration, SpellCooldowns, SpellPower, SpellCategories, both builds):
+
+- **Effect 0:** aura 136, healing done %, **20**, misc 126 (every magic school).
+- **Effect 1:** aura 79, damage done %, **20**, misc 126: Holy, Fire, Nature, Frost, Shadow and
+  Arcane, not physical.
+- **Duration:** DurationIndex 8, **15 s**. **Cooldown:** **3 min** (`RecoveryTime` 180,000), with no
+  GCD (`StartRecoveryTime` 0).
+- **Cost:** 20% of the priest's base mana (`PowerCostPct` 20), the priest's, not yours.
+- **Target:** ImplicitTarget 21, a friendly player; `DispelType` 1 (Magic).
+
+- **No mana-cost reduction.** Neither client gives it an effect that lowers the target's costs (no
+  aura 72, a school's power cost %, and no aura 108 misc 14, a spell's cost), so the sim models none.
+- **Healing done** changes nothing the sim models: nothing in it heals by healing done. Touch of the
+  Grave's drain heals for its damage, which is Shadow damage, so the +20% reaches it that way.
+- **Who sees it** (`forSpecs: 'caster'`, `alsoForSpecs: ['paladin-protection']`): the nine caster
+  specs, the Balance druid, the Elemental shaman, the three mages, the three warlocks and the Shadow
+  priest; and the **Protection paladin**, whose threat is mostly Holy spell damage (user decision,
+  2026-09-25). The Retribution paladin and the other melee don't see it: a priest gives it to a
+  caster, or to the paladin tank for threat, not to a melee DPS. A saved setup of another spec drops
+  it: "Power Infusion is for casters and Protection paladins only, so it was turned off."
+- **Off by default, in every preset** (§6.2): it's another priest's cooldown, which you turn on if
+  a priest gives it to you.
+- **Once, at the pull** (user decision, 2026-09-25), or for an Arcane mage, as its Arcane Power
+  ends (below). Turned on, it's up from 0 to 15 s (an Arcane mage's from 15 to 30 s) and never again: its 3-minute cooldown would allow a second cast in a fight over 3 minutes (about half the
+  default fights, 180 s ± 10%), but the sim assumes the priest keeps it for others, and the results
+  say so (the `powerInfusion` assumption). The cast carries one charge (`OnUseSpec.charges` 1, so
+  `usesPerFight` 1). A caster's rotation presses it from its Power Infusion row, off the GCD, which
+  comes before the spells in the default order, so it lands at 0 s; a list that moves it lower
+  could press it later, still once. A spec whose rotation has no row for it, the Protection
+  paladin, gets it as a shared consumable line at the front of its list, as the Greater Stoneshield
+  Potion is (`classes/shared-consumables.ts`). Before this, a caster's row pressed it on cooldown.
+- **In the fight** it multiplies each magic school's damage by 1.20 while it's up, as every school
+  aura does ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)). A DoT that lands inside the 15 s
+  keeps the +20% for all its ticks, since a DoT snapshots your side as it lands
+  ([spells §7](spells.md#7-dots)); so does Ignite's pool. A Protection paladin's Holy damage gains
+  the 20% before Judgement of the Crusader's flat bonus, which isn't multiplied (spells §9), so its
+  Holy hits gain a little less; its physical swings gain nothing, and nor does a raid druid's Thorns
+  on it, the druid's spell, not yours ([Thorns on the tank](#12-threat-defense-and-mana)) [?].
+  Its threat is its damage × its threat multipliers, so its threat gains as its Holy damage does.
+  Your pet's damage doesn't gain: the aura is on you, not on your demon.
+- **It doesn't stack with Arcane Power, which wins** [?] placeholder (D24); origin: the 1.10.2 and
+  1.12.0 patch notes ([warcraft.wiki.gg: Arcane Power (Classic)][wiki-ap-classic]), not evidence. As
+  patch 1.12 had it, a priest who casts Power Infusion on a mage with Arcane Power up gets "A more
+  powerful spell is already active", and a mage who uses Arcane Power with Power Infusion up loses
+  Power Infusion. Neither client's tables show it (no `SpellAuraRestrictions` row, no shared aura
+  group, and Arcane Power, 12042, is a different aura, 108, on the mage's class mask), so it's the
+  server's rule. Classic Era runs 1.12's rules, so it very likely keeps it, but no 2019+ Classic Era
+  source confirms it, and Forever may not keep it either: [open question 23](#open-questions), which
+  a test on Classic Era or on Forever settles. The rule is kept as a placeholder because the only
+  alternative, stacking them, is as unsourced and less likely; its error in every default setup is
+  0%, since Power Infusion is off in every preset.
+- **So an Arcane mage's comes as its Arcane Power ends** (user decision, 2026-09-25, PIV-5). A priest
+  who knows the two don't stack holds Power Infusion until Arcane Power is over, so the one cast
+  lands at 15 s, the moment Arcane Power, used at the pull, ends, and is up from 15 to 30 s: each
+  spell is ×1.30 for the first 15 s and ×1.20 for the next 15, never ×1.56. The Arcane mage's Power
+  Infusion line waits for Arcane Power to have been used (its cooldown running) and to be down, so
+  a list that moves the Power Infusion row above Arcane Power's still waits
+  (`classes/mage/rotation.ts`). Without Arcane Power (its row off, or no talent) it comes at the
+  pull, as for any caster. The results say which. Still one cast a fight.
+- **The engine keeps the rule as a safety net**: an aura **yields** to another (`AuraSpec.yieldsTo`),
+  so Power Infusion doesn't go up while Arcane Power is, and Arcane Power going up ends it. With the
+  Arcane line's wait it never fires in a normal fight; it covers any other way the two could meet.
+  Only one aura may yield to a given aura (the `Sim` refuses a second).
+
+**What it's worth** in each spec's default setup (Standard raid, seed 424242, 20,000 fights,
+2026-09-25; each ± under 0.5), off → on:
+
+- **Protection paladin:** 747.3 → 755.1 TPS (+7.8, +1.05%; +8.1 while it wrongly raised a raid druid's Thorns).
+- **Mages:** Fire 526.3 → 536.4 DPS (+10.1, +1.93%); Arcane 398.8 → 405.2 (+6.3, +1.58%: from 15 to
+  30 s, after its Arcane Power); Frost 414.7 → 421.3 (+6.6, +1.59%).
+- **Warlocks:** Destruction 591.4 → 606.0 (+14.6, +2.46%); Affliction 501.9 → 516.1 (+14.2, +2.83%);
+  Demonology 662.7 → 674.9 (+12.2, +1.84%).
+- **Balance druid** 444.3 → 451.4 (+7.1, +1.59%); **Elemental shaman** 400.5 → 408.4 (+7.9, +1.97%);
+  **Shadow priest** 565.7 → 577.5 (+11.8, +2.09%).
+
+15 s of a 180 s fight is 8.3%, and 20% of that is 1.7% of spell damage. The DoT specs gain more,
+their DoTs from the first 15 s keeping it; the Protection paladin gains less, since some of its
+threat is physical, Judgement of the Crusader's flat bonus or a raid druid's Thorns; the Arcane mage
+gains about as much as the Frost mage, its Power Infusion coming after its Arcane Power (before the
+hold it gained nothing: its Arcane Power at the pull kept the priest's cast out).
 
 ### Windfury Totem
 
@@ -871,7 +962,7 @@ Mana Spring.
 | Curse of Recklessness † | — | — | all | all |
 | Curse of the Elements | — | — | Mage; Pal once it reaches the paladin ([spells OQ-S12](spells.md#open-questions)) | the same |
 | Judgement of the Crusader (the Buffs tab's: another paladin's) | — | — | — (every paladin spec judges its own: see below) | — |
-| Power Infusion | — | — | — (an option for a Mage) | — |
+| Power Infusion | — | — | — (an option for the casters and the Protection paladin: [Power Infusion](#power-infusion)) | — |
 | Judgement of Wisdom | — | — | Pal | Pal |
 | Armor Shatter ×3 (Annihilator) † | — | — | — | all |
 | Gift of Arthas (a tank's, on the boss) † | — | — | — | all (see below) |
@@ -922,8 +1013,7 @@ party (`party-crit-aura`): a mage's presets and Buffs tab have Moonkin Aura only
 spec's Leader of the Pack only. In `forever` both are +3% crit with spells and attacks, so which one
 a spec is given changes nothing there; in `classicEra` Leader of the Pack is melee crit only and
 Moonkin Aura spell crit only, so each goes to the specs it helps. Power Infusion is another priest's cooldown, so
-no preset has it; turned on, a mage's rotation takes it whenever it's ready
-([mage](../classes/mage.md#defaults)).
+no preset has it; turned on, it's cast on you once, at the pull, or for an Arcane mage as its Arcane Power ends ([Power Infusion](#power-infusion)).
 
 **Judgement of the Crusader** is a paladin's own, like the Feral cat's Faerie Fire: both paladin
 specs judge it at the pull and keep it up with their auto attacks, Retribution and, since T2,
@@ -1328,7 +1418,9 @@ sets `caster` (the mage's three since K2 and the warlock's two since K3,
   plan, so the results list no assumption about them either.
 - **The casters'** (`forSpecs: 'caster'`): the caster core's ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)),
   Moonkin Aura, Power Infusion and Curse of the Elements; and Elixir of Shadow Power, which is the
-  warlock's and the priest's by class too (`forClasses`).
+  warlock's and the priest's by class too (`forClasses`). An entry can name specs it's also for,
+  whatever its kind (`alsoForSpecs`): Power Infusion is the Protection paladin's too, whose threat is
+  Holy spell damage ([Power Infusion](#power-infusion)).
 
 A class slice opts its specs in by setting `SpecMeta.caster`: nothing else. For a class, or a
 kind of spec, an entry isn't for, the Buffs tab doesn't list it, no preset selects it,
@@ -1403,7 +1495,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Arcane Brilliance (`arcaneBrilliance`) | +31 Int | same | 23028 #0 (aura 29, Intellect): 30 + 1 (Arcane Intellect 10157 the same) | [C] |
 | Leader of the Pack (`leaderOfThePack`) | +3% crit, spells too (aura 290) | **+3% melee and ranged crit** | 24932 #0 (aura 52): 2 + 1; Forever's is aura 290, all crit | [C] |
 | Moonkin Aura (`moonkinAura`), the casters' | +3% crit, spells too (aura 290) | **+3% spell crit** | 24907 #0 (aura 57): 2 + 1; Forever's is aura 290, all crit | [C] |
-| Power Infusion (`powerInfusion`), the casters' | +20% spell damage for 15 s, 3 min cooldown | same | 10060 #1 (aura 79, every magic school): 19 + 1 | [C] |
+| Power Infusion (`powerInfusion`), the casters' and the Protection paladin's | +20% spell damage for 15 s, once (an Arcane mage's as its Arcane Power ends; otherwise at the pull) | same | 10060 #1 (aura 79, every magic school): 19 + 1 | [C] |
 | Windfury Totem r3 (`windfuryTotem`) | 20% for an extra attack; +246 AP for 1 s, 2 charges (the extra attack and your next auto attack; abilities in that second use none); a party aura | **+315 AP; a main-hand enchant that replaces a stone** | 10610 #0: 314 + 1; 10612 → 10611 → enchant 564 (20%, casts 10610) | [C] |
 | Grace of Air Totem r2 (`graceOfAir`) | +77 Agi | **+67 Agi** | 10626 #0 (the totem's aura): 66 + 1 | [C] |
 | Strength of Earth Totem r4 (`strengthOfEarth`) | +42 Str | **+61 Str** | 10441 #0 (the totem's aura): 60 + 1 | [C] |
@@ -1558,6 +1650,13 @@ These become unit tests. Boss armor 3731 is an *input* here; its value is owned 
     crit (500 + 8) × 2 = **1,016**: the crit doubles the +8. Against the Standard raid's 471 armor
     (example 1) a level-60 attacker's hit keeps 5500 / 5971 of it, so **467.93** and **935.86**. A
     Rend tick is the same with it or without, and Sunder Armor still deals nothing.
+14. **Power Infusion at the pull** ([Power Infusion](#power-infusion)). In a 180 s fight it's up from
+    0 to 15 s, 15 / 180 = **8.33%** of the fight, and cast once; in a 400 s fight still once, though
+    its 3-minute cooldown would allow two more. While it's up each magic school's damage is ×1.20: a
+    Frostbolt of 1,000 deals **1,200**, and one that lands after 15 s the same as without it. The two
+    don't stack ([?] placeholder (D24), patch 1.12's rule; open question 23), so an Arcane mage's
+    comes as its Arcane Power ends: an Arcane Missiles of 1,000 deals **1,300** from 0 to 15 s (Arcane
+    Power), **1,200** from 15 to 30 s (Power Infusion) and 1,000 after, **never ×1.30 × 1.20 = ×1.56**.
 
 ---
 
@@ -1689,6 +1788,18 @@ Each item says what was found and how the guild can check it on the Forever beta
     Might is rank 6's +112 and Wisdom rank 5's 36. If a trainer teaches rank 2 at 60 anyway, Might is
     +133 again (+21 attack power, about +1% of a melee spec's DPS). *Check:* a level-60 paladin's
     trainer window, without the librams.
+23. **Power Infusion with Arcane Power** [?] ([Power Infusion](#power-infusion)). The sim takes
+    patch 1.12's rule as a placeholder (D24; origin: the 1.10.2 and 1.12.0 patch notes, not
+    evidence): they don't stack, and Arcane Power wins, so the sim has the priest hold an Arcane
+    mage's Power Infusion until its Arcane Power ends (+1.58% DPS). Neither client's tables show the
+    rule (no aura restrictions, different aura types), so it's the server's. Classic Era runs 1.12's
+    rules and very likely keeps it, but no 2019+ Classic Era source confirms it, and Forever may not
+    keep it either. If they stack, a priest would cast it at the pull, both would be ×1.30 × 1.20 =
+    ×1.56 while up, and the Arcane mage would gain about +2.4% of its DPS from Power Infusion (the
+    sim's figure when it stacked them), about 0.8% more than the sim gives it; with Power Infusion
+    off, as in every preset, the error is 0%. *Check (on Classic Era or on Forever):* an Arcane mage uses Arcane Power,
+    and a priest casts Power Infusion on them: does it land, or say "A more powerful spell is already
+    active"? Then the other way round, and read the buffs and a Frostbolt's damage.
 
 ---
 
@@ -1716,6 +1827,7 @@ Each item says what was found and how the guild can check it on the Forever beta
 | wiki-ppm | https://warcraft.wiki.gg/wiki/Procs_per_minute | Weapon enchant PPM values (unversioned "original WoW" section) | Unclear, so [?] (Icy Chill, Unholy) |
 | ws-gear | https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/gear.js | Enchant PPMs at WarriorSim's pre-SoD commit `180a3cc` (2021): Crusader 1, Fiery 6, Lifestealing 6 | Classic Era [C] (pre-SoD) |
 | magey-wf | https://github.com/magey/classic-warrior/wiki/Windfury-Totem | Windfury can't proc itself or twice in one chain (2019 text) | Classic Era [C] |
+| wiki-ap-classic | https://warcraft.wiki.gg/wiki/Arcane_Power_(Classic) | Where the placeholder's rule is described: Arcane Power and Power Infusion don't stack, and Arcane Power wins, from the 1.10.2 and 1.12.0 patch notes ("It is no longer possible to gain the benefit of this spell and Power Infusion at the same time") | Original Vanilla patch notes: the placeholder's origin (D24), not evidence |
 | turtle-salad | https://database.turtlecraft.gg/?item=83309 | The only "Herbal Salad" found | **Forbidden** (Turtle WoW private server); cited only to explain why it isn't adopted |
 
 Related docs: [character-stats](character-stats.md) (stat pipeline, Kings ordering) ·
@@ -1747,6 +1859,7 @@ multipliers) · [forever-system-changes](forever-system-changes.md) ·
 [wh-thor]: https://www.wowhead.com/classic/item=15993
 [wh-zanza]: https://www.wowhead.com/classic/item=20079
 [wh-roids]: https://www.wowhead.com/classic/item=8410
+[wiki-ap-classic]: https://warcraft.wiki.gg/wiki/Arcane_Power_(Classic)
 [fc-camping]: https://foreverchanges.pro/professions/camping
 [client]: ../data/client.md#doc-claims-checked-against-the-raw-client
 [bt-1144]: https://www.bluetracker.gg/wow/topic/us-en/1656146-wow-classic-era-version-1144-patch-notes/

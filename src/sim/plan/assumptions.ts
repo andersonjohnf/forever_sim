@@ -440,6 +440,12 @@ const REGISTRY = {
     text: 'Gift of Arthas is on the boss all fight, and each direct physical hit on it deals +8: added after the damage bonuses and before the boss’s armor, so the hit’s crit multiplier applies to it too (×2 on a white crit). Bleed ticks get none. Untested.',
     docRef: `${DT}#24-damage-modifier-stacking`,
   },
+  // buffs doc §1.1 "Power Infusion": one cast at the pull (the user's rule); with Arcane Power, one
+  // cast as it ends, since they don't stack (`powerInfusionText`): [?] placeholder (D24), patch 1.12's rule (OQ 23).
+  powerInfusion: {
+    text: 'A priest casts Power Infusion on you once, at the pull: +20% spell damage from 0 to 15 s. It isn’t cast again, though its 3-minute cooldown would allow a second in a fight over 3 minutes.',
+    docRef: `${BUFFS}#power-infusion`,
+  },
   // docs/classes/druid.md §4.7 (BR6, Q19): Thick Hide's base armor, a reading of "further increased by multipliers from those forms".
   thickHide: {
     text: 'Thick Hide’s base armor (3 per level and 2 per defense point above 300 at 3/3) is multiplied by Dire Bear Form’s +360%, as armor from items is, a reading of its tooltip’s “further increased by multipliers from those forms”; unmeasured.',
@@ -1093,6 +1099,17 @@ export const preAqRanksText = (blessings: boolean): string =>
   blessings
     ? 'Abilities and buffs use the ranks trainable before Ahn’Qiraj, not the higher ones its books teach, and the Greater Blessings’ rank 2 is taken to need Ahn’Qiraj too.'
     : REGISTRY.preAqRanks.text
+
+/**
+ * The `powerInfusion` assumption. For a setup that also uses Arcane Power it says the priest holds
+ * the one cast until Arcane Power ends (user decision, PIV-5), since the two don't stack: a [?]
+ * placeholder (D24), patch 1.12's rule, which no 2019+ Classic Era source confirms (buffs doc §1.1
+ * "Power Infusion"; open question 23, testable on Classic Era or on Forever).
+ */
+export const powerInfusionText = (arcanePower: boolean): string =>
+  arcanePower
+    ? 'A priest casts Power Infusion on you once, as your Arcane Power ends: +20% spell damage for the 15 s after it. The two don’t stack, as patch 1.12 had it (Power Infusion can’t land while Arcane Power is up, and Arcane Power ends it), so the priest holds it until then. It isn’t cast again, though its 3-minute cooldown would allow a second in a fight over 3 minutes. Untested in Classic Era or Forever.'
+    : REGISTRY.powerInfusion.text
 
 /** Items in prose: "a", "a and b", "a, b and c". */
 const prose = (items: readonly string[]) => (items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)

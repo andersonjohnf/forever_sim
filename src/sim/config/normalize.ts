@@ -396,7 +396,9 @@ function normalizeBuffs(input: unknown, spec: SpecId, profile: RulesProfile, leg
     if (!forSpecClass(buff, spec)) {
       // For the class (`forClasses`), or for the kind of spec (`forSpecs`: a caster's Battle Shout).
       const forClass = !buff.forClasses || buff.forClasses.includes(SPEC_META[spec].classId)
-      if (forClass && buff.forSpecs === 'caster') r.add(`${buff.name} is for casters only, so it was turned off.`)
+      // Power Infusion is the Protection paladin's too (`alsoForSpecs`).
+      const also = (buff.alsoForSpecs ?? []).map((s) => ` and ${SPEC_META[s].name} ${SPEC_META[s].className.toLowerCase()}s`).join('')
+      if (forClass && buff.forSpecs === 'caster') r.add(`${buff.name} is for casters${also} only, so it was turned off.`)
       else r.add(`${buff.name} does nothing for ${forClass ? 'a caster' : `a ${SPEC_META[spec].className.toLowerCase()}`}, so it was turned off.`)
       continue
     }

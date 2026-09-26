@@ -88,7 +88,7 @@ export const SHADOW_OPTIONS: RotationOption[] = [
     id: ID.powerInfusion,
     group: 'Cooldowns and buffs',
     label: 'Power Infusion',
-    help: 'Take another priest’s Power Infusion on cooldown from the pull: +20% spell damage for 15 s, every 3 minutes. Yours can’t reach it: it’s the Discipline tree’s last talent.',
+    help: 'Take another priest’s Power Infusion, cast on you once at the pull: +20% spell damage for 15 s. Yours can’t reach it: it’s the Discipline tree’s last talent.',
     default: true,
     requiresBuff: POWER_INFUSION,
   },
@@ -266,7 +266,7 @@ export const SHADOW_APL: AplDefinition = {
     },
     { id: 'racial', label: 'Racial cooldown', icon: 'racial_troll_berserk', enabledId: ID.racial, optionIds: [], summary: [{ text: 'on cooldown' }] },
     { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: [{ text: 'on cooldown' }] },
-    { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'once, at the pull' }] },
     {
       id: 'darkSacrifice',
       label: 'Dark Sacrifice',

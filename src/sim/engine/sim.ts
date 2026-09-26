@@ -426,6 +426,13 @@ export class Sim {
   /** The next aura of the same exclusive group, in a ring (itself when it has none): one seal at a time. */
   private readonly aGroupNext: Int32Array
   /**
+   * The aura that outranks each (`AuraPlan.yieldsTo`), or −1: while it's up this one doesn't go up;
+   * and the aura each one's going up ends, or −1 (Power Infusion yields to Arcane Power, a [?]
+   * placeholder (D24), buffs doc §1.1 "Power Infusion"). One yielding aura for each outranking one.
+   */
+  private readonly aYieldsTo: Int32Array
+  private readonly aEnds: Int32Array
+  /**
    * Charges that hits taken which cost health use up (Seal of Fury's absorb, 1; paladin.md#protection-tree),
    * the auras that have them, and each active one's charges left.
    */
@@ -515,6 +522,11 @@ export class Sim {
    * hit, crit or damage, no per-spell crit, no spell procs, and no school-limited crit charge.
    */
   private readonly splItem: Uint8Array
+  /**
+   * Another player's spell (`SpellDef.othersSpell`: a raid druid's Thorns, buffs doc §1.2 "Thorns on
+   * the tank"): none of your school damage auras (Power Infusion's).
+   */
+  private readonly splOthers: Uint8Array
   /** It has a direct part; one without is a pure DoT, which rolls no crit when it lands (§7). */
   private readonly splHasDirect: Uint8Array
   /** Its DoT (§7): ticks, period, damage and coefficient per tick, whether a tick can crit (in this profile), its row and marker. */
@@ -1538,6 +1550,22 @@ export class Sim {
     this.aHoly = Float64Array.from(auras, (a) => a.holy ?? 0)
     this.aHolyTaken = Float64Array.from(auras, (a) => a.holyTaken ?? 0)
     this.aGroupNext = ring(auras.map((a) => a.group))
+    // buffs doc §1.1 "Power Infusion": an aura that outranks another (Arcane Power, Power Infusion):
+    // [?] placeholder (D24), patch 1.12's rule.
+    this.aYieldsTo = Int32Array.from(auras, (a) => (a.yieldsTo === undefined ? -1 : auras.findIndex((b) => b.id === a.yieldsTo)))
+    // aEnds holds one yielding aura for each outranking one, so a second aura yielding to the same one
+    // would silently replace the first. The only pair today is Power Infusion and Arcane Power; if a
+    // second pair ever yields to the same aura, make aEnds a list (a ring, as aGroupNext is) and have
+    // startAura end each of them.
+    this.aEnds = new Int32Array(na).fill(-1)
+    this.aYieldsTo.forEach((over, i) => {
+      if (over < 0) return
+      if (this.aEnds[over] >= 0)
+        throw new Error(
+          `Sim: auras '${auras[this.aEnds[over]].id}' and '${auras[i].id}' both yield to '${auras[over].id}'; only one aura may yield to another (see aEnds)`,
+        )
+      this.aEnds[over] = i
+    })
     this.aTakenCharges = Int32Array.from(auras, (a) => a.takenCharges ?? 0)
     this.takenChargeAuras = Int32Array.from(auras.flatMap((a, i) => ((a.takenCharges ?? 0) > 0 ? [i] : [])))
     this.auraTakenCharges = new Int32Array(na)
@@ -1628,6 +1656,7 @@ export class Sim {
     // flag, in a profile whose periodic effects can (damage-and-timing §4).
     this.splBinary = Uint8Array.from(spells, (x) => (x.binary ? 1 : 0))
     this.splItem = Uint8Array.from(spells, (x) => (x.itemSpell ? 1 : 0))
+    this.splOthers = Uint8Array.from(spells, (x) => (x.othersSpell ? 1 : 0))
     this.splHasDirect = Uint8Array.from(spells, (x) => (x.min > 0 || x.max > 0 || x.spCoefficient > 0 || x.weaponPercent > 0 || (x.weaponDps ?? 0) > 0 || !(x.dotTicks ?? 0) ? 1 : 0))
     this.splDotTicks = Int32Array.from(spells, (x) => x.dotTicks ?? 0)
     this.splDotTickMs = Float64Array.from(spells, (x) => x.dotTickMs ?? 0)
@@ -4021,6 +4050,12 @@ export class Sim {
 
   /** Puts aura a on the warrior (or refreshes it, adding a stack) until `end` (a pre-pull aura ends early). */
   private startAura(a: number, end: number): void {
+    // buffs doc §1.1 "Power Infusion": an aura that outranks it is up, so it doesn't go up ("A more
+    // powerful spell is already active"); and one it outranks ends as it goes up: [?] placeholder (D24).
+    const over = this.aYieldsTo[a]
+    if (over >= 0 && this.auraActive[over] === 1) return
+    const under = this.aEnds[a]
+    if (under >= 0 && this.auraActive[under] === 1) this.removeAura(under)
     this.auraApplications[a]++
     const wasActive = this.auraActive[a] === 1
     const oldStacks = this.auraStacks[a]
@@ -4673,8 +4708,9 @@ export class Sim {
     } else {
       // docs/mechanics/spells.md §3, §9: the school's multipliers, and a partial resist on average unless
       // binary. An item's spell takes your all-damage multiplier and the boss's damage taken, not your
-      // school's (buffs doc §3.7) [?].
-      const yours = this.splItem[s] === 1 ? this.magicMult : this.magicMult * this.schDamage[school]
+      // school's (buffs doc §3.7) [?]; nor does another player's (a raid druid's Thorns, buffs doc §1.2
+      // "Thorns on the tank": Power Infusion's +20% is on you, not on the druid) [?].
+      const yours = this.splItem[s] === 1 || this.splOthers[s] === 1 ? this.magicMult : this.magicMult * this.schDamage[school]
       damage *= yours * this.schTaken[school] * (this.splBinary[s] === 1 ? 1 : this.resistFactor[school])
     }
     // docs/classes/shaman.md#stormstrike: +20% while Stormstrike's aura is up, which this landed spell uses up;

@@ -870,8 +870,8 @@ All pre-August-2021 Wayback snapshots, [C]:
   on rank 10 (or Chain Lightning).
 - **Mana Tide Totem**, which Classic Era's build couldn't reach, is in Forever's (tier 4): dropped
   once you're missing 3,000 mana.
-- **Racial and Power Infusion on cooldown** from the pull; a mana potion and rune when all they
-  restore fits.
+- **Racial on cooldown** from the pull, and Power Infusion once, at the pull ([buffs](../mechanics/buffs-debuffs-consumables.md#power-infusion)); a mana
+  potion and rune when all they restore fits.
 - **No totem twisting**: the totems are the Buffs tab's, up all fight.
 
 #### Forever priority list (default)
@@ -885,7 +885,7 @@ threshold is a share of maximum mana.
 | --- | --- | --- | --- |
 | 1 | Berserking (Troll) or Blood Fury (Orc), off the GCD | `racial.enabled`; on cooldown from the pull | on |
 | 2 | On-use trinkets (Weakness Analyzer), off the GCD | `trinkets.enabled`; on cooldown | on |
-| 3 | Power Infusion, off the GCD | `powerInfusion.enabled`, with it selected in Buffs (a priest's); on cooldown | on |
+| 3 | Power Infusion, off the GCD | `powerInfusion.enabled`, with it selected in Buffs (a priest's); once, at the pull | on |
 | 4 | Mana Tide Totem (1 s GCD) | `manaTide.enabled`, with the talent; missing at least `manaTide.missingMana` | on, 3,000 |
 | 5 | Major Mana Potion, Demonic Rune, off the GCD, with row 4 | `manaPotion.enabled`, `rune.enabled`, selected in Buffs; missing at least `manaPotion.missingMana`, `rune.missingMana` | on, 2,250 and 1,500 |
 | 6 | Flame Shock | `flameShock.enabled` (default on with Lava Burst); your Flame Shock isn't on the boss | on |
@@ -909,7 +909,7 @@ row keeps its conditions wherever you move it:
 | --- | --- | --- | --- |
 | Racial cooldown (`racial`) | `racial.enabled` | | on cooldown (row 1) |
 | On-use trinkets (`trinkets`) | `trinkets.enabled` | | on cooldown (row 2) |
-| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | selected in Buffs, on cooldown (row 3) |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | selected in Buffs, once, at the pull (row 3) |
 | Mana Tide Totem (`manaTide`) | `manaTide.enabled` | `manaTide.missingMana` | with the talent, missing the mana (row 4); the mana potion and rune (row 5) take their turn here |
 | Flame Shock (`flameShock`) | `flameShock.enabled` | | your Flame Shock isn't on the boss (row 6) |
 | Lava Burst (`lavaBurst`) | `lavaBurst.enabled` | `lavaBurst.withFlameShock` | with the talent, ready; waits for your Flame Shock only while Flame Shock's row is on (row 7) |

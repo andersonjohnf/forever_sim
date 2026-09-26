@@ -552,7 +552,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Strength and Agility, weapon stones, Windfury Totem, the boss's armor and its physical damage
     taken) never shows for a caster, except the boss's armor and physical damage taken for a
     Demonology warlock, whose demon's swings meet them; nor do the casters' own (Moonkin Aura, Curse
-    of the Elements, Power Infusion) for anyone else
+    of the Elements, Power Infusion) for anyone else, except Power Infusion for the Protection paladin,
+    whose threat is Holy spell damage
     ([buffs doc](mechanics/buffs-debuffs-consumables.md#class-only-entries)). An entry your class
     can use but your spec can't in a form (the weapon stones in Cat Form) is listed, locked off,
     as above. The Boss damage debuffs below are listed for every DPS spec, casters too.

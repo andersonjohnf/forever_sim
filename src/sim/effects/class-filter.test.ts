@@ -50,7 +50,8 @@ describe('class-only catalogue entries', () => {
     expect(BUFFS.filter((b) => b.forSpecs === 'caster').map((b) => b.id)).toEqual([...caster, 'elixirOfShadowPower'])
     for (const spec of SPEC_IDS) {
       const isCaster = CASTER_SPECS.includes(spec)
-      for (const id of caster) expect(forSpecClass(BUFFS.find((b) => b.id === id)!, spec), `${spec} ${id}`).toBe(isCaster)
+      // Power Infusion is the Protection paladin's too: its threat is Holy spell damage (buffs doc §1.1).
+      for (const id of caster) expect(forSpecClass(BUFFS.find((b) => b.id === id)!, spec), `${spec} ${id}`).toBe(isCaster || (id === 'powerInfusion' && spec === 'paladin-protection'))
       if (isCaster) continue
       for (const preset of ['self', 'dungeon', 'raid', 'max'] as const) {
         for (const id of caster) expect(presetBuffIds(preset, spec, FULL_RAID), `${spec} ${preset}`).not.toContain(id)

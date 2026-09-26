@@ -299,6 +299,12 @@ export interface AuraSpec {
   /** Auras in the same group exclude each other: one seal, one judgement debuff (paladin.md#seals). */
   group?: string
   /**
+   * The id of an aura that outranks it ("A more powerful spell is already active"): while that one is
+   * up this one doesn't go up, and that one going up ends it. Power Infusion yields to Arcane Power
+   * ([?] placeholder (D24), patch 1.12's rule; buffs doc §1.1 "Power Infusion"). Absent: none.
+   */
+  yieldsTo?: string
+  /**
    * Only crits of these schools use its `critCharges` (Combustion's: Fire, docs/classes/mage.md#combustion);
    * absent: any crit, melee or spell.
    */

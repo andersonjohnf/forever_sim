@@ -360,10 +360,21 @@ export const EZ_THRO_DARK_BOMB: OnUseSpec = {
 }
 
 /**
- * Power Infusion (10060; docs/mechanics/spells.md §9): a priest's +20% spell damage (aura 79, misc
- * 126: every magic school) for 15 s, every 3 min, off the GCD, in both clients [F] [C] [client]
- * (SpellEffect, SpellCooldowns, 1.60.1.69913 and 1.15.9.69722). Its 20% of the priest's base mana
- * is the priest's. A caster's rotation presses it, as the priest would cast it on them.
+ * Power Infusion (10060; buffs doc §1.1 "Power Infusion", docs/mechanics/spells.md §9): a priest's
+ * +20% spell damage (aura 79, misc 126: every magic school) and +20% healing done (aura 136) for
+ * 15 s (DurationIndex 8), 3 min cooldown, off the GCD, the same in both clients [F] [C] [client]
+ * (SpellEffect, SpellMisc, SpellDuration, SpellCooldowns, 1.60.1.70009 and 1.15.9.69722). Neither
+ * client gives it a mana-cost reduction, and its 20% of base mana is the priest's. Cast on you
+ * **once, at the pull** (`charges`: 1, the user's rule): a caster's rotation presses it (its row,
+ * off the GCD, at the pull in the default order), and a spec whose rotation doesn't, the Protection
+ * paladin, gets it as a shared line at the pull (classes/shared-consumables.ts). It doesn't stack
+ * with a mage's Arcane Power (12042), which outranks it: it doesn't go up while Arcane Power is ("A
+ * more powerful spell is already active"), and Arcane Power going up ends it (`yieldsTo`): [?]
+ * placeholder (D24); origin: the 1.10.2 and 1.12.0 patch notes (warcraft.wiki.gg: Arcane Power
+ * (Classic)), not evidence. Neither client's tables show it, and no 2019+ Classic Era source confirms
+ * it (buffs doc open question 23, testable on Classic Era or on Forever). So an Arcane mage's line
+ * holds it until Arcane Power ends (classes/mage/rotation.ts, user decision PIV-5); `yieldsTo` stays
+ * as the engine's safety net.
  */
 export const POWER_INFUSION: OnUseSpec = {
   id: 'powerInfusion',
@@ -371,9 +382,17 @@ export const POWER_INFUSION: OnUseSpec = {
   icon: 'spell_holy_powerinfusion',
   cooldownMs: 180000,
   gcdMs: 0,
-  aura: { id: 'powerInfusion', name: 'Power Infusion', durationMs: 15000, mods: { schoolMask: schoolMask(MAGIC_SCHOOLS), schoolDamage: 20 } },
+  aura: {
+    id: 'powerInfusion',
+    name: 'Power Infusion',
+    durationMs: 15000,
+    // Arcane Power's aura (classes/mage/abilities.ts ARCANE_POWER_AURA) outranks it: [?] placeholder (D24), patch 1.12's rule.
+    yieldsTo: 'arcanePower',
+    mods: { schoolMask: schoolMask(MAGIC_SCHOOLS), schoolDamage: 20 },
+  },
   rageTenths: 0,
   rageSpreadTenths: 0,
+  charges: 1,
 }
 
 /**
@@ -408,9 +427,11 @@ export const THORNS_CASTER_SPELL_DAMAGE = 200
  * lands on you (a hit, crit, crushing blow or block) triggers it, as Retribution Aura's does
  * (paladin.md#other-abilities). As a pure Nature damage spell the boss's resistance takes its average
  * share (spells.md §3). Its threat is its damage × your threat multipliers (stance, form, Righteous
- * Fury on Holy only) [?]: no tooltip names a threat of its own.
+ * Fury on Holy only) [?]: no tooltip names a threat of its own. A raid druid's is the druid's spell
+ * (`othersSpell`), so your school damage auras (Power Infusion's +20%) don't reach it; the bear's
+ * own is its own spell.
  */
-const thornsDamage = (damage: number): SpellDef => ({
+const thornsDamage = (damage: number, others: boolean): SpellDef => ({
   id: 'thorns',
   name: 'Thorns',
   icon: 'spell_nature_thorns',
@@ -431,6 +452,7 @@ const thornsDamage = (damage: number): SpellDef => ({
   threatMult: 1,
   threatBonus: 0,
   cannotCrit: true,
+  ...(others ? { othersSpell: true } : {}),
 })
 /**
  * Thorns on the tank: its damage on each of the boss's swings that lands (the `meleeTaken` trigger).
@@ -443,7 +465,7 @@ const thorns = (damage: number, id = 'thorns'): ProcSpec => ({
   trigger: 'meleeTaken',
   from: 'any',
   chance: { pct: 100 },
-  action: { kind: 'spell', spell: thornsDamage(damage) },
+  action: { kind: 'spell', spell: thornsDamage(damage, id === 'thorns') },
   docRef: `${DOC}#12-threat-defense-and-mana`,
 })
 /**
@@ -805,10 +827,12 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_holy_powerinfusion',
     category: 'raidBuff',
     group: 'Spell damage',
-    summary: '+20% spell damage for 15 s, every 3 min (a priest’s)',
+    summary: '+20% spell damage for 15 s, cast on you once by a priest',
     providedBy: 'priest',
+    // The casters', and the Protection paladin's, whose threat is Holy spell damage (buffs doc §1.1).
     forSpecs: 'caster',
-    docRef: `${DOC}#11-attack-power-stats-and-crit`,
+    alsoForSpecs: PROTECTION_PALADIN,
+    docRef: `${DOC}#power-infusion`,
     effects: [{ kind: 'onUse', id: 'powerInfusion', name: 'Power Infusion', use: POWER_INFUSION }],
     presets: {},
   },

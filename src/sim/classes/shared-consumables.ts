@@ -1,9 +1,10 @@
 // The consumables every rotation uses the same way (buffs doc "On-use items and cooldown categories"):
 // Greater Stoneshield Potion, Major Frenzy Potion and EZ-Thro Dark Bomb, each on its category's
-// cooldown from the pull (the bomb, for a spec that swings, from its first main-hand swing: §3.7).
-// No spec times them around anything of its own, so the plan builder adds their lines to any
-// spec's priority list (plan/build.ts), ahead of the spec's own; a spec whose rotation already
-// presses one (its `onUse`) keeps its own line.
+// cooldown from the pull (the bomb, for a spec that swings, from its first main-hand swing: §3.7);
+// and a priest's Power Infusion, once at the pull (its one charge; buffs doc §1.1 "Power
+// Infusion"). No spec times them around anything of its own, so the plan builder adds their lines
+// to any spec's priority list (plan/build.ts), ahead of the spec's own; a spec whose rotation
+// already presses one (its `onUse`: the casters' Power Infusion row) keeps its own line.
 import type { OnUseSpec } from '../effects/types'
 import { COND, STANCE_ANY, type AbilityDef, type RotationEntry } from '../plan/types'
 import { SPEC_META } from '../specs'
@@ -11,13 +12,16 @@ import type { SpecId } from '../types'
 import { NO_STRIKE } from './warrior/abilities'
 import type { ClassRotation } from './warrior/shared'
 
-/** Buff catalogue ids of the consumables every rotation uses on cooldown (effects/buffs.ts). */
-export const SHARED_CONSUMABLES: readonly string[] = ['greaterStoneshieldPotion', 'majorFrenzyPotion', 'ezThroDarkBomb']
+/**
+ * Buff catalogue ids of the consumables every rotation uses on cooldown, or as often as its charges
+ * allow (Power Infusion: once), from the pull (effects/buffs.ts).
+ */
+export const SHARED_CONSUMABLES: readonly string[] = ['greaterStoneshieldPotion', 'majorFrenzyPotion', 'ezThroDarkBomb', 'powerInfusion']
 
 /**
  * A consumable as an ability: a `cast` that puts its buff on you (Greater Stoneshield's armor), or,
  * with a spell, a `spell` that casts it on the boss after its cast time (the bomb's Fire damage).
- * No cost, any stance or form, its category's cooldown.
+ * No cost, any stance or form, its category's cooldown, and its charges' uses a fight (Power Infusion's one).
  */
 export function sharedConsumableAbility(use: OnUseSpec): AbilityDef {
   return {
@@ -39,7 +43,7 @@ export function sharedConsumableAbility(use: OnUseSpec): AbilityDef {
     rageTickTenths: 0,
     rageTicks: 0,
     rageTickMs: 0,
-    usesPerFight: 0,
+    usesPerFight: use.charges ?? 0,
   }
 }
 

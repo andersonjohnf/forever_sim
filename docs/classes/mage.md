@@ -346,6 +346,15 @@ SpellCooldowns 3 min; SpellDuration 15 s). Off the GCD and free.
   when it lands, so one that lands after Arcane Power ends pays the usual cost; a Clearcasting cast
   stays free.
 - Master of Elements returns its share of the spell's base cost, without the 30%.
+- **It doesn't stack with a priest's Power Infusion**, and wins: Power Infusion doesn't land while
+  it's up, and it ends Power Infusion as it goes up, as patch 1.12 had it: a [?] placeholder (D24)
+  that no 2019+ Classic Era source confirms
+  ([buffs "Power Infusion"](../mechanics/buffs-debuffs-consumables.md#power-infusion), open question
+  23, testable on Classic Era or on Forever). So a priest holds Power Infusion until Arcane Power
+  ends (user decision, 2026-09-25): the Arcane mage's one Power Infusion comes at 15 s, as its Arcane
+  Power from the pull ends, and is up from 15 to 30 s (+1.58% DPS with it selected in Buffs). Its
+  line waits for Arcane Power to be on cooldown and down, wherever the rows sit; without Arcane
+  Power it comes at the pull.
 
 ---
 
@@ -525,7 +534,7 @@ without the prefix below). A mana threshold is a share of maximum mana.
 | 1 | Combustion, off the GCD | `combustion.enabled`, with the talent; ready | on |
 | 2 | Berserking (Troll), Blood Fury (Orc) or Eureka! (Gnome), off the GCD | `racial.enabled`; on cooldown | on |
 | 3 | On-use trinkets, off the GCD | `trinkets.enabled`; on cooldown | on |
-| 4 | Power Infusion, off the GCD | `powerInfusion.enabled`, with Power Infusion selected in Buffs; ready | on (Buffs: off) |
+| 4 | Power Infusion, off the GCD | `powerInfusion.enabled`, with Power Infusion selected in Buffs; once, at the pull ([buffs](../mechanics/buffs-debuffs-consumables.md#power-infusion)) | on (Buffs: off) |
 | 5 | Mana Ruby or Mana Citrine, whichever fits first (the Ruby on a tie) | `manaGems.enabled`; missing 1,200 / 925 | on |
 | 6 | Major Mana Potion | `manaPotion.enabled`, selected in Buffs (Standard raid); missing `manaPotion.missingMana` | on, 2,250 |
 | 7 | Demonic Rune | `rune.enabled`, selected in Buffs (Max consumables); missing `rune.missingMana`; after the gems | on, 1,500 |
@@ -624,7 +633,7 @@ Setting ids are `mage.arcane.<x>`.
 | --- | --- | --- | --- |
 | 1 | Arcane Power, off the GCD | `arcanePower.enabled`, with the talent; ready | on |
 | 2 | Presence of Mind, off the GCD | `presenceOfMind.enabled`, with the talent; ready | on |
-| 3–8 | Berserking, trinkets, Power Infusion, mana gems, Major Mana Potion, Demonic Rune | as Fire's 2–7 | as Fire's |
+| 3–8 | Berserking, trinkets, Power Infusion, mana gems, Major Mana Potion, Demonic Rune | as Fire's 2–7, but Power Infusion waits for Arcane Power (with row 1 on): Arcane Power on cooldown and its aura down, so once, as it ends ([Arcane Power](#arcane-power)) | as Fire's |
 | 9 | Evocation | `evocation.enabled`; mana ≤ `evocation.maxManaPct`, or below Arcane Missiles' cost | on, 0% |
 | 10 | Pyroblast | with Presence of Mind and Pyroblast; while Presence of Mind's aura is up | on (with Presence of Mind) |
 | 11 | Arcane Missiles | always | — |
@@ -646,7 +655,7 @@ has each row's cited conditions. A row's conditions are its own wherever it sits
 | Combustion (`combustion`) | `combustion.enabled` | | 1: with the talent, ready |
 | Racial cooldown (`racial`) | `racial.enabled` | | 2: Berserking, Blood Fury or Eureka!, on cooldown |
 | On-use trinkets (`trinkets`) | `trinkets.enabled` | | 3: on cooldown |
-| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | 4: selected in Buffs, ready |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | 4: selected in Buffs, once, at the pull (an Arcane mage's as its Arcane Power ends) |
 | Mana gems (`manaGems`) | `manaGems.enabled` | | 5: each when you're missing all it restores (1,200 for the Ruby, 925 for the Citrine); then 6 and 7, spec-wide |
 | Evocation (`evocation`) | `evocation.enabled` | `evocation.maxManaPct` | 8: at or below the share, or below Fireball's cost |
 | Scorch (`scorch`) | `scorch.enabled` | `scorch.refreshSec` | 9: under 5 stacks, or refresh in time (COND 44) |
@@ -659,7 +668,8 @@ has each row's cited conditions. A row's conditions are its own wherever it sits
 Barrier (`iceBarrier`, switch `iceBarrier.enabled`, 9), and Frostbolt (`frostbolt`, the filler, 10).
 
 **Arcane** (`ARCANE_APL`): Arcane Power (`arcanePower`, 1), Presence of Mind (`presenceOfMind`, 2),
-the shared rows (3–9, Evocation below Arcane Missiles' cost), Pyroblast with Presence of Mind
+the shared rows (3–9, Evocation below Arcane Missiles' cost; Power Infusion "once, as Arcane Power
+ends (at the pull without it)", waiting for it wherever it sits), Pyroblast with Presence of Mind
 (`pyroblast`, 10: no switch of its own, it goes with `presenceOfMind.enabled` and needs Pyroblast;
 it waits for Presence of Mind's aura wherever it sits), and Arcane Missiles (`arcaneMissiles`, the
 filler, 11).

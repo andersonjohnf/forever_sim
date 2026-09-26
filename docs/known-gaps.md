@@ -452,3 +452,12 @@ slice is worked:
     Felhunter has none.
   - **A warlock marks every worn on-use item as pressed** (pre-existing), so none is ever listed as
     not simulated; check against the other casters' on-use handling.
+- **A raid druid's Thorns takes a warrior tank's all-damage multiplier (PIV-3, pre-existing).** The
+  druid's Thorns is another player's spell, so the Power Infusion round kept your school damage
+  auras off it (`othersSpell`), but it still takes `magicMult`, which carries your stance's damage:
+  Defensive Stance's ×0.9 lowers it by 10%, about 2.2 TPS (0.22%) in the warrior's default setup
+  (`src/sim/engine/sim.ts`, the non-physical branch of the spell damage roll, "nor does another
+  player's"). Any all-damage multiplier in the plan's `damageMult` reaches it the same way. Low:
+  under a quarter of a percent, and the fix needs `magicMult` split into what's yours
+  and what isn't, which also decides an item's spell (buffs doc §3.7); it goes with that split
+  ([buffs "Thorns on the tank"](mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)).

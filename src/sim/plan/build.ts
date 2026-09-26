@@ -1626,7 +1626,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (procIds.has('windfury') && weapons[HAND.main] && c.tempEnchants.length && !windfuryHoldsMainHand) notes.add(mainHandPoison ? 'windfuryPoison' : 'windfuryStone')
   // buffs doc §3.6: two stones stack, and one on either hand counts for both [?].
   if (elementalStones > 1 || (elementalStones === 1 && weapons[HAND.off])) notes.add('elementalStone')
-  if (procIds.has('deepWounds')) notes.add('deepWounds')
+  // warrior.md §2.5: the rolling Deep Wounds is Forever's [?]; `classicEra`'s restart is Classic Era's [C], no assumption.
+  if (procIds.has('deepWounds') && profile.combat.deepWoundsRolls) notes.add('deepWounds')
   // buffs doc §1.2 (BR5): Thorns on the tank, a raid druid's or the bear's own.
   if (procIds.has('thorns')) notes.add('thorns')
   if (procIds.has('thornsOwn')) notes.add('thornsOwn')

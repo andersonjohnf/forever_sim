@@ -76,6 +76,13 @@ describe('worked example 1: Lightning Bolt rank 10', () => {
     expect(base.min).toBeCloseTo(189.3814893, 6)
     expect(buildPlan({ ...d, gear: { ranged: { itemId: 23199 } } }).assumptions.map((a) => a.id)).toContain('totemOfTheStorm')
   })
+
+  it('notes Earth Shock’s ×2 threat only when the rotation casts Earth Shock (shaman.md open question 8)', () => {
+    const d = defaultConfig(ELE)
+    const ids = (rotation: Record<string, boolean>) => buildPlan({ ...d, rotation: { ...d.rotation, ...rotation } }).assumptions.map((a) => a.id)
+    expect(ids({})).not.toContain('earthShockThreat')
+    expect(ids({ [ID.earthShock]: true })).toContain('earthShockThreat')
+  })
 })
 
 describe('worked example 2: Lightning Bolt rank 4', () => {
@@ -214,9 +221,9 @@ describe('worked example 7: Clearcasting', () => {
 describe('worked example 8: mana', () => {
   const bundle = buildPlan(defaultConfig(ELE))
 
-  it('the default setup: 4,975 mana, 52.6 Spirit regeneration a tick (Spirit 188), 50% of it while casting (Mindfulness 3/3), 24.4 mp5 a tick (Blessing of Wisdom r5’s 36 + Mana Spring’s 25)', () => {
-    expect([bundle.sheet.mana, bundle.sheet.spirit]).toEqual([4975, 188])
-    expect(bundle.plan.mana).toEqual({ maxTenths: 49750, regenTickTenths: 526, fiveSecondRuleMs: 5000, mp5TickTenths: 244, inFsrShare: 0.5 })
+  it('the default setup: 5,245 mana, 52.6 Spirit regeneration a tick (Spirit 188), 50% of it while casting (Mindfulness 3/3), 24.4 mp5 a tick (Blessing of Wisdom r5’s 36 + Mana Spring’s 25)', () => {
+    expect([bundle.sheet.mana, bundle.sheet.spirit]).toEqual([5245, 188])
+    expect(bundle.plan.mana).toEqual({ maxTenths: 52450, regenTickTenths: 526, fiveSecondRuleMs: 5000, mp5TickTenths: 244, inFsrShare: 0.5 })
   })
 
   it('Mana Tide Totem restores 1,160 in 4 ticks of 290, 3 s apart, for 60 mana and a 1 s GCD', () => {
@@ -231,12 +238,12 @@ describe('worked example 8: mana', () => {
     expect(counter(sim, b.plan, 'manaTideTotem', FIELD.casts)).toBe(fights)
   })
 
-  it('downranks with the defaults: rank 10 with Clearcasting or at 10% mana (497.5) or more, rank 4 below', () => {
+  it('downranks with the defaults: rank 10 with Clearcasting or at 10% mana (524.5) or more, rank 4 below', () => {
     const p = bundle.plan
     const lines = p.rotation.filter((e) => p.abilities[e.ability].id.startsWith('lightningBolt')).map((e) => [p.abilities[e.ability].id, e.conditions])
     expect(lines).toEqual([
       ['lightningBolt', [{ code: COND.auraUp, a: auraOf(p, 'elementalClearcasting'), b: 0 }]],
-      ['lightningBolt', [{ code: COND.minMana, a: 4975, b: 0 }]],
+      ['lightningBolt', [{ code: COND.minMana, a: 5245, b: 0 }]],
       ['lightningBoltRank4', []],
     ])
   })
@@ -257,7 +264,7 @@ describe('the Elemental priority list (shaman.md "Elemental priority")', () => {
       'lightningBoltRank4',
     ])
     const tide = p.rotation.find((e) => p.abilities[e.ability].id === 'manaTideTotem')!
-    expect(tide.conditions).toEqual([{ code: COND.maxMana, a: 49750 - 30000, b: 0 }])
+    expect(tide.conditions).toEqual([{ code: COND.maxMana, a: 52450 - 30000, b: 0 }])
     const fs = p.rotation.find((e) => p.abilities[e.ability].id === 'flameShock')!
     expect(fs.conditions).toEqual([{ code: COND.abilityAuraDown, a: abilityOf(p, 'flameShock'), b: 0 }])
   })
@@ -278,8 +285,9 @@ describe('the Elemental priority list (shaman.md "Elemental priority")', () => {
     const { list } = events(bundle.plan)
     expect(list.some((e) => e.kind === 'swing')).toBe(false)
     const unarmed = buildPlan({ ...d, gear: { ...d.gear, mainHand: undefined } })
-    // Mindfang's 94 spell power, and the Brilliant Wizard Oil on it (36; buffs doc §3.6).
-    expect(bundle.sheet.spell!.caster!.schoolDamage.nature - unarmed.sheet.spell!.caster!.schoolDamage.nature).toBe(94 + 36)
+    // Whiteout Staff's 74 spell power (a Horde default's since EL-2, docs/data/client.md#weapon-damage),
+    // and the Brilliant Wizard Oil on it (36; buffs doc §3.6).
+    expect(bundle.sheet.spell!.caster!.schoolDamage.nature - unarmed.sheet.spell!.caster!.schoolDamage.nature).toBe(74 + 36)
     const ids = bundle.assumptions.map((a) => a.id)
     for (const id of ['foreverHitTable', 'foreverGlancing', 'critSuppression', 'hasteNextSwing', 'noWeaponShaman', 'lightningBoltCast', 'manaRegenShaman', 'shamanTotems']) expect(ids).not.toContain(id)
     for (const id of ['elementalSpells', 'manaRegenElemental', 'elementalFocus', 'lightningOverload', 'manaTideTotem', 'lightningBoltDownrank', 'elementalTotems', 'reactionTimeMana']) expect(ids).toContain(id)

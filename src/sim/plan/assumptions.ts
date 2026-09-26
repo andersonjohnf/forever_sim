@@ -198,6 +198,11 @@ const REGISTRY = {
     text: 'Some of your items have no Forever data yet and use their Classic Era stats.',
     docRef: 'docs/decisions.md#d6-items-with-no-forever-data-use-classic-era-stats-flagged-2026-09-22-confirmed-by-the-guild',
   },
+  classicCasterWeaponStats: {
+    // docs/data/client.md#weapon-damage ("Epic caster weapons"); the plan names the weapons ({detail}).
+    text: '{detail}: the weapon’s spell power is Classic Era’s value, because no one has recorded its Forever tooltip yet.',
+    docRef: 'docs/data/client.md#weapon-damage',
+  },
   unmodelledProcs: {
     text: 'Some item effects aren’t simulated yet',
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,
@@ -672,7 +677,7 @@ const REGISTRY = {
     docRef: `${SHAM}#weapon-imbues`,
   },
   maelstromWeapon: {
-    text: 'Maelstrom Weapon stacks on 50% of your landed melee hits, white, special and extra attacks: the rate is server-side and untested, read from a value the talent carries.',
+    text: 'Maelstrom Weapon stacks on 50% of your landed melee hits, white, special and extra attacks: the rate is server-side, never published and untested, so the sim reads it from a value the talent carries.',
     docRef: `${SHAM}#maelstrom-weapon`,
   },
   shamanFlurry: {
@@ -682,6 +687,11 @@ const REGISTRY = {
   stormstrikeBoost: {
     text: 'Stormstrike’s +20% goes to your next Lightning Bolt or Earth Shock that lands, which uses it up; a miss keeps it.',
     docRef: `${SHAM}#stormstrike`,
+  },
+  earthShockThreat: {
+    // A shaman is a DPS spec, so its result shows no threat (review finding EU-5).
+    text: 'Earth Shock’s threat is twice its damage, as a Classic Era threat library has it, the same library that gives Maul its extra threat. No one has measured it, in Classic Era or Forever. It changes only your threat, which a DPS result doesn’t show.',
+    docRef: `${SHAM}#shocks-and-lightning-bolt`,
   },
   lightningBoltCast: {
     text: 'A Lightning Bolt with a cast time stops your swings, which start again from full when it completes, as Slam does.',
@@ -930,8 +940,8 @@ const REGISTRY = {
     text: 'Your demon’s stats are placeholders: {detail}. Untested.',
     docRef: `${LOCK}#112-your-demon`,
   },
-  improvedImpCast: {
-    text: 'Improved Imp also carries an effect its tooltip doesn’t show (−0.3/−0.7/−1 s); the sim reads it as time off Firebolt’s 2 s cast, so it’s {detail} s. Untested.',
+  improvedImpHidden: {
+    text: 'Improved Imp also carries a hidden value its tooltip doesn’t show. Nothing says what it does, so the sim gives it no effect, and your Imp’s Firebolt keeps its 2 s cast. Untested.',
     docRef: `${LOCK}#117-open-questions`,
   },
   demonTable: {

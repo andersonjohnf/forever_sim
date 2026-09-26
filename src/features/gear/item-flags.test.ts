@@ -3,7 +3,7 @@ import type { GearSlot } from '@/sim'
 import { defaultConfig, fitsSlot } from '@/sim'
 import { itemData, itemsById } from '@/lib/items'
 import { buildPlan } from '@/sim/plan/build'
-import { statsLine, unsimulatedEffects } from './item-flags'
+import { classicFlag, itemDescription, statsLine, unsimulatedEffects } from './item-flags'
 
 const SLOTS: GearSlot[] = ['head', 'neck', 'shoulder', 'back', 'chest', 'wrist', 'hands', 'waist', 'legs', 'feet', 'finger1', 'trinket1', 'mainHand', 'offHand', 'ranged']
 
@@ -65,5 +65,23 @@ describe('the stats line (docs/ux.md "Gear"; review FU-9)', () => {
 
   it('never says "No stats" for an item with an effect', () => {
     for (const i of itemData.items) if (i.procs.length || i.otherEquip.length || i.useEffects.length) expect(statsLine(i), i.name).not.toBe('No stats')
+  })
+})
+
+describe('the Classic stats flag (EU-2)', () => {
+  it('flags an item with no Forever data, and a Forever caster weapon whose spell power is Classic Era’s, each in its own words', () => {
+    const noForever = itemData.items.find((i) => !i.foreverData)
+    if (noForever) {
+      expect(classicFlag(noForever)).toEqual({ kind: 'item' })
+      expect(itemDescription(noForever)).toContain('Classic stats: no Forever data yet')
+    }
+    for (const id of [20069, 20070, 20214, 20220]) {
+      const weapon = itemsById.get(id)!
+      expect(weapon.foreverData).toBe(true)
+      expect(classicFlag(weapon)).toEqual({ kind: 'stats', stats: 'spell power' })
+      expect(itemDescription(weapon)).toContain('Classic stats: its spell power is Classic Era’s, with no Forever tooltip on record yet')
+    }
+    // Whiteout Staff's spell power is Forever's own tooltip.
+    expect(classicFlag(itemsById.get(19101)!)).toBeNull()
   })
 })

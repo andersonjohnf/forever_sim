@@ -229,16 +229,16 @@ describe('Gift of Arthas in a setup', () => {
       const c = config('warlock-demonology', true)
       return buildPlan(demon === undefined ? c : { ...c, rotation: { ...c.rotation, 'warlock.demonology.demon.summoned': demon } })
     }
-    // The default demon is the Imp.
-    for (const demon of [undefined, 'imp', 'none']) {
+    // The default demon is the Succubus.
+    for (const demon of ['imp', 'none']) {
       const bundle = demo(demon)
       expect(bundle.plan.physicalTaken, String(demon)).toBeUndefined()
       expect(bundle.assumptions.map((a) => a.id), String(demon)).not.toContain('giftOfArthas')
     }
-    for (const demon of ['succubus', 'felhunter']) {
+    for (const demon of [undefined, 'succubus', 'felhunter']) {
       const bundle = demo(demon)
-      expect(bundle.plan.physicalTaken, demon).toBe(8)
-      expect(bundle.assumptions.map((a) => a.id), demon).toContain('giftOfArthas')
+      expect(bundle.plan.physicalTaken, String(demon)).toBe(8)
+      expect(bundle.assumptions.map((a) => a.id), String(demon)).toContain('giftOfArthas')
     }
   })
 

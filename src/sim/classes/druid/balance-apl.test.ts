@@ -65,6 +65,9 @@ describe('Balance’s priority list (D31)', () => {
     // (2026-09-26, CL-4): every druid plan carries its forms, and the bear form's weapon now counts as
     // two-handed for normalized rage (rage.md "Bear white hits"); nothing the rotation plays moved,
     // and with the bear form's `twoHand` set back to false, main's snapshot reproduces exactly.
+    // Re-taken for the casters merge (2026-09-26): Epic caster weapons take Classic Era's spell power
+    // and a Horde caster wears Whiteout Staff, so every plan's gear moved; with the bear form's
+    // `twoHand` set back to false, the casters branch's snapshot reproduces exactly.
     const cases = balanceCases(BALANCE_OPTIONS, 200)
     const plans = cases.map((config) => buildPlan({ ...config, rotationOrder: defaultAplOrder(BALANCE_APL) }).plan)
     const hashes = plans.map((plan) => fingerprint(planJson(plan)))

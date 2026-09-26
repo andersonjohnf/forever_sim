@@ -155,14 +155,14 @@
     "preRaidBis": {
       "addedByList": 131,
       "file": "scripts/scrape/pre-raid-bis.json",
-      "inPool": 346,
+      "inPool": 347,
       "kept": [7553, 14106, 14107, 17719, 18674, 18676, 22074],
-      "listedItems": 346,
+      "listedItems": 347,
       "notInData": [],
       "specs": {
         "druid-balance": {
           "name": "Balance Druid",
-          "note": "Wowhead had no stand-alone Classic Balance pre-raid guide before Season of Mastery (its balance-druid-dps-pre-raid-best-in-slot-bis-gear-wow-classic page is first archived in December 2021), so this list is the 'Pre-Raid Best in Slot Gear for Balance Druids - Phase 6' section of its Balance BiS gear guide (last modified 2021-05-15). The guide marks two items Best in the waist, ring and trinket rows; they keep the guide's order as ranks 1 and 2, except the trinkets, re-ranked by the sim among the list's own items now that Draconic Infused Emblem's proc is modelled (GV-3, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Draconic Infused Emblem (+16.1 over Eye of the Beast, +11.4 over Briarwood Reed), Briarwood Reed, Eye of the Beast (its use counts as zero, a known gap). It lists only three trinkets, two belts, two cloaks, two gloves, two legs and two boots, and no idol, so there is no relic row. Its one Weapon table lists the main-hand pair first, then the Rod of the Ogre Magi (Two-Hand), then Witchblade; each slot numbers its own items from 1, and the default takes the main hand and off-hand. The guide names both Arathi Basin exalted daggers, Sageclaw (League of Arathor, Alliance) and Mindfang (The Defilers, Horde); the list names Mindfang, and its faction twin Sageclaw takes the same rank (docs/data/items.md#faction-twins). It links no PvP rank items and no raid drops. Random-suffix items are listed by their base id, and the pool has only the base row's stats (no suffix). One whose base row has no spell stats is left out like a raid drop, and the entries below it move up: Eternal Crown (head), Eternal Spaulders (shoulder), Archivist Cape (back), Flameweave Cuffs (wrist), Slaghide Gauntlets (hands) and Adventurer's Belt (waist), all of Arcane Wrath in the guide. Abyssal Cloth Amice (of Sorcery) keeps its rank on its base row's spell hit, without the suffix. Diana's Pearl Necklace (22403) carries the client's name, Nacreous Shell Necklace. The Bloodvine set is crafted, but its Tailoring patterns need Zandalar Tribe reputation and its Bloodvine reagent comes from Zul'Gurub.",
+          "note": "Wowhead had no stand-alone Classic Balance pre-raid guide before Season of Mastery (its balance-druid-dps-pre-raid-best-in-slot-bis-gear-wow-classic page is first archived in December 2021), so this list is the 'Pre-Raid Best in Slot Gear for Balance Druids - Phase 6' section of its Balance BiS gear guide (last modified 2021-05-15). The guide marks two items Best in the waist, ring and trinket rows; they keep the guide's order as ranks 1 and 2, except the trinkets, re-ranked by the sim among the list's own items now that Draconic Infused Emblem's proc is modelled (GV-3, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Draconic Infused Emblem (+16.1 over Eye of the Beast, +11.4 over Briarwood Reed), Briarwood Reed, Eye of the Beast (its use counts as zero, a known gap). It lists only three trinkets, two belts, two cloaks, two gloves, two legs and two boots, and no idol, so there is no relic row. Its one Weapon table lists the main-hand pair first, then the Rod of the Ogre Magi (Two-Hand), then Witchblade; each slot numbers its own items from 1, and the default takes the main hand and off-hand, except a Horde character's Whiteout Staff, which the sim ranks above them (its entry). The guide names both Arathi Basin exalted daggers, Sageclaw (League of Arathor, Alliance) and Mindfang (The Defilers, Horde); the list names Mindfang, and its faction twin Sageclaw takes the same rank (docs/data/items.md#faction-twins). It links no PvP rank items and no raid drops. Random-suffix items are listed by their base id, and the pool has only the base row's stats (no suffix). One whose base row has no spell stats is left out like a raid drop, and the entries below it move up: Eternal Crown (head), Eternal Spaulders (shoulder), Archivist Cape (back), Flameweave Cuffs (wrist), Slaghide Gauntlets (hands) and Adventurer's Belt (waist), all of Arcane Wrath in the guide. Abyssal Cloth Amice (of Sorcery) keeps its rank on its base row's spell hit, without the suffix. Diana's Pearl Necklace (22403) carries the client's name, Nacreous Shell Necklace. The Bloodvine set is crafted, but its Tailoring patterns need Zandalar Tribe reputation and its Bloodvine reagent comes from Zul'Gurub.",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210516224841/https://classic.wowhead.com/guides/balance-druid-dps-gear-bis-classic-wow",
             "snapshot": "2021-05-16",
@@ -81234,17 +81234,17 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "twoHand",
           "spec": "mage-frost"
         },
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "twoHand",
           "spec": "mage-arcane"
         },
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "twoHand",
           "spec": "priest-shadow"
         }
@@ -83593,42 +83593,42 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "druid-balance"
         },
         {
-          "rank": 4,
+          "rank": 5,
           "slot": "twoHand",
           "spec": "shaman-elemental"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "mage-frost"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "mage-arcane"
         },
         {
-          "rank": 3,
+          "rank": 4,
           "slot": "twoHand",
           "spec": "warlock-destruction"
         },
         {
-          "rank": 3,
+          "rank": 4,
           "slot": "twoHand",
           "spec": "warlock-affliction"
         },
         {
-          "rank": 3,
+          "rank": 4,
           "slot": "twoHand",
           "spec": "warlock-demonology"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "priest-shadow"
         }
@@ -83999,7 +83999,53 @@
       "name": "Whiteout Staff",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "druid-balance"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "shaman-elemental"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "warlock-demonology"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "priest-shadow"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -84631,6 +84677,7 @@
         "weaponSkill": null
       },
       "classicName": null,
+      "classicStats": ["spellPower"],
       "equipSlots": ["mainHand"],
       "flavor": null,
       "foreverData": true,
@@ -84645,27 +84692,27 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "shaman-elemental"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "mage-fire"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "warlock-destruction"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "warlock-affliction"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "warlock-demonology"
         }
@@ -84693,7 +84740,7 @@
         "bonusArmor": 100,
         "critRating": 28,
         "intellect": 10,
-        "spellPower": 94,
+        "spellPower": 41,
         "stamina": 19
       },
       "statsFrom": "forever",
@@ -84703,9 +84750,9 @@
       "uniqueEquipped": null,
       "useEffects": [],
       "weapon": {
-        "dps": 43.1,
-        "max": 176,
-        "min": 117,
+        "dps": 61.5,
+        "max": 251,
+        "min": 167,
         "school": "Physical",
         "skill": "Staves",
         "speed": 3.4
@@ -84736,6 +84783,7 @@
         "weaponSkill": null
       },
       "classicName": null,
+      "classicStats": ["spellPower"],
       "equipSlots": ["mainHand"],
       "flavor": null,
       "foreverData": true,
@@ -84750,27 +84798,27 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "shaman-elemental"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "mage-fire"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "warlock-destruction"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "warlock-affliction"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "twoHand",
           "spec": "warlock-demonology"
         }
@@ -84798,7 +84846,7 @@
         "bonusArmor": 100,
         "critRating": 28,
         "intellect": 10,
-        "spellPower": 94,
+        "spellPower": 41,
         "stamina": 19
       },
       "statsFrom": "forever",
@@ -84808,9 +84856,9 @@
       "uniqueEquipped": null,
       "useEffects": [],
       "weapon": {
-        "dps": 43.1,
-        "max": 176,
-        "min": 117,
+        "dps": 61.5,
+        "max": 251,
+        "min": 167,
         "school": "Physical",
         "skill": "Staves",
         "speed": 3.4
@@ -85152,7 +85200,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "twoHand",
           "spec": "shaman-elemental"
         }
@@ -85454,22 +85502,22 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "twoHand",
           "spec": "mage-fire"
         },
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "twoHand",
           "spec": "warlock-destruction"
         },
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "twoHand",
           "spec": "warlock-affliction"
         },
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "twoHand",
           "spec": "warlock-demonology"
         }
@@ -87647,6 +87695,7 @@
         "weaponSkill": null
       },
       "classicName": null,
+      "classicStats": ["spellPower"],
       "equipSlots": ["mainHand"],
       "flavor": null,
       "foreverData": true,
@@ -87728,7 +87777,7 @@
       "stats": {
         "bonusArmor": 40,
         "critRating": 14,
-        "spellPower": 94,
+        "spellPower": 30,
         "stamina": 8
       },
       "statsFrom": "forever",
@@ -87738,9 +87787,9 @@
       "uniqueEquipped": null,
       "useEffects": [],
       "weapon": {
-        "dps": 28.8,
-        "max": 64,
-        "min": 34,
+        "dps": 47.4,
+        "max": 105,
+        "min": 56,
         "school": "Physical",
         "skill": "Daggers",
         "speed": 1.7
@@ -87770,6 +87819,7 @@
         "weaponSkill": null
       },
       "classicName": null,
+      "classicStats": ["spellPower"],
       "equipSlots": ["mainHand"],
       "flavor": null,
       "foreverData": true,
@@ -87851,7 +87901,7 @@
       "stats": {
         "bonusArmor": 40,
         "critRating": 14,
-        "spellPower": 94,
+        "spellPower": 30,
         "stamina": 8
       },
       "statsFrom": "forever",
@@ -87861,9 +87911,9 @@
       "uniqueEquipped": null,
       "useEffects": [],
       "weapon": {
-        "dps": 28.8,
-        "max": 64,
-        "min": 34,
+        "dps": 47.4,
+        "max": 105,
+        "min": 56,
         "school": "Physical",
         "skill": "Daggers",
         "speed": 1.7

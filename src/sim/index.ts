@@ -44,6 +44,7 @@ export {
   ammoKind,
   defaultConfig,
   defaultGear,
+  defaultOffHand,
   defaultTalents,
   FULL_RAID,
   hasThreatSet,
@@ -51,6 +52,7 @@ export {
   preRaidListGear,
   TALENT_DATA,
   talentPresets,
+  twoHandersOverPair,
   type TalentPreset,
 } from './defaults'
 export { canUse, fitsFaction, fitsSlot, isTwoHand, itemFaction, PROFICIENCY, questClass, uniqueConflicts, type UniqueConflict } from './equip'

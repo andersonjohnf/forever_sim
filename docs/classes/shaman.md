@@ -191,7 +191,7 @@ and it was the weakest imbue for a two-hander in Classic Era [C]
 | Per stack | −4% Lightning Bolt cast time and mana a rank: **−20% at 5/5** | [F] [client] (TraitDefinitionEffectPoints, CurvePoint 408498) |
 | At 5 stacks | Lightning Bolt is **instant and free** | [F] (5 × 20%); [Warcraft Tavern, Forever](https://www.warcrafttavern.com/forever/guides/shaman/): "Maelstrom Weapon stacks up to five times to let Enh Shamans cast an instant and free Lightning Bolt" |
 | Stacks from | "When you deal damage with a melee attack, you have a chance": any landed melee hit, white, special or extra attack (proc mask 0x10014) | [F] tooltip and SpellAuraOptions |
-| Chance a hit | **50%** in the sim: the talent's aura carries three dummy values, 20 (the stack's cut, which the rank curve sets), 50 and 5 (the stacks), and the sim reads the 50 as the chance. No source states the rate | [?] ([open question 1](#open-questions)) |
+| Chance a hit | **50%** in the sim: the talent's aura carries three dummy values, 20 (the stack's cut, which the rank curve sets), 50 and 5 (the stacks), and the sim reads the 50 as the chance. No allowed source states the rate. Forever reuses Season of Discovery's rune (408498), and Blizzard's SoD client carries the same three values, no procs-per-minute row (SpellAuraOptions `SpellProcsPerMinuteID` 0 in both clients) and a 100% proc chance, so its rate is server-side there too. Blizzard's SoD notes give only changes to it: "roughly 50% higher" with Windfury Weapon on the main hand ([hotfixes, 2024-02-12](https://news.blizzard.com/en-us/world-of-warcraft/24057474/hotfixes-february-12-2024)) and "a 25% extra chance" with a two-hander ([Eliquid, 2024-04-16](https://us.forums.blizzard.com/en/wow/t/shaman-patch-notes-4162024/1831264)), never the base; the 10 procs a minute other sims use cites no source. **The tooltip describes a chance but never shows it:** Forever's text (408498) reads "When you deal damage with a melee attack, you have a chance to reduce … by $m1%. Stacks up to $s3 times", which references the 20 (#1) and the 5 (#3) and never the 50 (#2). The sim reads that undescribed dummy 50 as the chance, a reading no source confirms; a zero would contradict the described chance. The user kept the 50, labelled [?] (decision [D38](../decisions.md#d38-the-values-audits-calls-2026-09-26), item 26), until an in-game test measures it ([open question 1](#open-questions)), and the sim adds neither change: each is a change to an unknown base, made on SoD's servers, which Forever's may not share | [?] ([open question 1](#open-questions)) |
 | Used by | the next Lightning Bolt, which spends all the stacks when it's cast; the cut is read then | [F] tooltip; the timing [?] |
 
 A Lightning Bolt with fewer than 5 stacks still has a cast time: 2.5 s × (1 − 0.2 × stacks) and
@@ -247,8 +247,14 @@ Measured on the default setup (20,000 fights, seed 1): the rule is worth **+1.17
   ([open question 5](#open-questions)). Its travel time (speed 20) isn't simulated.
 - **Procs**: a spell crit fires Elemental Devastation ([Talents](#talents)); a spell triggers no
   melee procs (not Windfury Weapon, Flurry or Maelstrom Weapon).
-- **Threat** is the damage; any extra threat on Earth Shock isn't simulated [?]
-  ([open question 8](#open-questions)).
+- **Threat** is the damage, and Earth Shock's is **2 × its damage** [?]
+  ([open question 8](#open-questions)): its tooltip says "Causes a high amount of threat" in both
+  clients, and every Classic Era and Season of Discovery threat tool carries ×2 (LibThreatClassic2's
+  shaman module, wowsims' classic and sod sims), the lineage of the bear's Maul ×1.75
+  ([threat](../mechanics/threat.md#shaman-dps-context)). Never measured in Classic Era or Forever.
+  No tier 1–2 source has a value, so the threat wording table's rule would give it dmg + 206
+  (Sunder's Forever value); the ×2 is Earth Shock's **by name, a user decision ([D38](../decisions.md#d38-the-values-audits-calls-2026-09-26), 2026-09-26)**,
+  and the rule stays for the tanks' abilities. `EARTH_SHOCK_THREAT_MULT`.
 
 ---
 
@@ -821,7 +827,7 @@ mp5 always [C] [F]. A spell Clearcasting makes free spends nothing, so it starts
 
 | Source | Value | Tag |
 | --- | --- | --- |
-| Pool (default setup) | **4,975** mana (Intellect 249) | [F] base mana, [C] per Intellect |
+| Pool (default setup) | **5,245** mana (Intellect 267) | [F] base mana, [C] per Intellect |
 | Spirit regeneration | 15 + 188 / 5 = **52.6** a tick; **26.3** while casting (Mindfulness 3/3) | [C]; the share [F] |
 | mp5 | 65 → **26** a tick | [C] |
 | Mana Spring Totem | the Buffs tab's (your own, `selfCast`): 10 mana every 2 s | [F] ([buffs doc](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)) |
@@ -952,7 +958,7 @@ row keeps its conditions wherever you move it:
 | --- | --- | --- |
 | Talents | **`5504301300103051-04-053250000001`** (Elemental 31 / Enhancement 4 / Restoration 16): Convection 5, Concussion 5, Reverberation 4, Call of Flame 3, Elemental Focus 1, Elemental Alacrity 3, Call of Thunder 1, Lightning Overload 3, Elemental Fury 5, Lava Burst 1; Thundering Strikes 4; Totemic Focus 5, Mindfulness 3, Natural Grace 2, Tidal Focus 5, Mana Tide Totem 1. The same talents as on 1.60.1.69913's trees, where the code was `5504301500103031-04-053250000001`: 1.60.1.70009 swapped Elemental Fury (now tier 6, after Call of Thunder) and Elemental Alacrity (now tier 3, before it) ([data/talents.md](../data/talents.md#tree-versions)) | Classic Era's raid build was 31/0/20 with Elemental Mastery ([Wowhead talents](http://web.archive.org/web/20210516151409/https://classic.wowhead.com/guides/elemental-shaman-dps-talents-builds-classic-wow), `550331050002151--05204301005`; Icy Veins the same) [C], adapted: every damage talent to Lava Burst (31 points), Restoration for hit (Tidal Focus, as Nature's Guidance was), Mindfulness and Mana Tide, which Forever moved within reach, and the spare 4 in Thundering Strikes. Swapping Mana Tide and Natural Grace for Thundering Strikes' fifth point (`-05-05325`) loses 1.22%; Enhancement 10 / Restoration 10 without Mindfulness (`-055-05005`) 17.68% |
 | Race | **Orc** (Horde) | Classic Era's pick is Troll ("the best WoW Classic Shaman race for PvE", [Wowhead overview](http://web.archive.org/web/20210518035051/https://classic.wowhead.com/guides/elemental-shaman-dps-classic-wow); Icy Veins the same) [C] for Berserking's 10–30%. Forever's Berserking is a flat 10% and Forever's Blood Fury adds 10% spell power, so on the default setup (20,000 fights, seed 1): Orc **336.34**, Tauren 336.35 (its +1% hit), Troll 334.35 (−0.59%), Windshaper Skyborne 333.17 (no racial cooldown), Dwarf 285.51 (Alliance gear, below). Orc is the class default, within D27's first pass of Tauren |
-| Gear | Wowhead's Classic Elemental pre-raid BiS (snapshot 2021-05-16, Phase 5), in `scripts/scrape/pre-raid-bis.json` `shaman-elemental` ([D11](../decisions.md#d11-known-pre-raid-bis-items-are-always-in-the-pool-2026-09-22)): Spellweaver's Turban, Orb of the Darkmoon, Champion's Mail Pauldrons, Crystalline Threaded Cape, Bloodvine Vest, Rockfury Bracers, Blood Guard's Mail Vices, Ban'thok Sash, Bloodvine Leggings, Bloodvine Boots, Wrath of Cenarius, Elemental Focus Band, Draconic Infused Emblem, Royal Seal of Eldre'Thalas, Mindfang (Sageclaw, its Alliance twin from the client, for a Dwarf; [items.md](../data/items.md#faction-twins)), Therazane's Touch, Totem of the Storm. **The rings, trinkets and off hand are re-ranked by the sim** among the list's own items (DV2-4, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701), now that Wrath of Cenarius's and Draconic Infused Emblem's procs are modelled ([items.md](../data/items.md#modelled-item-effects)) and Spirit of Aquementas has only Classic Era stats: rings Wrath of Cenarius, Elemental Focus Band (ties it, −0.07), Rune Band of Wizardry (−0.6), Maiden's Circle; trinkets Draconic Infused Emblem (+14.4 over Eye of the Beast), Royal Seal of Eldre'Thalas (+6.0), Briarwood Reed (+4.5), Eye of the Beast (its use counts as zero, E7); off hand Therazane's Touch (+3.4 over the Scepter), Scepter of Interminable Focus, Spirit of Aquementas (−2.1). The default goes 381.7 → **401.1** DPS (Orc). **The guide's rank-1 belt, Sash of the Windreaver, is left out** as event-only (GV-6): The Windreaver is an Elemental Invasion boss, and every list leaves out an invasion boss's loot as it leaves out a raid drop ([items.md "Sources"](../data/items.md#sources-c)), so Ban'thok Sash moves up: 400.9 DPS (Orc), 387.5 (Dwarf). With every 1.60.1.70009 slice merged (the casters' shaman values among them), the defaults make **402.2** (Orc) and **388.9** (Dwarf) (20,000 fights on seed 2701) | [pre-raid BiS](http://web.archive.org/web/20210516060750/https://classic.wowhead.com/guides/wow-classic-elemental-shaman-dps-pre-raid-best-in-slot-gear) [C] |
+| Gear | Wowhead's Classic Elemental pre-raid BiS (snapshot 2021-05-16, Phase 5), in `scripts/scrape/pre-raid-bis.json` `shaman-elemental` ([D11](../decisions.md#d11-known-pre-raid-bis-items-are-always-in-the-pool-2026-09-22)): Spellweaver's Turban, Orb of the Darkmoon, Champion's Mail Pauldrons, Crystalline Threaded Cape, Bloodvine Vest, Rockfury Bracers, Blood Guard's Mail Vices, Ban'thok Sash, Bloodvine Leggings, Bloodvine Boots, Wrath of Cenarius, Elemental Focus Band, Draconic Infused Emblem, Royal Seal of Eldre'Thalas, Whiteout Staff for an Orc (since EL-2, 2026-09-26: the Frostwolf Clan's Alterac Valley staff, +74 spell power, Revered, Horde only, which the sim ranks above Mindfang and Therazane's Touch, 368.8 → **375.2** DPS, paired, 10,000 fights, the default seed; [items.md "Whiteout Staff for the Horde casters"](../data/items.md#pre-raid-bis-lists)), Sageclaw and Therazane's Touch for a Dwarf (the Alliance's Crackling Staff, +25 in Forever, is 16 DPS behind them), Totem of the Storm. **The rings, trinkets and off hand are re-ranked by the sim** among the list's own items (DV2-4, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701), now that Wrath of Cenarius's and Draconic Infused Emblem's procs are modelled ([items.md](../data/items.md#modelled-item-effects)) and Spirit of Aquementas has only Classic Era stats: rings Wrath of Cenarius, Elemental Focus Band (ties it, −0.07), Rune Band of Wizardry (−0.6), Maiden's Circle; trinkets Draconic Infused Emblem (+14.4 over Eye of the Beast), Royal Seal of Eldre'Thalas (+6.0), Briarwood Reed (+4.5), Eye of the Beast (its use counts as zero, E7); off hand Therazane's Touch (+3.4 over the Scepter), Scepter of Interminable Focus, Spirit of Aquementas (−2.1). The default goes 381.7 → **401.1** DPS (Orc). **The guide's rank-1 belt, Sash of the Windreaver, is left out** as event-only (GV-6): The Windreaver is an Elemental Invasion boss, and every list leaves out an invasion boss's loot as it leaves out a raid drop ([items.md "Sources"](../data/items.md#sources-c)), so Ban'thok Sash moves up: 400.9 DPS (Orc), 387.5 (Dwarf). With every 1.60.1.70009 slice merged (the casters' shaman values among them), the defaults make **402.2** (Orc) and **388.9** (Dwarf) (20,000 fights on seed 2701) | [pre-raid BiS](http://web.archive.org/web/20210516060750/https://classic.wowhead.com/guides/wow-classic-elemental-shaman-dps-pre-raid-best-in-slot-gear) [C] |
 | Relic | **Totem of the Storm** (23199): "Increases damage done by Chain Lightning and Lightning Bolt by up to 33" (28857, aura 112: a server-side class script) | read as 33 spell damage for those spells, so +23.56 to Lightning Bolt (× 0.714) and +18.84 to Chain Lightning [?] |
 | Enchants | Greater Stats on the chest. The caster enchants (Spell Power on the weapon, Arcanum of Focus, Zandalar Signet of Mojo) aren't in the sim's enchant catalogue yet | [buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec) |
 | Totems | Mana Spring (your own); the raid's others don't help a caster | [Totems](#totems) |
@@ -1013,10 +1019,10 @@ build's talents. Each runs through the engine in `src/sim/classes/shaman/element
    threat and triggers nothing.
 7. **Clearcasting**: 10% of landed Fire, Frost and Nature spells; the next spell costs nothing and
    starts no five-second rule, and Chain Lightning with Clearcasting waits for it.
-8. **Mana** (the default setup: 4,975 mana, Spirit 188, mp5 61): **52.6 + 24.4 = 77.0** a tick
+8. **Mana** (the default setup: 5,245 mana, Spirit 188, mp5 61): **52.6 + 24.4 = 77.0** a tick
    outside the five-second rule, **26.3 + 24.4 = 50.7** inside it (Mindfulness 3/3). Mana Tide restores **1,160**
-   (4 × 290, from 3 s after it drops), once a 3-minute fight, at 3,000 missing: 1,975 mana or less.
-9. **Downranking** with rank 10 from 10% (497.5 mana): rank 10 at 497.5 or more, rank 4 below;
+   (4 × 290, from 3 s after it drops), once a 3-minute fight, at 3,000 missing: 2,245 mana or less.
+9. **Downranking** with rank 10 from 10% (524.5 mana): rank 10 at 524.5 or more, rank 4 below;
    rank 10 with Clearcasting at any mana.
 10. **Flame Shock kept up**: cast at 0, it ticks at 3, 6, 9 and 12 s; it's recast at the first free
     moment after its last tick, 13.5 s when a Lightning Bolt was cast from 11.5 s.
@@ -1085,10 +1091,16 @@ Each needs an in-game test on the Forever beta; record the result here with buil
 sample size ([doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)). Effects are on
 the default setup's DPS unless stated.
 
-1. **Maelstrom Weapon's chance a hit.** The sim reads the talent's dummy 50 as 50% per landed melee
-   hit (white, special and extra attacks). *Test:* count Maelstrom Weapon stacks gained against landed
-   melee hits over 500+ hits (the combat log's buff applications), with and without Windfury Weapon.
-   *Effect:* 25% → −1.31%, 100% → +2.35%.
+1. **Maelstrom Weapon's chance a hit.** The tooltip describes a chance but never shows it: it
+   references the talent's 20 and 5, never the 50. The sim reads the client's dummy 50 as that
+   chance, 50% per landed melee hit (white, special and extra attacks) [?], kept and labelled by
+   user decision ([D38](../decisions.md#d38-the-values-audits-calls-2026-09-26), item 26), since zero would contradict the described chance; no allowed source
+   states the rate
+   ([Maelstrom Weapon](#maelstrom-weapon)). *Test:* count Maelstrom Weapon stacks gained against landed
+   melee hits over 500+ hits (the combat log's buff applications), with and without Windfury Weapon,
+   and with a one-hander and a two-hander (Season of Discovery's notes raise it for both).
+   *Effect:* 25% → −1.31%, 100% → +2.35%; the SoD notes' two raises on the 50 (×1.5 with Windfury
+   Weapon, ×1.25 with a two-hander: 94%, as the default wears both) +2.2% (539.1 → 550.7, 10,000 fights).
 2. **Is Stormstrike's boost used up by a missed spell?** The sim keeps it. *Test:* Stormstrike, then
    Earth Shocks on a +3 mob until one misses, then one that lands; compare its damage. *Effect:* the
    boost is worth 1.31% in all, and about 9% of the spells miss: about −0.12%.
@@ -1112,8 +1124,13 @@ the default setup's DPS unless stated.
    placeholders. The base spell crit sources conflict: 2.3% (wowsims/classic) or −0.7% (RatingBuster).
    *Test:* a naked level-60 shaman's character sheet per race (the sheet shows spell crit). *Effect:*
    −0.7% instead of 2.3% is −0.49%; the attributes under ±0.5%.
-8. **Earth Shock's extra threat**: whether it still carries the extra threat Classic Era shaman
-   tanks relied on is unknown, and none is simulated. *Test:* a threat meter on a single Earth Shock. *Effect:* none on DPS; TPS only.
+8. **Earth Shock's extra threat**: the sim gives it 2 × its damage by name, a user decision ([D38](../decisions.md#d38-the-values-audits-calls-2026-09-26),
+   2026-09-26): the value of the Maul ×1.75 lineage, which every Classic Era threat tool carries
+   and nobody has measured ([Shocks](#shocks-and-lightning-bolt)). The threat wording table's rule
+   would give dmg + 206 (about +5.4% TPS instead of +10.4%); it stays for the tanks. *Test:* a threat
+   meter on a single Earth Shock against its damage in the combat log. *Effect:* none on DPS;
+   Enhancement's TPS +10.4% over ×1 (383.2 → 423.2, 10,000 fights); the Elemental default casts no
+   Earth Shock.
 9. **Resolved in K5: Nature-only and Frost-only spell damage on gear** counts for its school's
    spells, on the caster core ([Spell damage](#spell-damage)).
 10. **Rockbiter Weapon's value** in Forever: 653 AP from 16313's rows (554 + 16.5 a level). *Test:*

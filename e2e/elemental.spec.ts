@@ -108,7 +108,8 @@ test.describe('Elemental shaman', () => {
     // Its pre-raid caster gear.
     const gear = await openTab(page, 'Gear')
     await expect(gear.getByRole('button', { name: "Head: Spellweaver's Turban" })).toBeVisible()
-    await expect(gear.getByRole('button', { name: /^Main hand: Mindfang/ })).toBeVisible()
+    // An Orc's Whiteout Staff, which the sim ranks above Mindfang and the off hand (EL-2).
+    await expect(gear.getByRole('button', { name: /^Main hand: Whiteout Staff/ })).toBeVisible()
 
     const talents = await openTab(page, 'Talents')
     const presets = talents.getByRole('combobox', { name: 'Talent build presets' })

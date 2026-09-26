@@ -73,8 +73,12 @@ async function expectRotation(tab: Locator) {
   await expect(tab).not.toContainText(OTHER)
 }
 
-/** What a Balance run must show, in the desktop panel or the phone's sheet. */
-async function expectResult(results: Locator) {
+/**
+ * What a Balance run must show, in the desktop panel or the phone's sheet. `arcane`: the sheet's own
+ * Arcane damage line, which shows when a school differs (a Night Elf's Tome of Arcane Domination; a
+ * Tauren wears Whiteout Staff, EL-2, with no school of its own).
+ */
+async function expectResult(results: Locator, { arcane = false } = {}) {
   await expect(results.getByRole('group', { name: 'DPS' })).toContainText(VALUE_WITH_CI)
   const breakdown = results.getByRole('region', { name: 'Damage by ability' })
   for (const name of ['Starfire', 'Wrath', 'Insect Swarm', 'Moonfire', 'Moonfire (DoT)']) {
@@ -88,7 +92,7 @@ async function expectResult(results: Locator) {
   }
   await expect(mana).toContainText(/Spent\s*−[\d,]+/)
   await openDetails(results, /^Character sheet/)
-  for (const label of ['Spell damage', 'Arcane damage', 'Spell crit', 'Spell hit', 'Casting speed', 'Intellect', 'Mana', 'Mana per 5 s']) {
+  for (const label of ['Spell damage', ...(arcane ? ['Arcane damage'] : []), 'Spell crit', 'Spell hit', 'Casting speed', 'Intellect', 'Mana', 'Mana per 5 s']) {
     await expect(results.getByText(label, { exact: true })).toBeVisible()
   }
   await expect(results.getByText('Attack power', { exact: true })).toHaveCount(0)
@@ -132,9 +136,14 @@ test.describe('Balance druid', () => {
 
   test('a run: Starfire, Wrath, the DoTs, the mana ledger and spell damage by school', async ({ page }) => {
     await switchToBalance(page)
+    // A Night Elf, whose default wears Tome of Arcane Domination (Arcane spell damage) in the off hand.
+    await openTab(page, 'Character')
+    await page.getByRole('radio', { name: /Night Elf/ }).click()
+    await openTab(page, 'Gear')
+    await expect(page.getByRole('button', { name: /^Off hand: Tome of Arcane Domination/ })).toBeVisible()
     const results = page.getByRole('complementary', { name: 'Results' })
     await simulate(results)
-    await expectResult(results)
+    await expectResult(results, { arcane: true })
     // Clearcasting waits for a Starfire, Moonfire or Insect Swarm, not a Wrath: the next ability it makes free (BD1).
     await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
     const clearcasting = results.getByRole('table').getByRole('row', { name: /^Clearcasting \d+\.\d a fight, each spent by the next ability it makes free \d+\.\d% none$/ })

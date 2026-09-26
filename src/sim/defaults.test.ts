@@ -4,9 +4,9 @@ import type { Item, ItemData } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
 import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
-import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, INTERIM_GEAR, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
+import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, defaultOffHand, INTERIM_GEAR, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
 import { armorReduction } from './core/formulas'
-import { canUse, fitsFaction, uniqueConflicts } from './equip'
+import { canUse, fitsFaction, isTwoHand, uniqueConflicts } from './equip'
 import { ITEM_EFFECTS } from './effects/items'
 import { buildPlan } from './plan/build'
 import { FOREVER } from './rules/profiles'
@@ -112,13 +112,52 @@ describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
     }
   })
 
+  it('puts the off hand beside the default main hand by one rule: none beside a two-hander (gate step 6)', () => {
+    for (const spec of SPEC_IDS) {
+      const classId = SPEC_META[spec].classId
+      for (const race of races.filter((r) => r.classes.forever.includes(classId)).map((r) => r.id)) {
+        const gear = defaultConfig(spec, race).gear
+        const main = gear.mainHand && items.get(gear.mainHand.itemId)
+        expect(defaultOffHand(spec, race, main), `${spec} ${race}`).toEqual(gear.offHand)
+        if (main && isTwoHand(main)) expect(gear.offHand, `${spec} ${race}`).toBeUndefined()
+      }
+    }
+    // Beside a one-hander, a Troll caster's off hand is the Alliance caster's: Whiteout Staff's
+    // empty off hand belongs to the staff, not to the race (EV2-1).
+    expect(defaultOffHand('mage-fire', 'horde-troll', items.get(13964))).toEqual(defaultConfig('mage-fire', 'alliance-human').gear.offHand)
+    expect(defaultOffHand('mage-fire', 'horde-troll', items.get(19101))).toBeUndefined()
+  })
+
+  it('gives every Horde caster Whiteout Staff and every Alliance caster Sageclaw and an off hand (EL-2, D29)', () => {
+    // docs/data/items.md#equipping-rules: the Alterac Valley staves carry no side in the client; each
+    // side's Supply Officer sells its own at Revered. Whiteout Staff beats the main hand and off hand for
+    // every Horde default (paired runs); the Alliance's Crackling Staff (+25 in Forever) doesn't.
+    expect([fitsFaction('horde-orc', items.get(19101)!), fitsFaction('alliance-human', items.get(19101)!)]).toEqual([true, false])
+    expect([fitsFaction('horde-orc', items.get(19102)!), fitsFaction('alliance-human', items.get(19102)!)]).toEqual([false, true])
+    expect(items.get(19102)!.preRaidBis).toEqual([])
+    const casters = ['druid-balance', 'shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'priest-shadow'] as const
+    for (const spec of casters) {
+      const classId = SPEC_META[spec].classId
+      const races = (raceJson as unknown as RaceData).races.filter((r) => r.classes.forever.includes(classId)).map((r) => r.id)
+      for (const race of races) {
+        const gear = defaultConfig(spec, race).gear
+        if (fitsFaction(race, items.get(19101)!)) expect([gear.mainHand?.itemId, gear.offHand], `${spec} ${race}`).toEqual([19101, undefined])
+        else {
+          expect(gear.mainHand?.itemId, `${spec} ${race}`).toBe(20070)
+          expect(gear.offHand?.itemId, `${spec} ${race}`).toBeDefined()
+        }
+      }
+    }
+  })
+
   it('gives each warlock its sim-ranked list’s twins, and Affliction its Shadow picks', () => {
-    // docs/classes/warlock.md#73-gear: each spec's own list, with the Arathi Basin main hand and the
-    // Rank 10 Dreadweave cowl and spaulders by faction; the Fire tome ranks second in Destruction's off hand.
+    // docs/classes/warlock.md#73-gear: each spec's own list, with the Rank 10 Dreadweave cowl and
+    // spaulders by faction; a Horde warlock wears Whiteout Staff (Horde only, EL-2) and an Alliance one
+    // the Arathi Basin main hand and off hand; the Fire tome ranks second in Destruction's off hand.
     const slots: GearSlot[] = ['head', 'shoulder', 'mainHand', 'offHand']
     for (const spec of ['warlock-destruction', 'warlock-demonology'] as const) {
-      expect(ids(spec, 'horde-orc', slots)).toEqual([23255, 23256, 20214, 19315])
-      expect(ids(spec, 'horde-undead', slots)).toEqual([23255, 23256, 20214, 19315])
+      expect(ids(spec, 'horde-orc', slots)).toEqual([23255, 23256, 19101, undefined])
+      expect(ids(spec, 'horde-undead', slots)).toEqual([23255, 23256, 19101, undefined])
       expect(ids(spec, 'alliance-human', slots)).toEqual([23310, 23311, 20070, 19315])
       expect(ids(spec, 'alliance-gnome', slots)).toEqual([23310, 23311, 20070, 19315])
     }
@@ -127,13 +166,15 @@ describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
     // Affliction, a Shadow build, keeps the Shadow items where they lead: Felcloth Gloves, Tome of
     // Shadow Force, Skul's Ghastly Touch.
     const aff: GearSlot[] = [...slots, 'hands', 'ranged']
-    expect(ids('warlock-affliction', 'horde-orc', aff)).toEqual([23255, 23256, 20214, 19309, 18407, 13396])
+    expect(ids('warlock-affliction', 'horde-orc', aff)).toEqual([23255, 23256, 19101, undefined, 18407, 13396])
     expect(ids('warlock-affliction', 'alliance-human', aff)).toEqual([23310, 23311, 20070, 19309, 18407, 13396])
-    // Ironbark Staff leads every warlock's two-handers: the League of Arathor's for the Alliance, and its
-    // faction twin from the client, The Defilers' (20220), for the Horde (DV2-1; docs/data/items.md#faction-twins).
-    // So do the Fire mage's and the Elemental shaman's.
-    for (const spec of ['warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'mage-fire', 'shaman-elemental'] as const)
-      for (const id of [20069, 20220]) expect(items.get(id)!.preRaidBis.filter((p) => p.spec === spec), `${spec} ${id}`).toEqual([{ spec, slot: 'twoHand', rank: 1 }])
+    // Ironbark Staff follows Whiteout Staff (Horde only, EL-2) in every warlock's two-handers: the League
+    // of Arathor's for the Alliance, and its faction twin from the client, The Defilers' (20220), for the
+    // Horde (DV2-1; docs/data/items.md#faction-twins). So do the Fire mage's and the Elemental shaman's.
+    for (const spec of ['warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'mage-fire', 'shaman-elemental'] as const) {
+      for (const id of [20069, 20220]) expect(items.get(id)!.preRaidBis.filter((p) => p.spec === spec), `${spec} ${id}`).toEqual([{ spec, slot: 'twoHand', rank: 2 }])
+      expect(items.get(19101)!.preRaidBis.filter((p) => p.spec === spec), spec).toEqual([{ spec, slot: 'twoHand', rank: 1 }])
+    }
     expect([fitsFaction('alliance-human', items.get(20069)!), fitsFaction('horde-orc', items.get(20069)!)]).toEqual([true, false])
     expect([fitsFaction('alliance-human', items.get(20220)!), fitsFaction('horde-orc', items.get(20220)!)]).toEqual([false, true])
     // Draconic Infused Emblem's proc, modelled (DV2-4), leads every warlock's trinkets, with the Royal Seal.

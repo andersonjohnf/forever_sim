@@ -38,6 +38,7 @@ export const ASSUMPTION_GROUP = {
   noWeaponSomeUsed: 'gear',
   weaponlessAttacks: 'gear',
   classicItems: 'gear',
+  classicCasterWeaponStats: 'gear',
   unmodelledProcs: 'gear',
   unmodelledSetBonuses: 'gear',
   onUseConsumables: 'gear',
@@ -151,7 +152,7 @@ export const ASSUMPTION_GROUP = {
   warlockTalentStacking: 'class',
   // The Demonology warlock's (docs/classes/warlock.md §11.7): the demon's placeholders first.
   demonStats: 'class',
-  improvedImpCast: 'class',
+  improvedImpHidden: 'class',
   // Only with the talent and Searing Pain's row, where it's about a tenth of the damage (§11.3).
   demonicBrand: 'class',
   demonTable: 'combat',
@@ -215,6 +216,7 @@ export const ASSUMPTION_GROUP = {
   windfuryWeaponTotem: 'class',
   shamanFlurry: 'class',
   stormstrikeBoost: 'class',
+  earthShockThreat: 'class',
   lightningBoltCast: 'class',
   shamanSpellDamage: 'class',
   shamanTotems: 'class',

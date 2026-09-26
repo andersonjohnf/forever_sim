@@ -79,7 +79,7 @@ describe('the Demonology warlock’s priority list (D31)', () => {
     const none = demonologyRotation({}, TALENTS, noAura, CONTEXT)
     expect(demonologyRotation({}, TALENTS, noAura, CONTEXT, DEFAULT)).toEqual(none)
     // The racial, Power Infusion and the potion with it, the curse, Immolate, Corruption, Doom then
-    // Agony, Soul Fire below 35%, Life Tap at 10%, Shadow Bolt, and Life Tap after the list.
+    // Agony, Life Tap at 10%, Shadow Bolt, and Life Tap after the list (Soul Fire is off by default).
     expect(ids(none)).toEqual([
       'bloodFury',
       'powerInfusion',
@@ -89,20 +89,20 @@ describe('the Demonology warlock’s priority list (D31)', () => {
       'corruption',
       'baneOfDoom',
       'baneOfAgony',
-      'soulFire',
       'lifeTap',
       'shadowBolt',
       'lifeTap',
     ])
-    expect(none.pet?.id).toBe('imp')
+    expect(none.pet?.id).toBe('succubus')
   })
 
   it('builds the list in the stored order, each row keeping its own conditions', () => {
-    const none = demonologyRotation({}, TALENTS, noAura, CONTEXT)
+    const soulFire = { [ID.soulFire]: true }
+    const none = demonologyRotation(soulFire, TALENTS, noAura, CONTEXT)
     // Soul Fire first on the global cooldown, and Immolate below the Bane.
     let order = moved('soulFire', 'curse')
     order = moved('immolate', 'lifeTap', order)
-    const r = demonologyRotation({}, TALENTS, noAura, CONTEXT, order)
+    const r = demonologyRotation(soulFire, TALENTS, noAura, CONTEXT, order)
     expect(ids(r)).toEqual([
       'bloodFury',
       'powerInfusion',

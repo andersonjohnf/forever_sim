@@ -33,6 +33,8 @@ describe('golden run (fixed config and seed)', () => {
   //   556.16 → 539.17 DPS.
   // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values):
   //   Lightning Bolt r10 + 4 (189.38–210.62). 539.17 → 539.12 DPS.
+  // - Earth Shock's threat is 2 × its damage [?] (shaman.md open question 8; Classic Era's threat tools' value):
+  //   TPS 383.20 → 423.53; DPS unchanged.
   it('keeps the default Enhancement shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-enhancement'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

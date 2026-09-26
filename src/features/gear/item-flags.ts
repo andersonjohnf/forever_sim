@@ -37,6 +37,31 @@ export function effectsLine(item: Item): string {
   return [...item.procs, ...item.otherEquip, ...item.useEffects].map((e) => e.raw).join(' ')
 }
 
+/** A stat's name as the flag says it: "spell power". */
+const CLASSIC_STAT_NAME: Record<string, string> = { spellPower: 'spell power' }
+
+/**
+ * Which of the item's numbers are Classic Era's (docs/ux.md "Gear"): the whole item's, for one the
+ * Forever client has no data for yet (decision D6); or, for a Forever item, the stats it took from its
+ * Classic Era item because no Forever tooltip of it is on record (`classicStats`: Mindfang's and
+ * Sageclaw's spell power, docs/data/client.md#weapon-damage), by name; or null for neither. Both show
+ * the same clock badge.
+ */
+export function classicFlag(item: Item): { kind: 'item' } | { kind: 'stats'; stats: string } | null {
+  if (!item.foreverData) return { kind: 'item' }
+  const stats = item.classicStats ?? []
+  if (stats.length === 0) return null
+  const names = stats.map((s) => CLASSIC_STAT_NAME[s] ?? s)
+  return { kind: 'stats', stats: names.length <= 1 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` }
+}
+
+/** The screen reader's words for the item's Classic flag, or null for none. */
+function classicDescription(item: Item): string | null {
+  const flag = classicFlag(item)
+  if (!flag) return null
+  return flag.kind === 'item' ? 'Classic stats: no Forever data yet' : `Classic stats: its ${flag.stats} is Classic Era’s, with no Forever tooltip on record yet`
+}
+
 /**
  * What a screen reader hears for an item after its name: its details, stats, BiS rank and flags.
  * The row's button carries it (docs/ux.md "Gear"), since the visible text sits outside the button.
@@ -49,7 +74,7 @@ export function itemDescription(
     meta,
     statsLine(item),
     bis ? (bis === 1 ? 'Best in slot' : `Best in slot, choice ${bis}`) : null,
-    item.foreverData ? null : 'Classic stats: no Forever data yet',
+    classicDescription(item),
     unsimulatedEffects(item, spec).length ? 'Has an effect the sim doesn’t simulate' : null,
     note,
   ]

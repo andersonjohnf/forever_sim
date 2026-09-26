@@ -149,7 +149,7 @@ describe('a race change', () => {
     expect(change.kept).toEqual([])
     expect(change.defaulted.map((d) => d.slot)).toEqual(['shoulder', 'chest', 'legs', 'feet'])
     expect(raceChangeMessage(change, 'Horde')).toEqual({
-      title: 'Swapped 4 items for Horde gear',
+      title: 'Changed 4 slots for Horde gear',
       description: 'Premier Scaled Shoulders, Plate of the Shaman King, Premier Scaled Leggings and Premier Scaled Sabatons, from the Horde threat set.',
     })
     expect(changeRace(change.config, 'alliance-human').config.gear).toEqual(human.gear)

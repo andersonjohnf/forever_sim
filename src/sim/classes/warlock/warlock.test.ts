@@ -318,15 +318,16 @@ describe('the engine’s warlock pieces (warlock.md §8)', () => {
 describe('the warlocks’ sim-ranked gear (warlock.md §7.3)', () => {
   // Paired runs (same seed, same fights) of a default setup with its gear swapped.
   const dpsWith = (gear: Partial<SimConfig['gear']>) => {
+    // The main hand and off hand an Alliance warlock wears (a Horde one wears Whiteout Staff, EL-2).
     const d = fixed('warlock-destruction')
-    const bundle = buildPlan({ ...d, gear: { ...d.gear, ...gear } })
+    const bundle = buildPlan({ ...d, gear: { ...d.gear, mainHand: { itemId: 20214, enchantId: 'weaponSpellPower' }, offHand: { itemId: 19315 }, ...gear } })
     return toResult(bundle, runFights(bundle.plan, 300), 0).dps.mean
   }
 
   it('keeps Therazane’s Touch (+31 to every school) over Tome of Fiery Arcana (+40 Fire)', () => {
     // The default Fire build still casts Shadowburn, Corruption and Bane of Doom, so +1 Fire is worth
     // about 70% of +1 to every school: the Tome ranks second (about −1.6 DPS).
-    expect(defaultConfig('warlock-destruction').gear.offHand?.itemId).toBe(19315)
+    expect(defaultConfig('warlock-destruction', 'alliance-human').gear.offHand?.itemId).toBe(19315)
     const tome = dpsWith({ offHand: { itemId: 19311 } })
     const base = dpsWith({})
     expect(base).toBeGreaterThan(tome)
@@ -358,14 +359,15 @@ describe('the warlocks’ sim-ranked gear (warlock.md §7.3)', () => {
     offHand: { itemId: 19315 },
   }
 
-  // Each spec's own list beats the guide's by about a quarter or more (Destruction +31%, Affliction
-  // +25%, Demonology +24% over 20,000 fights; §7.3).
+  // Each spec's own list beats the guide's by about a fifth or more (Destruction +31%, Affliction
+  // +25%, Demonology +24% over 20,000 fights with Mindfang's former +94 spell power, §7.3; Demonology's
+  // Succubus build, the default since Q19's reading went, about +20% here with Mindfang's +30).
   it.each(['warlock-destruction', 'warlock-affliction', 'warlock-demonology'] as const)('%s: its own list beats the guide’s shared Shadow list it replaced', (spec) => {
     const run = (gear: SimConfig['gear']) => {
       const bundle = buildPlan({ ...fixed(spec), gear })
       return toResult(bundle, runFights(bundle.plan, 300), 0).dps.mean
     }
-    expect(run(defaultConfig(spec).gear) / run(GUIDE)).toBeGreaterThan(1.2)
+    expect(run(defaultConfig(spec).gear) / run(GUIDE)).toBeGreaterThan(1.15)
   })
 })
 
@@ -395,6 +397,11 @@ describe('golden runs (fixed config and seed)', () => {
   //   597.86 → 590.44, Affliction 514.05 → 502.87 DPS.
   // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values):
   //   Shadowburn r6 + 7 (258.47–287.53). Destruction 590.44 → 590.43 DPS.
+  // - Epic caster weapons take their Classic Era item's spell power (docs/data/client.md#weapon-damage):
+  //   Mindfang +30, not the Rare rule's extrapolated +94. Destruction 590.43 → 551.24,
+  //   Affliction 502.87 → 468.39 DPS.
+  // - EL-2: a Horde caster wears Whiteout Staff (+74 spell power, Frostwolf Clan Revered), which the sim
+  //   ranks above Mindfang and the off hand (docs/data/items.md#pre-raid-bis-lists): Destruction 551.24 → 558.46, Affliction 468.39 → 472.01 DPS.
   for (const spec of ['warlock-destruction', 'warlock-affliction'] as const) {
     it(`keeps the default ${spec}’s result unchanged`, () => {
       const bundle = buildPlan({ ...defaultConfig(spec), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

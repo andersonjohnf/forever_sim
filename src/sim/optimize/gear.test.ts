@@ -102,6 +102,8 @@ describe('the pool a slot takes', () => {
     expect(itemSource(item(23287))).toBe('pvp')
     expect(itemSource(item(271908))).toBe('reputation')
     expect(itemSource(item(12640))).toBe('other')
+    // The Alterac Valley staves, placed by id (equip.ts ITEM_FACTION): battleground rewards (EL-2).
+    expect([itemSource(item(19101)), itemSource(item(19102))]).toEqual(['pvp', 'pvp'])
   })
 
   it('keeps a shield tank on a one-hander and a shield', () => {

@@ -128,7 +128,7 @@ export function WideSlot({
   return (
     <li className={cn('relative min-w-0', !locked && 'hover:bg-muted/60', place.className)}>
       {button}
-      <div className={cn('flex h-full min-w-0 items-center gap-3 px-3', mirrored && 'flex-row-reverse', locked && 'opacity-60')}>
+      <div className={cn('flex h-full min-w-0 items-center gap-3 px-3', mirrored && 'flex-row-reverse')}>
         {/* With an enchant line, the icon sits beside the name and the line hangs under the text, with
             10 px under it for the chip's and flags' hit areas, 14 px past their 16 px line. */}
         <div

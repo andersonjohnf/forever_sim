@@ -248,8 +248,17 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     notice says so. A slot still holding the spec's default takes the new race's default instead
     ([architecture, "Following the defaults"](architecture.md#following-the-defaults)), so an
     untouched set stays the default set: a Horde paladin gets the Horde threat set's own pieces,
-    and the notice says where they're from ("Swapped 4 items for Horde gear": "Premier Scaled
-    Shoulders, …, from the Horde threat set.").
+    and the notice says where they're from ("Changed 4 slots for Horde gear": "Premier Scaled
+    Shoulders, …, from the Horde threat set."). A default slot that was empty and now isn't is named
+    the same way, and one the new default leaves empty says why. The title is always "Changed N
+    slots for {faction} gear" and counts every slot that was filled, replaced or cleared (review
+    finding EV2-2: "Swapped" read wrong for a slot that was only filled): a Human Fire mage turned
+    Troll reads "Changed 4 slots for Horde gear", ending "Whiteout Staff, from Horde pre-raid best
+    in slot. Off hand cleared: Whiteout Staff takes both hands.", and back to Human "Changed 4
+    slots for Alliance gear" names the off hand's Tome of Fiery Arcana with Sageclaw. An off hand
+    that follows the default goes by the main hand actually worn ([Gear](#sections), "The off hand
+    follows the main hand"), so a player's own one-hander keeps an off hand across the change: a
+    Human Fire mage with their own Witchblade turned Troll keeps Witchblade and the Tome.
   - Advanced: the rule profile (`Forever`, the default, or `Classic Era`) and the switch for
     unmeasured ratings
     ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
@@ -353,6 +362,21 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     pre-raid best in slot"), or for a tank, whose default is the sim's measured threat set rather
     than a guide's list (D29, D30), "Starts as the Protection Paladin threat set: pre-raid items
     measured for threat, keeping an effective-health floor".
+  - **The off hand follows the main hand,** by one rule (gate step 6, review finding EV2-1): the
+    default off hand is none beside a two-hander and, beside a one-hander, the default's or the
+    player's own, the spec's pre-raid best-in-slot off hand for the race
+    (`defaultOffHand` in `src/sim/defaults.ts`). A Horde caster's default wears Whiteout Staff with
+    an empty off hand, but that empty hand belongs to the staff, not to the race, so a race change
+    or a newer default never empties an off hand beside a one-hander. What was cut: the default
+    off hand used to be stored per race with the default set, so the Horde's empty one followed a
+    player's own one-hander (a Human Fire mage with Witchblade turned Troll lost the Tome), and
+    `followDefaults` carried its own branch for an off hand beside the player's two-hander. The
+    list of two-handers ranked over a main hand and off hand (`twoHandersOverPair`) now only
+    chooses the default main hand and the main-hand picker's order. An empty off hand beside a
+    one-hander stays empty: an off hand follows only while it holds the default beside the main hand
+    worn, so one a two-hander emptied becomes the player's when they pick a one-hander, and nothing
+    fills it until they choose one (review EV3-1; filling it from the picker would be a design change).
+    An own one-hander that already has the default's off hand beside it keeps it across a race change.
   - Under it, a bordered row puts the default set back in one tap: a 44 px **Equip pre-raid best in
     slot** button, or **Equip the threat set** for a tank, beside a line on how the gear compares.
     While any slot's item or enchant differs from the default for the spec and race, the line
@@ -389,7 +413,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     desktop. It has a search box (name, type or stat) with a clear button, filter chips
     (**Best in slot** for this spec, or **All items** the class can use), and a sort menu: BiS
     rank (the default where the slot has BiS items), item level or name (sim value, once stat
-    weights exist). Each row's second line says what the item is and its levels, e.g.
+    weights exist). Where a main hand and a two-hander share a rank, the one the sim wears comes
+    first: a Horde caster's Whiteout Staff, which the sim ranks above Mindfang and an off hand
+    (review finding EU-4). Each row's second line says what the item is and its levels, e.g.
     "Two-hand sword · Item level 63 · Requires level 58"; on a phone it wraps between those
     parts. The client data has no drop sources (its Encounter Journal is empty), so the picker
     shows none.
@@ -440,7 +466,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       line, never over the stats above (review finding DU1-5). A slot with no enchant to choose has no
       chip; with no chip and no flag, the item's name and stats are centred in the row. An empty slot
       shows its faded icon, name and "Empty", and an off hand beside a two-hander "Your two-hander
-      uses both hands".
+      uses both hands" (below 1440 px, "Your two-handed weapon uses both hands"). The locked slot is
+      dimmed by colour, never opacity: muted text and the grey icon, so its reason stays AA in both
+      themes (review finding EU-3).
     - The **flags** follow the item: on the enchant line after the chip where the row has one (a
       ranged weapon beside the main and off hand too), otherwise after the name and stats; mirrored
       on the right side. A clock-and-arrow is **Classic stats** and a crossed-out flask **Effect not
@@ -508,7 +536,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       ([hunter.md §7.3](classes/hunter.md#73-gear)); screen readers hear what was swapped in.
   - Badges, on slot rows and picker rows alike:
     - the BiS rank;
-    - **Classic stats** for items with no Forever data yet;
+    - **Classic stats** for items with no Forever data yet, and for a Forever item with a stat no
+      Forever tooltip on record gives, so the sim takes Classic Era's (Mindfang's and Sageclaw's
+      spell power, [client.md](data/client.md#weapon-damage)). The same clock badge, with its own
+      popover: "Its spell power is Classic Era's: no one has recorded its Forever tooltip yet…";
+      the result's assumptions name those weapons too;
     - **Effect not simulated** for items with an equip, chance-on-hit or use effect the sim
       leaves out (Blackblade of Shahram's summon), the same items the result's assumptions
       list. An effect that names only another spec's abilities isn't one: Idol of Brutality's

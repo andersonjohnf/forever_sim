@@ -11,7 +11,7 @@ import { matchSupplies } from '../defaults'
 import { ENCHANTS, type EnchantSpec } from '../effects/enchants'
 import { ITEM_EFFECTS } from '../effects/items'
 import { catalogueEffects, type FlatStat } from '../effects/types'
-import { canUse, fitsFaction, fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
+import { BATTLEGROUND_ITEM_IDS, canUse, fitsFaction, fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
 import { type ContentOf, itemContent } from './content'
 import { gearKey } from './optimize'
 import { PROFILES, type RulesProfile } from '../rules/profiles'
@@ -48,7 +48,7 @@ export function itemSource(item: Item): GearSource {
   if (reputation) return reputation.faction && BATTLEGROUND_REPUTATIONS.has(reputation.faction) ? 'pvp' : 'reputation'
   if (item.requirements.some((r) => r.kind === 'skill')) return 'profession'
   // A Forever-new item with a battleground's name has no twin to go by (equip.ts): only Classic Era's count.
-  if (item.tab !== 'new' && BATTLEGROUND_NAME.test(item.name)) return 'pvp'
+  if (item.tab !== 'new' && (BATTLEGROUND_NAME.test(item.name) || BATTLEGROUND_ITEM_IDS.has(item.id))) return 'pvp'
   return 'other'
 }
 

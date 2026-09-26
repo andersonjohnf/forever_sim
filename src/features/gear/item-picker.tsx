@@ -15,7 +15,7 @@ import { useIsDesktop, useMediaQuery } from '@/hooks/use-media-query'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { itemData, summarizeItem } from '@/lib/items'
 import { cn } from '@/lib/utils'
-import { fitsFaction, fitsSlot, isTwoHand, SPEC_META, uniqueConflicts, type GearSlot, type SpecId, type UniqueConflict } from '@/sim'
+import { fitsFaction, fitsSlot, isTwoHand, SPEC_META, twoHandersOverPair, uniqueConflicts, type GearSlot, type SpecId, type UniqueConflict } from '@/sim'
 import { itemDescription } from './item-flags'
 import { ItemSummary } from './item-row'
 import { ItemTooltip, ItemTooltipInfoButton, ItemTooltipTrigger } from './item-tooltip'
@@ -120,13 +120,17 @@ const SORTS: { value: Sort; label: string }[] = [
   { value: 'name', label: 'Name' },
 ]
 
-/** `unused`: why the item does nothing here (ammo the ranged weapon doesn't fire); it sorts last. */
-type Candidate = { item: Item; bis: number | null; text: string; unused: string | null }
+/**
+ * `unused`: why the item does nothing here (ammo the ranged weapon doesn't fire); it sorts last.
+ * `leads`: a two-hander the sim ranks above the main hand and off hand (`twoHandersOverPair`, a Horde
+ * caster's Whiteout Staff), first among its BiS rank.
+ */
+type Candidate = { item: Item; bis: number | null; text: string; unused: string | null; leads: boolean }
 
 const byName = (a: Candidate, b: Candidate) => a.item.name.localeCompare(b.item.name)
 const byItemLevel = (a: Candidate, b: Candidate) => b.item.itemLevel - a.item.itemLevel || byName(a, b)
 const COMPARE: Record<Sort, (a: Candidate, b: Candidate) => number> = {
-  bis: (a, b) => (a.bis ?? 99) - (b.bis ?? 99) || byItemLevel(a, b),
+  bis: (a, b) => (a.bis ?? 99) - (b.bis ?? 99) || Number(b.leads) - Number(a.leads) || byItemLevel(a, b),
   itemLevel: byItemLevel,
   name: byName,
 }
@@ -147,8 +151,9 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
     return (Object.entries(worn) as [GearSlot, Item | undefined][]).flatMap(([at, item]) => (item && !(at === 'offHand' && twoHanded) ? [item.id] : []))
   }, [worn])
   const hovers = useMediaQuery('(hover: hover) and (pointer: fine)')
-  const candidates = useMemo(
-    () =>
+  const candidates = useMemo(() => {
+    const overPair = slot === 'mainHand' ? twoHandersOverPair(spec) : []
+    return (
       itemData.items
         // The equipped item stays listed even if it's the other faction's (the race changed since).
         .filter((item) => fitsSlot(classId, slot, item) && (fitsFaction(race, item) || item.id === equippedId))
@@ -157,9 +162,10 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
           bis: bisRank(item, spec, slot),
           text: `${item.name} ${itemKind(item) ?? ''} ${summarizeItem(item)}`.toLowerCase(),
           unused: ammoNote(item, worn.ranged),
-        })),
-    [classId, slot, spec, race, equippedId, worn.ranged],
-  )
+          leads: overPair.includes(item.id) && fitsFaction(race, item),
+        }))
+    )
+  }, [classId, slot, spec, race, equippedId, worn.ranged])
   const hasBis = candidates.some((c) => c.bis)
   const [filter, setFilter] = useState<Filter>(hasBis ? 'bis' : 'all')
   const [sort, setSort] = useState<Sort>(hasBis ? 'bis' : 'itemLevel')

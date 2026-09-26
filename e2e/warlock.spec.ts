@@ -78,10 +78,9 @@ test.describe('Destruction warlock', () => {
     await openTab(page, 'Character')
     await expect(page.getByRole('radio', { name: /Orc/ })).toHaveAttribute('aria-checked', 'true')
     await openTab(page, 'Gear')
-    // Its own sim-ranked list (warlock.md §7.3): Mindfang for a Horde warlock, Therazane's Touch over
-    // the Fire tome.
-    await expect(page.getByRole('button', { name: /^Main hand: Mindfang$/ })).toBeVisible()
-    await expect(page.getByRole('button', { name: /^Off hand: Therazane's Touch$/ })).toBeVisible()
+    // Its own sim-ranked list (warlock.md §7.3): Whiteout Staff for a Horde warlock (EL-2), so no off hand.
+    await expect(page.getByRole('button', { name: /^Main hand: Whiteout Staff$/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Off hand: Therazane's Touch$/ })).toHaveCount(0)
     const talents = await openTab(page, 'Talents')
     const presets = talents.getByRole('combobox', { name: 'Talent build presets' })
     await expect(presets).toHaveText('Destruction (default)')

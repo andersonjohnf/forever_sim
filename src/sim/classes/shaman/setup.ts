@@ -76,6 +76,8 @@ export function shamanAssumptions(plan: Plan): AssumptionId[] {
   if (procs.has('maelstromWeapon')) ids.push('maelstromWeapon')
   if (procs.has('shamanFlurry')) ids.push('shamanFlurry')
   if (abilities.has('stormstrike') && (abilities.has('earthShock') || abilities.has('lightningBolt'))) ids.push('stormstrikeBoost')
+  // shaman.md#shocks-and-lightning-bolt (open question 8): Earth Shock's ×2 threat, while the rotation casts it.
+  if (abilities.has('earthShock')) ids.push('earthShockThreat')
   // A Lightning Bolt with a cast time: one its line's Maelstrom Weapon stacks don't make instant.
   const boltIndex = plan.abilities.findIndex((a) => a.id === 'lightningBolt')
   const bolt = plan.abilities[boltIndex]
@@ -99,6 +101,7 @@ function elementalAssumptions(plan: Plan): AssumptionId[] {
   if ([...procs].some((id) => id.startsWith('lightningOverload'))) ids.push('lightningOverload')
   if (abilities.has('manaTideTotem')) ids.push('manaTideTotem')
   if (abilities.has('lightningBoltRank4')) ids.push('lightningBoltDownrank')
+  if (abilities.has('earthShock')) ids.push('earthShockThreat')
   ids.push('elementalTotems')
   return ids
 }

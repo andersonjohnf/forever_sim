@@ -1573,7 +1573,7 @@
         "archivedUrl": "https://web.archive.org/web/20210516224841/https://classic.wowhead.com/guides/balance-druid-dps-gear-bis-classic-wow",
         "snapshot": "2021-05-16"
       },
-      "note": "Wowhead had no stand-alone Classic Balance pre-raid guide before Season of Mastery (its balance-druid-dps-pre-raid-best-in-slot-bis-gear-wow-classic page is first archived in December 2021), so this list is the 'Pre-Raid Best in Slot Gear for Balance Druids - Phase 6' section of its Balance BiS gear guide (last modified 2021-05-15). The guide marks two items Best in the waist, ring and trinket rows; they keep the guide's order as ranks 1 and 2, except the trinkets, re-ranked by the sim among the list's own items now that Draconic Infused Emblem's proc is modelled (GV-3, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Draconic Infused Emblem (+16.1 over Eye of the Beast, +11.4 over Briarwood Reed), Briarwood Reed, Eye of the Beast (its use counts as zero, a known gap). It lists only three trinkets, two belts, two cloaks, two gloves, two legs and two boots, and no idol, so there is no relic row. Its one Weapon table lists the main-hand pair first, then the Rod of the Ogre Magi (Two-Hand), then Witchblade; each slot numbers its own items from 1, and the default takes the main hand and off-hand. The guide names both Arathi Basin exalted daggers, Sageclaw (League of Arathor, Alliance) and Mindfang (The Defilers, Horde); the list names Mindfang, and its faction twin Sageclaw takes the same rank (docs/data/items.md#faction-twins). It links no PvP rank items and no raid drops. Random-suffix items are listed by their base id, and the pool has only the base row's stats (no suffix). One whose base row has no spell stats is left out like a raid drop, and the entries below it move up: Eternal Crown (head), Eternal Spaulders (shoulder), Archivist Cape (back), Flameweave Cuffs (wrist), Slaghide Gauntlets (hands) and Adventurer's Belt (waist), all of Arcane Wrath in the guide. Abyssal Cloth Amice (of Sorcery) keeps its rank on its base row's spell hit, without the suffix. Diana's Pearl Necklace (22403) carries the client's name, Nacreous Shell Necklace. The Bloodvine set is crafted, but its Tailoring patterns need Zandalar Tribe reputation and its Bloodvine reagent comes from Zul'Gurub.",
+      "note": "Wowhead had no stand-alone Classic Balance pre-raid guide before Season of Mastery (its balance-druid-dps-pre-raid-best-in-slot-bis-gear-wow-classic page is first archived in December 2021), so this list is the 'Pre-Raid Best in Slot Gear for Balance Druids - Phase 6' section of its Balance BiS gear guide (last modified 2021-05-15). The guide marks two items Best in the waist, ring and trinket rows; they keep the guide's order as ranks 1 and 2, except the trinkets, re-ranked by the sim among the list's own items now that Draconic Infused Emblem's proc is modelled (GV-3, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Draconic Infused Emblem (+16.1 over Eye of the Beast, +11.4 over Briarwood Reed), Briarwood Reed, Eye of the Beast (its use counts as zero, a known gap). It lists only three trinkets, two belts, two cloaks, two gloves, two legs and two boots, and no idol, so there is no relic row. Its one Weapon table lists the main-hand pair first, then the Rod of the Ogre Magi (Two-Hand), then Witchblade; each slot numbers its own items from 1, and the default takes the main hand and off-hand, except a Horde character's Whiteout Staff, which the sim ranks above them (its entry). The guide names both Arathi Basin exalted daggers, Sageclaw (League of Arathor, Alliance) and Mindfang (The Defilers, Horde); the list names Mindfang, and its faction twin Sageclaw takes the same rank (docs/data/items.md#faction-twins). It links no PvP rank items and no raid drops. Random-suffix items are listed by their base id, and the pool has only the base row's stats (no suffix). One whose base row has no spell stats is left out like a raid drop, and the entries below it move up: Eternal Crown (head), Eternal Spaulders (shoulder), Archivist Cape (back), Flameweave Cuffs (wrist), Slaghide Gauntlets (hands) and Adventurer's Belt (waist), all of Arcane Wrath in the guide. Abyssal Cloth Amice (of Sorcery) keeps its rank on its base row's spell hit, without the suffix. Diana's Pearl Necklace (22403) carries the client's name, Nacreous Shell Necklace. The Bloodvine set is crafted, but its Tailoring patterns need Zandalar Tribe reputation and its Bloodvine reagent comes from Zul'Gurub.",
       "slots": {
         "head": [
           {
@@ -1785,9 +1785,15 @@
         ],
         "twoHand": [
           {
+            "id": 19101,
+            "name": "Whiteout Staff",
+            "rank": 1,
+            "notes": "Reputation - Frostwolf Clan Revered (Alterac Valley), Horde only: the Frostwolf Supply Officers sell it ([Wowhead Classic](https://www.wowhead.com/classic/item=19101)). Not on the guide: ranked by the sim (D29), it beats the main hand and off hand for the Horde default (Tauren, +12.6 DPS, paired, 10,000 fights), so a Horde character wears it (docs/data/items.md#pre-raid-bis-lists). The Alliance's Crackling Staff (19102, Stormpike Guard Revered) isn't its twin in Forever (+25 spell power against +74) and trails Sageclaw and the off hand by 14 to 22 DPS, so an Alliance character keeps them"
+          },
+          {
             "id": 18534,
             "name": "Rod of the Ogre Magi",
-            "rank": 1,
+            "rank": 2,
             "notes": "Dungeon - Dire Maul North (tribute, Mizzle the Crafty)"
           }
         ]
@@ -2969,21 +2975,27 @@
         ],
         "twoHand": [
           {
+            "id": 19101,
+            "name": "Whiteout Staff",
+            "rank": 1,
+            "notes": "Reputation - Frostwolf Clan Revered (Alterac Valley), Horde only: the Frostwolf Supply Officers sell it ([Wowhead Classic](https://www.wowhead.com/classic/item=19101)). Not on the guide: ranked by the sim (D29), it beats the main hand and off hand for the Horde default (Orc, +6.4 DPS, paired, 10,000 fights), so a Horde character wears it (docs/data/items.md#pre-raid-bis-lists). The Alliance's Crackling Staff (19102, Stormpike Guard Revered) isn't its twin in Forever (+25 spell power against +74) and trails Sageclaw and the off hand by 14 to 22 DPS, so an Alliance character keeps them"
+          },
+          {
             "id": 20069,
             "name": "Ironbark Staff",
-            "rank": 1,
+            "rank": 2,
             "notes": "PvP - Arathi Basin Exalted (League of Arathor); its faction twin, The Defilers' Ironbark Staff (20220), takes its rank"
           },
           {
             "id": 21188,
             "name": "Fist of Cenarius",
-            "rank": 2,
+            "rank": 3,
             "notes": "Quest - Champion's Battlegear"
           },
           {
             "id": 18534,
             "name": "Rod of the Ogre Magi",
-            "rank": 4,
+            "rank": 5,
             "notes": "Dungeon - Dire Maul North (Gordok Tribute)"
           }
         ],
@@ -4297,15 +4309,21 @@
         ],
         "twoHand": [
           {
+            "id": 19101,
+            "name": "Whiteout Staff",
+            "rank": 1,
+            "notes": "Reputation - Frostwolf Clan Revered (Alterac Valley), Horde only: the Frostwolf Supply Officers sell it ([Wowhead Classic](https://www.wowhead.com/classic/item=19101)). Not on the guide: ranked by the sim (D29), it beats the main hand and off hand for the Horde default (Troll, +2.1 DPS, paired, 10,000 fights), so a Horde character wears it (docs/data/items.md#pre-raid-bis-lists). The Alliance's Crackling Staff (19102, Stormpike Guard Revered) isn't its twin in Forever (+25 spell power against +74) and trails Sageclaw and the off hand by 14 to 22 DPS, so an Alliance character keeps them"
+          },
+          {
             "id": 20069,
             "name": "Ironbark Staff",
-            "rank": 1,
+            "rank": 2,
             "notes": "Reputation - League of Arathor Exalted (Arathi Basin); its faction twin, The Defilers' Ironbark Staff (20220), takes its rank"
           },
           {
             "id": 22335,
             "name": "Lord Valthalak's Staff of Command",
-            "rank": 2,
+            "rank": 3,
             "notes": "Dungeon - Upper Blackrock Spire (Lord Valthalak)"
           }
         ],
@@ -4635,15 +4653,21 @@
         ],
         "twoHand": [
           {
+            "id": 19101,
+            "name": "Whiteout Staff",
+            "rank": 1,
+            "notes": "Reputation - Frostwolf Clan Revered (Alterac Valley), Horde only: the Frostwolf Supply Officers sell it ([Wowhead Classic](https://www.wowhead.com/classic/item=19101)). Not on the guide: ranked by the sim (D29), it beats the main hand and off hand for the Horde default (Troll, +3.3 DPS, paired, 10,000 fights), so a Horde character wears it (docs/data/items.md#pre-raid-bis-lists). The Alliance's Crackling Staff (19102, Stormpike Guard Revered) isn't its twin in Forever (+25 spell power against +74) and trails Sageclaw and the off hand by 14 to 22 DPS, so an Alliance character keeps them"
+          },
+          {
             "id": 18534,
             "name": "Rod of the Ogre Magi",
-            "rank": 1,
+            "rank": 2,
             "notes": "Dungeon - Dire Maul North (Gordok Tribute)"
           },
           {
             "id": 873,
             "name": "Staff of Jordan",
-            "rank": 2,
+            "rank": 3,
             "notes": "BoE World Drop"
           }
         ],
@@ -4973,15 +4997,21 @@
         ],
         "twoHand": [
           {
+            "id": 19101,
+            "name": "Whiteout Staff",
+            "rank": 1,
+            "notes": "Reputation - Frostwolf Clan Revered (Alterac Valley), Horde only: the Frostwolf Supply Officers sell it ([Wowhead Classic](https://www.wowhead.com/classic/item=19101)). Not on the guide: ranked by the sim (D29), it beats the main hand and off hand for the Horde default (Troll, +3.1 DPS, paired, 10,000 fights), so a Horde character wears it (docs/data/items.md#pre-raid-bis-lists). The Alliance's Crackling Staff (19102, Stormpike Guard Revered) isn't its twin in Forever (+25 spell power against +74) and trails Sageclaw and the off hand by 14 to 22 DPS, so an Alliance character keeps them"
+          },
+          {
             "id": 18534,
             "name": "Rod of the Ogre Magi",
-            "rank": 1,
+            "rank": 2,
             "notes": "Dungeon - Dire Maul North (Gordok Tribute)"
           },
           {
             "id": 873,
             "name": "Staff of Jordan",
-            "rank": 2,
+            "rank": 3,
             "notes": "BoE World Drop"
           }
         ],
@@ -5331,21 +5361,27 @@
         ],
         "twoHand": [
           {
+            "id": 19101,
+            "name": "Whiteout Staff",
+            "rank": 1,
+            "notes": "Reputation - Frostwolf Clan Revered (Alterac Valley), Horde only: the Frostwolf Supply Officers sell it ([Wowhead Classic](https://www.wowhead.com/classic/item=19101)). Not on the guide: ranked by the sim (D29), it beats the main hand and off hand for the Horde default (Orc, +6.2 DPS, paired, 10,000 fights), so a Horde character wears it (docs/data/items.md#pre-raid-bis-lists). The Alliance's Crackling Staff (19102, Stormpike Guard Revered) isn't its twin in Forever (+25 spell power against +74) and trails Sageclaw and the off hand by 14 to 22 DPS, so an Alliance character keeps them"
+          },
+          {
             "id": 20069,
             "name": "Ironbark Staff",
-            "rank": 1,
+            "rank": 2,
             "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); its faction twin, The Defilers' Ironbark Staff (20220), takes its rank ([wh-items], archived: https://web.archive.org/web/20210601000000/https://classic.wowhead.com/item=20069)"
           },
           {
             "id": 22335,
             "name": "Lord Valthalak's Staff of Command",
-            "rank": 2,
+            "rank": 3,
             "notes": "Dungeon - Upper Blackrock Spire (Lord Valthalak)"
           },
           {
             "id": 18534,
             "name": "Rod of the Ogre Magi",
-            "rank": 3,
+            "rank": 4,
             "notes": "Dungeon - Dire Maul North (tribute, Mizzle the Crafty)"
           }
         ]
@@ -5675,21 +5711,27 @@
         ],
         "twoHand": [
           {
+            "id": 19101,
+            "name": "Whiteout Staff",
+            "rank": 1,
+            "notes": "Reputation - Frostwolf Clan Revered (Alterac Valley), Horde only: the Frostwolf Supply Officers sell it ([Wowhead Classic](https://www.wowhead.com/classic/item=19101)). Not on the guide: ranked by the sim (D29), it beats the main hand and off hand for the Horde default (Orc, +4.2 DPS, paired, 10,000 fights), so a Horde character wears it (docs/data/items.md#pre-raid-bis-lists). The Alliance's Crackling Staff (19102, Stormpike Guard Revered) isn't its twin in Forever (+25 spell power against +74) and trails Sageclaw and the off hand by 14 to 22 DPS, so an Alliance character keeps them"
+          },
+          {
             "id": 20069,
             "name": "Ironbark Staff",
-            "rank": 1,
+            "rank": 2,
             "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); its faction twin, The Defilers' Ironbark Staff (20220), takes its rank ([wh-items], archived: https://web.archive.org/web/20210601000000/https://classic.wowhead.com/item=20069)"
           },
           {
             "id": 22335,
             "name": "Lord Valthalak's Staff of Command",
-            "rank": 2,
+            "rank": 3,
             "notes": "Dungeon - Upper Blackrock Spire (Lord Valthalak)"
           },
           {
             "id": 18534,
             "name": "Rod of the Ogre Magi",
-            "rank": 3,
+            "rank": 4,
             "notes": "Dungeon - Dire Maul North (tribute)"
           }
         ]
@@ -6019,21 +6061,27 @@
         ],
         "twoHand": [
           {
+            "id": 19101,
+            "name": "Whiteout Staff",
+            "rank": 1,
+            "notes": "Reputation - Frostwolf Clan Revered (Alterac Valley), Horde only: the Frostwolf Supply Officers sell it ([Wowhead Classic](https://www.wowhead.com/classic/item=19101)). Not on the guide: ranked by the sim (D29), it beats the main hand and off hand for the Horde default (Orc, +5.6 DPS, paired, 10,000 fights), so a Horde character wears it (docs/data/items.md#pre-raid-bis-lists). The Alliance's Crackling Staff (19102, Stormpike Guard Revered) isn't its twin in Forever (+25 spell power against +74) and trails Sageclaw and the off hand by 14 to 22 DPS, so an Alliance character keeps them"
+          },
+          {
             "id": 20069,
             "name": "Ironbark Staff",
-            "rank": 1,
+            "rank": 2,
             "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); its faction twin, The Defilers' Ironbark Staff (20220), takes its rank ([wh-items], archived: https://web.archive.org/web/20210601000000/https://classic.wowhead.com/item=20069)"
           },
           {
             "id": 22335,
             "name": "Lord Valthalak's Staff of Command",
-            "rank": 2,
+            "rank": 3,
             "notes": "Dungeon - Upper Blackrock Spire (Lord Valthalak)"
           },
           {
             "id": 18534,
             "name": "Rod of the Ogre Magi",
-            "rank": 3,
+            "rank": 4,
             "notes": "Dungeon - Dire Maul North (tribute)"
           }
         ]
@@ -6337,15 +6385,21 @@
         ],
         "twoHand": [
           {
+            "id": 19101,
+            "name": "Whiteout Staff",
+            "rank": 1,
+            "notes": "Reputation - Frostwolf Clan Revered (Alterac Valley), Horde only: the Frostwolf Supply Officers sell it ([Wowhead Classic](https://www.wowhead.com/classic/item=19101)). Not on the guide: ranked by the sim (D29), it beats the main hand and off hand for the Horde default (Troll, +1.2 DPS, paired, 10,000 fights), so a Horde character wears it (docs/data/items.md#pre-raid-bis-lists). The Alliance's Crackling Staff (19102, Stormpike Guard Revered) isn't its twin in Forever (+25 spell power against +74) and trails Sageclaw and the off hand by 14 to 22 DPS, so an Alliance character keeps them"
+          },
+          {
             "id": 18534,
             "name": "Rod of the Ogre Magi",
-            "rank": 1,
+            "rank": 2,
             "notes": "Dungeon - Dire Maul North"
           },
           {
             "id": 873,
             "name": "Staff of Jordan",
-            "rank": 2,
+            "rank": 3,
             "notes": "BoE World Drop"
           }
         ],

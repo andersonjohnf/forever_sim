@@ -33,6 +33,17 @@ review's log under [reviews/](reviews/). The milestones are in [milestones.md](m
   classes' quest rewards out as it leaves out plate or the other faction's PvP gear
   ([items.md, "Class-quest rewards"](data/items.md#class-quest-rewards)), with no reason either. The
   fix would have the empty state name whose reward a match is.
+- **An off hand's following is worked out from what's worn, not its history (the casters' review,
+  pre-existing, low).** An off hand follows the defaults while it holds the default beside the main
+  hand worn ([items.md](data/items.md#pre-raid-bis-lists), `defaultOffHandBeside`), so an empty one
+  beside a two-hander always follows. A Human mage who emptied the off hand on purpose beside
+  Sageclaw, turned Troll (Whiteout Staff, nothing beside it) and back, gets the Tome again beside
+  Sageclaw. The save's `following` would have to remember the off hand as the player's across the
+  staff to keep it empty. Rare: it takes a deliberately empty off hand and two race changes.
+- **A flaky picker test under load (EU-7, pre-existing, low).** `e2e/gear-rules.spec.ts`'s "a worn item
+  of the other faction stays in its slot and the picker…" clicks the `Feet:` slot right after an
+  Escape closes the shoulders picker; it once timed out after 30 s in a parallel run, and passed 3 of 3 with `--repeat-each 3`. Waiting for the picker to close
+  before the next click would pin it.
 - **A flaky spec-switch test (EM-7).** `e2e/results-keyed.spec.ts` "cancels on a spec switch" can see
   the Fury run finish before the switch under heavy load.
 
@@ -275,18 +286,17 @@ slice is worked:
 - **The Demonology warlock's first-pass gaps** (H3, [warlock.md §11.7](classes/warlock.md#117-open-questions);
   [its review](reviews/2026-09-24-demonology.md)):
   - **The demon's spells take your Shadow Vulnerability** (DM2), whose aura 270 is damage taken from
-    you alone: with the Succubus out, Lash of Pain gets +16% (Improved Shadow Bolt 4/5) for about a
-    quarter of the fight, about +0.4 DPS (under 0.1%); the default Imp's Firebolt is Fire and takes
-    none of it. It needs an aura flag for "from the caster only" that pet damage skips, with its test
+    you alone: with the Succubus out (the default since 2026-09-26), Lash of Pain gets +16% (Improved
+    Shadow Bolt 4/5) for about a quarter of the fight, about +0.4 DPS (under 0.1%); the Imp's Firebolt
+    is Fire and takes none of it. It needs an aura flag for "from the caster only" that pet damage skips, with its test
     (DM12's last).
   - **"Voidwalker" touches its button's borders at 390 px** in the Demonic Sacrifice choice (DM9,
     pre-existing, Destruction too): wrap the four choices 2 × 2 at phone width, or pad the button.
-  - **The default Imp build rests on Q19** [?] (DV2, D30): it's the sim's best found build, 6% ahead
-    of the Succubus only through Improved Imp's hidden effect read as Firebolt's cast time. The
-    optimizer (O4) confirms it on a fresh seed, and an in-game Firebolt test settles Q19. Demonic Pact
-    leaves one point free in its tree, which went from Improved Sayaad to Improved Shadow Bolt 4/5
-    (DV2-4, +0.4%); Improved Sayaad's other 2 points still do nothing with the Imp, for O4's talent
-    search.
+  - **The default is the Succubus build since 2026-09-26** (Q19): Improved Imp's hidden value has no
+    effect now, and the Imp build is 4.3% behind. The optimizer (O4) confirms it on a fresh seed; a
+    Firebolt cast-bar test with Improved Imp 0/3 and 3/3 would settle Q19. The default talents put
+    the first tier's points in Demonic Embrace 5/5, not Improved Imp, which does nothing with the Imp
+    sacrificed; a player who keeps the Imp out should take Improved Imp back.
 - **The caster core's gaps** (K1, [spells.md](mechanics/spells.md#open-questions)):
   - **The paladin doesn't get Curse of the Elements** though the buffs doc's presets list it for
     them (§6.2): K1 left every shipped result unchanged, as its brief required. It's +10% on every
@@ -388,8 +398,9 @@ slice is worked:
     Sageclaw added at rank 1. The same search as the warlocks' (warlock.md §7.3) finds more: Frost
     447.3 → 461.4 DPS (+3.2%), Arcane 434.8 → 464.3 (+6.8%), Shadow 559.7 → 582.4 (+4.1%), 20,000
     fights on seed 2701. Before those lists ship, the new candidates' Classic Era sources need
-    checking (Frost Runed Headdress, Wand of Arcane Potency, Simone's Cultivating Hammer, and the
-    staves Whiteout Staff and Crackling Staff). So does Leggings of Torment's, third on Affliction's
+    checking (Frost Runed Headdress, Wand of Arcane Potency, Simone's Cultivating Hammer; the staves
+    Whiteout Staff and Crackling Staff are Alterac Valley reputation rewards, and Whiteout Staff leads
+    every Horde caster's weapons since EL-2). So does Leggings of Torment's, third on Affliction's
     legs: its note names a Dungeon Set 2 summoned boss from its id's block, with a Wowhead Classic link.
     The Fire mage's, Balance's and Elemental's guide lists haven't been searched either; their verification
     passes (DV2-4, GV-3, GV-4) re-ranked only the slots whose items changed, among each list's own items.
@@ -399,13 +410,25 @@ slice is worked:
   - **Elixir of Fire Power** (DG-8, [warlock.md §7.4](classes/warlock.md#74-enchants-and-consumables)):
     the only Fire elixir the Forever client links (+10 Fire spell damage) isn't in the catalogue; about
     +4 DPS for Destruction `[?]`, if it stacks with Shadow Power.
-  - **Open plausibility finding (DV2-3, the Destruction gear verification, 2026-09-24): Demonology's
-    lead rests on a [?].** On 1.60.1.70009 with the procs modelled, Demonology is 2nd of the 20 DPS
-    specs (675.0 DPS, 20,000 fights on seed 2701), 77 ahead of Destruction (597.9). **42 of that lead
-    rests on Q19** ([warlock.md §11.6](classes/warlock.md#116-defaults)), the sim's reading of Improved
-    Imp's hidden effect as Firebolt's cast time: without it the Imp default falls to 605.2, and the
-    default would be the Succubus build, 632.7, 35 ahead of Destruction. The model stays as it is until
-    an in-game Q19 test (Firebolt's cast bar with Improved Imp 0/3 and 3/3) settles it.
+  - **Closed plausibility finding (DV2-3): Demonology's lead rested on a [?].** On 1.60.1.70009 it was
+    2nd of the 20 DPS specs, 77 ahead of Destruction, 42 of it from Q19's reading of Improved Imp's
+    hidden value as Firebolt's cast time. That reading went on 2026-09-26 (an undescribed dummy has no
+    effect), and the default became the Succubus build: 584.1 DPS against Destruction's 552.3 (+5.8%,
+    20,000 fights on seed 2701, with Mindfang's Classic Era +30; [warlock.md §11.6](classes/warlock.md#116-defaults)).
+  - **Two Rare caster daggers outside the lists' sources would lead the casters' main hands**
+    (2026-09-26). With Mindfang and Sageclaw at their Classic Era +30 spell power, Verimonde's Last
+    Resort and Shivsprocket's Shiv (+74 Spell Power, as the Forever beta's tooltips showed) beat them by
+    14 to 24 DPS in every caster's default set (paired, 10,000 fights). Whiteout Staff, which beat
+    Mindfang and the off hand by 1 to 13, is an Alterac Valley reputation reward and leads every Horde
+    caster's weapons since EL-2 ([items.md](data/items.md#pre-raid-bis-lists)). Their Classic Era sources
+    ([Wowhead Classic](https://www.wowhead.com/classic/item=22379/shivsprockets-shiv)): Shivsprocket's
+    Shiv is the reward of The Perfect Poison, a raid quest (Ruins of Ahn'Qiraj and Zul'Gurub venom
+    sacs), so it stays out with the raid drops; Verimonde's Last Resort
+    ([Wowhead Classic](https://www.wowhead.com/classic/item=22688/verimondes-last-resort)) is a Darkmoon
+    Faire reputation reward (the Superior Armaments of Battle quests). **Settled by the user
+    (2026-09-26):** Darkmoon Faire rewards stay out of the presets (reputation rewards are in), so it
+    stays off the lists
+    ([warlock.md §7.3](classes/warlock.md#73-gear)).
   - **Item effects the sim doesn't model count as zero** in the lists' rankings (DV2-4,
     [items.md](data/items.md#modelled-item-effects)); the ones on the caster lists: Eye of the Beast's +7%
     spell hit use (E7, [shaman.md](classes/shaman.md)), Burst of Knowledge's and Second Wind's mana
@@ -445,8 +468,8 @@ slice is worked:
     slot" items and two "#2"s, the two-hand list's and the main-hand list's, without saying which
     list each belongs to.
   - **Frost's two-hand ranking fails the D29 plausibility check.** It puts Rod of the Ogre Magi
-    (23 spell power) as best in slot and Staff of Jordan as #2, while Ironbark Staff (94 spell power,
-    +28 crit, item level 65) is unranked.
+    (23 spell power) as best in slot and Staff of Jordan as #2, while Ironbark Staff (41 spell power,
+    +28 crit, item level 65; 10 DPS ahead of the Rod for a Troll) is unranked.
   - **The fix:** label each rank with its list, and rank the Frost and Arcane two-handers by sim.
     Queued with the gear search ([O2](milestones.md#m57-the-optimizer-d30--after-multi-target)); low because it's the
     picker's ranking, not a result, and the picker still offers every item.

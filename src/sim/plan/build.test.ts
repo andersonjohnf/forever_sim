@@ -642,6 +642,18 @@ describe('base values the sim stands in for (D24), and setups it can’t run yet
 })
 
 describe('assumptions', () => {
+  it('names a worn caster weapon whose spell power is its Classic Era item’s, and no other (docs/data/client.md#weapon-damage)', () => {
+    const items = (itemJson as unknown as ItemData).items
+    // The data marks exactly the Epic caster weapons: Mindfang, Sageclaw and both Ironbark Staffs.
+    expect(items.filter((i) => i.classicStats).map((i) => i.id).sort()).toEqual([20069, 20070, 20214, 20220])
+    expect(items.find((i) => i.id === 20214)!.classicStats).toEqual(['spellPower'])
+    const d = defaultConfig('mage-frost')
+    const note = (mainHand: number) => buildPlan({ ...d, gear: { ...d.gear, mainHand: { itemId: mainHand }, offHand: undefined } }).assumptions.find((a) => a.id === 'classicCasterWeaponStats')
+    expect(note(20214)!.text).toBe('Mindfang: the weapon’s spell power is Classic Era’s value, because no one has recorded its Forever tooltip yet.')
+    // Whiteout Staff is Rare, with a Forever tooltip on record: no note.
+    expect(note(19101)).toBeUndefined()
+  })
+
   it('surfaces only what a setup relies on', () => {
     const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
     const fury = ids(defaultConfig('warrior-fury'))

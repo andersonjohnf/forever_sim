@@ -722,6 +722,31 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [OQ 10](classes/paladin.md#open-questions);
   [threat § paladin](mechanics/threat.md#paladin)
 
+#### B82. Epic caster weapons' spell power
+**High · every caster · any level (a chat-linked tooltip)**
+- **Assumes** [C]: Mindfang and Sageclaw carry Classic Era's **+30** spell power and both Ironbark
+  Staffs **+41**. Forever's client gives caster weapons their spell power from a flag, and the rule
+  that reproduces the Rare ones (2 × the item level's budget) isn't extrapolated to Epic quality,
+  where it would give +94.
+- **Test:** link Mindfang, Sageclaw or Ironbark Staff in chat on the beta and read its spell power
+  line (and its DPS).
+- **Samples:** one tooltip each.
+- **Changes:** every caster's main hand: +94 would be +5 to +8% DPS for the 9 caster specs.
+- **Docs:** [client.md "Epic caster weapons"](data/client.md#weapon-damage),
+  [warlock §7.3](classes/warlock.md#73-gear)
+
+#### B83. Improved Imp's hidden value
+**High · Demonology warlock · ≤20 (tier 1)**
+- **Assumes** [?]: Improved Imp's third effect (a dummy of −300/−700/−1000 its tooltip doesn't show)
+  does nothing, so the Imp's Firebolt keeps its 2 s cast, and Demonology defaults to the Succubus
+  out with the Imp sacrificed.
+- **Test:** watch the Imp's Firebolt cast bar with Improved Imp 0/3 and 3/3 (or time 20 Firebolts
+  in the combat log).
+- **Samples:** 20 casts at each rank.
+- **Changes:** if it's 1 s off the cast at 3/3, the Imp build gains about 11.5% and becomes the
+  default again (about +4% on the Demonology headline).
+- **Docs:** [warlock §11.3, Q19](classes/warlock.md#117-open-questions)
+
 ### Medium
 
 #### B21. Special attacks: one roll or two?
@@ -1143,6 +1168,32 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Changes:** the druid and paladin books, and Tiger's Fury's, Mangle's and Avenger's Shield's
   values for M4 and M5.
 - **Docs:** [spells.md § Trainer rows with no client data](data/spells.md#trainer-rows-with-no-client-data)
+
+#### B84. Earth Shock's threat
+**Medium · Enhancement shaman (TPS only) · ≤20 (Earth Shock r1, level 4)**
+- **Assumes** [?]: 2 × its damage, by name as a user decision ([D38](decisions.md#d38-the-values-audits-calls-2026-09-26), 2026-09-26): the value of the
+  Maul ×1.75 lineage, which every Classic Era threat tool carries and nobody has measured. Its
+  tooltip says "Causes a high amount of threat"; the wording table's rule (dmg + 206, Sunder's
+  Forever value) stays for the tanks' abilities.
+- **Test:** the threat macro before and after single Earth Shocks on a fresh mob, against each
+  shock's damage in the combat log; a Lightning Bolt the same way calibrates ×1.
+- **Samples:** ≥8 shocks.
+- **Changes:** Enhancement's TPS: ×1 would be −9.4% (423 → 383).
+- **Docs:** [shaman Shocks, open question 8](classes/shaman.md#shocks-and-lightning-bolt),
+  [threat § shaman](mechanics/threat.md#shaman-dps-context)
+
+#### B85. Maelstrom Weapon's rate
+**Medium · Enhancement shaman · ≤30 (tier 5)**
+- **Assumes** [?]: a stack on 50% of landed melee hits, white, special and extra attacks. The
+  tooltip describes a chance but never shows it (it references the talent's 20 and 5, not its 50);
+  the sim reads the client's undescribed dummy 50 as that chance, kept and labelled by user decision
+  ([D38](decisions.md#d38-the-values-audits-calls-2026-09-26), item 26). Blizzard never published the rate; its Season of Discovery notes raise
+  it about 50% with Windfury Weapon and 25% with a two-hander, which the sim doesn't add.
+- **Test:** count Maelstrom Weapon stacks gained against landed melee hits in the combat log, with a
+  one-hander and a two-hander, with and without Windfury Weapon.
+- **Samples:** 500+ landed hits per setup.
+- **Changes:** 25% would be −1.3%, 100% +2.4%; the SoD raises on 50% (94% for the default) +2.2%.
+- **Docs:** [shaman Maelstrom Weapon, open question 1](classes/shaman.md#maelstrom-weapon)
 
 ### Low
 

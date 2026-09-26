@@ -756,8 +756,8 @@ R11–R13 are in `subtlety.test.ts`.
   tester's talents.** The test reported totals
   without the build or sample size. The sim multiplies the measured shares by Improved Eviscerate
   and Aggression (Eviscerate) and Serrated Blades (Rupture) [?], as Classic Era does, and lists it in
-  the results' assumptions (`rogueFinisherTalents`) whenever the plan uses a finisher one of them
-  raises, naming only those finishers and the talents you have that raise them. If the tester had them, the measurement already includes them and the sim counts them
+  the results' assumptions (`rogueFinisherTalents`) whenever the plan uses a finisher one of your
+  talents raises, naming only those finishers and the talents you have that raise them. If the tester had them, the measurement already includes them and the sim counts them
   twice: Classic Era's 3% × Improved Eviscerate 1.20 × Aggression 1.06 = 3.82%, which rounds to the
   reported 4% (with Improved Eviscerate alone, 3.6%). Counted twice, the defaults read high by about
   0.5% (Combat: both talents), 0.7% (Assassination: Improved Eviscerate only) and 1.3% (Subtlety:

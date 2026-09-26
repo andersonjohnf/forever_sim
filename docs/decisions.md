@@ -482,13 +482,13 @@ had no known number was modelled with none. Both are now rules:
 - **Equal threat wording across tanks.** A tooltip's threat wording means the same thing on
   every tank class. "A high amount of threat" on a bear's or a paladin's ability is the same
   bonus as on a warrior's ability that says it. When the ability has no tier 1–2 value, it takes
-  the value of the known abilities with the same wording, scaled the way those values scale,
+  the value of the known abilities with the same wording, scaled the way those values scale (superseded by the header's amendment),
   as a `[?]` assumption shown in the results. A guild measurement replaces it.
 - **Every value that affects the result has a default.** Leaving a known variable blank was
   meant as caution, but it models the effect as zero, and that made the sim far less accurate.
   Anything we know exists (from a tooltip, the client, a talent's text or how the game plays)
   gets a sensible default from the closest allowed analog or an estimate reasoned from allowed
-  sources. It's flagged `[?]` and shown in the results' assumptions, never left out. Only an
+  sources (superseded by the header's amendment). It's flagged `[?]` and shown in the results' assumptions, never left out. Only an
   allowed source that gives no effect at all makes it zero. The forbidden sources still can't
   supply the number; that rule decides where a default comes from, never whether there is one.
 - **Talent builds and gear suit how the spec is played.** A tank talents for the balanced
@@ -511,7 +511,7 @@ had no known number was modelled with none. Both are now rules:
 - **No numeric benchmark for tanks** (user decision, 2026-09-24, withdrawing the earlier one). The
   officers' "paladin and bear about 800–900 TPS, warrior no more than about 50% ahead" was a feel,
   not a measurement, and no longer applies: the model's numbers land where the cited mechanics put
-  them. Unknown values still take reasoned defaults from allowed sources, and the sanity checks
+  them. Unknown values still take reasoned defaults from allowed sources (superseded by the header's amendment), and the sanity checks
   above still apply; a gap no cited mechanic explains is an open question for in-game tests or
   combat logs, not a reason to move a value.
 
@@ -906,10 +906,12 @@ order on 2026-09-26:** [doctrine §2's fallback order](doctrine.md#2-where-numbe
    proc cooldown gives. Assassination gains ([rogue.md](classes/rogue.md#10-open-questions) Q7).
 10. **Gear mp5 pays at the intended rate;** the beta's every-second bug is noted, not modelled. No
     change ([spells §8](mechanics/spells.md#8-mana)).
-11. **Boss melee is measured from Classic Era public logs** of Golemagg and Ragnaros (Molten Core),
-    in this build, and disclosed as an estimate until the logs are measured. The tanks' damage
-    taken changes ([encounter §5](mechanics/encounter.md#5-boss-melee-tank-modeling)). M5.669's
-    slice J measures Golemagg's.
+11. **Boss melee is measured from Classic Era public logs of Golemagg** (Molten Core), physical
+    melee only, and disclosed as an estimate until the logs are measured. The user first named
+    Ragnaros too, then dropped him (2026-09-26): his melee carries fire damage, and the call was for
+    physical melee alone. The tanks' damage taken changes
+    ([encounter §5](mechanics/encounter.md#5-boss-melee-tank-modeling)). M5.669's slice J measures
+    Golemagg's.
 12. **The consumable presets are rebuilt:** the tanks' like for like and for threat, every spec
     what its players use ([buffs doc](mechanics/buffs-debuffs-consumables.md)).
 13. **"Crit with melee attacks" (item effects 7597 and 7598) is melee only,** per Forever's

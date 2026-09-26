@@ -26,7 +26,8 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
    - determinism: same config + seed → same result
    - statistical sanity: iterations and confidence interval
    - plausibility: the headline against the other specs and what players expect; a described
-     effect modelled as zero; a gear preset built for the wrong stats (D29)
+     effect modelled as zero while an earlier step of doctrine §2's order has a value; a gear
+     preset built for the wrong stats (D29)
    - sourcing: any value no step of doctrine §2's fallback order gives, or an undescribed client
      dummy given a meaning, is a finding (D37)
    - performance, data integrity, and test gaps

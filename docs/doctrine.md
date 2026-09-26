@@ -81,7 +81,7 @@ Rules come from four tiers. Use the highest tier that has an answer.
    from Classic before SoD), **Blizzard's own** SoD client data or patch notes for that spell
    may supply its values. Nothing else from SoD may: a value from another sim's SoD code, a
    wiki or a guide stays forbidden, and a rescaled or "closest analog" SoD value is still
-   invented. Such a value is tagged `[?]` with the spell ID and the Blizzard source, and listed
+   forbidden. Such a value is tagged `[?]` with the spell ID and the Blizzard source, and listed
    in the open questions.
 
 **Secondary Forever sources** include Wowhead news posts, streamer tooltip captures, and

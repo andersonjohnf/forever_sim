@@ -223,6 +223,10 @@ A to F and J; B3 and G ship in it only if they land in time, and otherwise move 
       ([B79](open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer))
 - [ ] **C Bear threat:** Lacerate 206 flat, Primal Bite at 1 threat per damage (D38), the rage
       fit, Maul's ×1.75 provenance
+- [ ] **D Paladin:** [M5.668](#m5668-sharper-paladin-numbers--next-update)'s P1–P3, with the log
+      check's paladin findings: Seal of Righteousness without a flat term, Holy Strike's flat
+      damage and spell power inside its weapon share, Judgement of the Crusader's misses,
+      Retribution Aura's spell-power share
 - [ ] **E Casters:** the epic weapons, Improved Imp, Maelstrom Weapon, Earth Shock, Thorns
 - [ ] **F Class quest sets:** Dungeon Set 2 for each class, the bear's head re-picked
 - [ ] **G Damage truncated per hit**
@@ -251,6 +255,8 @@ M5.669's J.
     Curse of the Elements, gear mp5, the creature type, DPS damage taken, the demon's stats, base
     spell crit
 - [ ] **I Arcane Blast's stacks and Missile Barrage** (D38 #4)
+- [ ] **M5.669's B3 and G,** if they miss its update: Deep Wounds under D37, and damage truncated
+      per hit
 
 ## M5.7: The optimizer (D30) 🚧 after multi-target
 

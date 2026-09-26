@@ -78,8 +78,8 @@ test('a Fury warrior’s air totems: one at a time, and each says so', async ({ 
   const note = 'One air totem at a time (even from different shamans)'
   await expect(windfury).toBeChecked()
   await expect(grace).not.toBeChecked()
-  await expect(windfury).toHaveAccessibleDescription(`20% chance on a main-hand hit for an extra attack with +246 attack power. ${note}`)
-  await expect(grace).toHaveAccessibleDescription(`+89 Agility. ${note}`)
+  await expect(windfury).toHaveAccessibleDescription(`20% chance on a main-hand hit for an extra attack, then +246 attack power for 1 s on it, your next auto attack and your abilities. ${note}`)
+  await expect(grace).toHaveAccessibleDescription(`+77 Agility. ${note}`)
   await grace.click()
   await expect(grace).toBeChecked()
   await expect(windfury).not.toBeChecked()

@@ -1392,7 +1392,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Leader of the Pack (`leaderOfThePack`) | +3% crit, spells too (aura 290) | **+3% melee and ranged crit** | 24932 #0 (aura 52): 2 + 1; Forever's is aura 290, all crit | [C] |
 | Moonkin Aura (`moonkinAura`), the casters' | +3% crit, spells too (aura 290) | **+3% spell crit** | 24907 #0 (aura 57): 2 + 1; Forever's is aura 290, all crit | [C] |
 | Power Infusion (`powerInfusion`), the casters' | +20% spell damage for 15 s, 3 min cooldown | same | 10060 #1 (aura 79, every magic school): 19 + 1 | [C] |
-| Windfury Totem r3 (`windfuryTotem`) | 20% for an extra attack with +246 AP; a party aura | **+315 AP; a main-hand enchant that replaces a stone** | 10610 #0: 314 + 1; 10612 → 10611 → enchant 564 (20%, casts 10610) | [C] |
+| Windfury Totem r3 (`windfuryTotem`) | 20% for an extra attack; +246 AP for 1 s, 2 charges (the extra attack and your next auto attack; abilities in that second use none); a party aura | **+315 AP; a main-hand enchant that replaces a stone** | 10610 #0: 314 + 1; 10612 → 10611 → enchant 564 (20%, casts 10610) | [C] |
 | Grace of Air Totem r2 (`graceOfAir`) | +77 Agi | **+67 Agi** | 10626 #0 (the totem's aura): 66 + 1 | [C] |
 | Strength of Earth Totem r4 (`strengthOfEarth`) | +42 Str | **+61 Str** | 10441 #0 (the totem's aura): 60 + 1 | [C] |
 | Blessing of Salvation (`blessingOfSalvation`) | −30% threat | same | 1038 #0: −31 + 1 | [C] |

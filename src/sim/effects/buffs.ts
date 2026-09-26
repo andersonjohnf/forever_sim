@@ -610,7 +610,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_nature_windfury',
     category: 'raidBuff',
     group: 'Shaman totems',
-    summary: '20% chance on a main-hand hit for an extra attack with +246 attack power',
+    summary: '20% chance on a main-hand hit for an extra attack, then +246 attack power for 1 s on it, your next auto attack and your abilities',
     providedBy: 'shaman',
     exclusiveGroup: 'totem:air',
     forSpecs: 'melee',

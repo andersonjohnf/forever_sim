@@ -1117,7 +1117,8 @@ only when the encounter is in Mount Hyjal, Hyjal Summit or the Barrow Deeps.
 
 These are the recommended defaults. The class docs own the final choice ([doctrine
 §5](../doctrine.md#5-defaults)). Entries whose availability in Forever is [?] (ZG, Scourge)
-are defaults only if the guild confirms the content exists; the fallback is in brackets.
+are defaults only once that content is confirmed in Forever (by the client or an in-game test);
+the fallback is in brackets.
 
 | Slot | Arms / Fury | Prot warrior | Feral cat | Feral bear | Retribution | Prot paladin |
 | --- | --- | --- | --- | --- | --- | --- |

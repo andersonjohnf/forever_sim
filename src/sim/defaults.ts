@@ -242,8 +242,8 @@ function rank(item: Item, spec: SpecId, slot: PreRaidBisSlot): number {
 
 /**
  * Default enchants per spec (docs/mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec).
- * Shoulder enchants (Zandalar, Scourge) are defaults only if the guild confirms that content
- * exists in Forever, so their fallback, none, applies.
+ * Shoulder enchants (Zandalar, Scourge) are defaults only once that content is confirmed in
+ * Forever (by the client or an in-game test), so their fallback, none, applies.
  */
 const WARRIOR_DPS_ENCHANTS: Partial<Record<GearSlot, string>> = {
   head: 'arcanumVoracityStrength',

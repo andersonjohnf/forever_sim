@@ -32,7 +32,7 @@ export const ROADMAP: readonly RoadmapEntry[] = [
       'Bears’ Lacerate makes the same threat as Sunder Armor, and Primal Bite and the rest of bear threat are checked against the game’s data.',
       'Warriors’ Revenge, Thunder Clap, Rend, Unbridled Wrath and off-hand rage, and Hunters’ Arcane Shot and Serpent Sting, follow the game’s data and combat logs.',
       'Casters’ epic weapons, the Warlock’s Improved Imp, the Shaman’s Maelstrom Weapon and Earth Shock, and a Druid’s Thorns on the tank are checked against the game’s data.',
-      'Every class’s Dungeon Set 2 joins the gear, and the bear’s preset gets a new helm.',
+      'Every class’s Dungeon Set 2 joins the gear, and the bear’s helm is picked again for threat.',
       'Every spec’s hits round their damage down, as the game does.',
     ],
   },

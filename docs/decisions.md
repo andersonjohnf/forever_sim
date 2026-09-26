@@ -463,7 +463,12 @@ merged (the paladin review's PR-7, 2026-09-24; seed 31101, 100,000 fights), Bala
 TPS for the warrior, 1,126.6 for the bear and 752.6 for the paladin**: the warrior 33.1% over the
 paladin and 11.1% under the bear. D29 sets no numeric target, so these gaps are observations for the
 guild's tests ([milestones T6](milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)), not
-failures.
+failures. D37 (2026-09-26) moved the warrior: Shield Slam keeps Classic Era's +254 [?] and Sunder
+Armor is a flat 206, so Balanced makes **909.8 TPS for the warrior, 746.9 for the paladin and
+1,102.9 for the bear** (seed 31101, 100,000 fights): the warrior 21.8% over the paladin and 17.5%
+under the bear. All three are still far above every DPS spec's TPS (Fury's 492.5 is the highest), and
+no tank is at twice another. These figures predate D37's paladin and bear slices, which move their
+own numbers; the bear's wider gap is an observation that awaits the bear slice, not a finding.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 User directive, after v1's tank numbers embarrassed the user in front of the guild: the

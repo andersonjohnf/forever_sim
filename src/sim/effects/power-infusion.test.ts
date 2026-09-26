@@ -90,20 +90,27 @@ describe('worked example 14: Power Infusion at the pull', () => {
     expect(sim.auraUpMs[auraOf(plan, PI)] / 180000).toBeCloseTo(0.0833, 4)
   })
 
-  it('a 400 s fight: still once, though its 3 min cooldown would allow a second and a third', () => {
-    for (const spec of ['mage-fire', PROT] as const) {
-      const plan = buildPlan(withPi(spec, true, { fight: { ...defaultConfig(spec).fight, durationSec: 400, durationVariationPct: 0 } })).plan
-      const sim = new Sim(plan)
-      const casts: number[] = []
-      const pi = plan.abilities.findIndex((a) => a.id === PI)
-      expect(pi, spec).toBeGreaterThanOrEqual(0)
-      expect(plan.abilities[pi].usesPerFight, spec).toBe(1)
-      sim.castTrace = (a, t) => {
-        if (a === pi) casts.push(t)
+  it('a 400 s fight: still once, though its 3 min cooldown would allow a second and a third, for every spec it’s for, in both profiles', () => {
+    for (const profile of ['forever', 'classicEra'] as const) {
+      for (const spec of FOR) {
+        const at = `${spec} ${profile}`
+        const d = defaultConfig(spec)
+        const config = normalizeConfig(withPi(spec, true, { fight: { ...d.fight, durationSec: 400, durationVariationPct: 0 }, rules: { ...d.rules, profile } })).config
+        expect(config.buffs.enabled, at).toContain(PI)
+        const plan = buildPlan(config).plan
+        const sim = new Sim(plan)
+        const casts: number[] = []
+        const pi = plan.abilities.findIndex((a) => a.id === PI)
+        expect(pi, at).toBeGreaterThanOrEqual(0)
+        expect(plan.abilities[pi].usesPerFight, at).toBe(1)
+        sim.castTrace = (a, t) => {
+          if (a === pi) casts.push(t)
+        }
+        sim.runFight(0)
+        expect(casts, at).toEqual([0])
+        // The Arcane mage's Arcane Power, at the pull too, keeps it out (Classic Era's rule [C]).
+        expect(sim.auraUpMs[auraOf(plan, PI)], at).toBe(spec === 'mage-arcane' ? 0 : 15000)
       }
-      sim.runFight(0)
-      expect(casts, spec).toEqual([0])
-      expect(sim.auraUpMs[auraOf(plan, PI)], spec).toBe(15000)
     }
   })
 
@@ -211,6 +218,21 @@ describe('Power Infusion in the fight: only its first 15 s gain', () => {
     expect(gained).toBeGreaterThan(3)
     const threat = (log: typeof on, from: number, to: number) => log.filter((e) => e.t >= from && e.t < to).reduce((a, e) => a + e.threat, 0)
     expect(threat(on, 0, 15000)).toBeGreaterThan(1.05 * threat(off, 0, 15000))
+  })
+
+  it('your pet’s damage doesn’t gain: the aura is on you, not your demon', () => {
+    let pets = 0
+    for (const spec of FOR) {
+      const plan = buildPlan(withPi(spec, true)).plan
+      if (!plan.pet) continue
+      pets++
+      const petSources = new Set([plan.pet.source, ...plan.pet.abilities.map((a) => a.source)].map((i) => plan.sources[i].id))
+      const [off, on] = [false, true].map((o) => events(buildPlan(withPi(spec, o)).plan, 5).log.filter((e) => petSources.has(e.source)))
+      expect(on.length, spec).toBeGreaterThan(0)
+      expect(on.filter((e) => e.t < 15000).length, spec).toBeGreaterThan(0)
+      expect(on.map((e) => [e.t, e.source, e.damage]), spec).toEqual(off.map((e) => [e.t, e.source, e.damage]))
+    }
+    expect(pets).toBeGreaterThan(0)
   })
 
   it('a raid druid’s Thorns on the Protection paladin doesn’t gain: it’s the druid’s spell (buffs doc §1.2)', () => {

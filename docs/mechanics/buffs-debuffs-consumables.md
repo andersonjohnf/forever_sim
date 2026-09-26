@@ -339,6 +339,7 @@ SpellDuration, SpellCooldowns, SpellPower, SpellCategories, both builds):
   Holy hits gain a little less; its physical swings gain nothing, and nor does a raid druid's Thorns
   on it, the druid's spell, not yours ([Thorns on the tank](#12-threat-defense-and-mana)) [?].
   Its threat is its damage × its threat multipliers, so its threat gains as its Holy damage does.
+  Your pet's damage doesn't gain: the aura is on you, not on your demon.
 - **It doesn't stack with Arcane Power, which wins** [C] ([wowpedia: Arcane Power (Classic)][wp-ap-classic],
   [wowpedia: Power Infusion (Classic)][wp-pi-classic], [Wowhead Classic: Arcane Power][wh-12042]). In
   Classic Era a priest who casts Power Infusion on a mage with Arcane Power up gets "A more powerful

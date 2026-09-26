@@ -867,7 +867,7 @@ Worked example, Lionheart Helm (12640): item level 61, Epic, head, so the budget
 | 50 | bonusArmor; **the Forever tooltip adds it to the white armor line** | `[F]` 74 pool items |
 | 51, 52, 54, 55, 56 | fire, frost, shadow, nature, arcane resistance (53 holy isn't a `Stats` key) | `[F]` pool |
 | 85, 87, 88, 89 | fire, frost, shadow, arcane spell damage | `[F]` pool |
-| 124 | all five resistances ("+N Spell Resistance") | `[F]` pool |
+| 124 | all five resistances, one stat (the tooltip words it with `ITEM_MOD_SPELL_RESISTANCE_ALL_SCHOOLS`, "Increases spell resistance by %s."; docs/ux.md "Item tooltips") | `[F]` pool |
 | 128, 136 | attackPowerVsUndead, spellDamageVsUndead | `[F]` pool |
 | 83 | weaponDamage | `[?]` Might of Cenarius: Classic Era aura 13 (physical) +4, Forever 4 |
 | 84, 86, 127, 131, 135 | holy and nature spell damage; AP vs demons, AP vs beasts; spell damage vs demons | `[?]` from the Classic Era row of the same item |

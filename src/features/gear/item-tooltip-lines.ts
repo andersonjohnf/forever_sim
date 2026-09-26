@@ -1,9 +1,12 @@
 // An item's tooltip as the game shows it, as lines (docs/ux.md "Item tooltips"). Pure: no React.
 // Built from the item pool (src/data/items/pre-bis.json, as the browser build ships it: no flavor
 // text, sell price or stat-spell ids) and the enchant's client name (enchant-lines.ts).
-import type { Item, ItemSlot, Stats, WeaponType } from '@/data/items/types'
+import type { Item, ItemSlot, Stats, WeaponSkill, WeaponType } from '@/data/items/types'
+import type { Faction } from '@/data/races/types'
 import { itemData, itemsById } from '@/lib/items'
-import type { RuleProfileId } from '@/sim'
+import { itemFaction, type RuleProfileId } from '@/sim'
+import { ITEM_EFFECTS } from '@/sim/effects/items'
+import { setOf } from '@/sim/plan/build'
 import { enchantTooltipLine } from './enchant-lines'
 
 /**
@@ -42,7 +45,11 @@ export const TOOLTIP_PALETTE = {
 export interface TooltipOptions {
   /** The enchant on the item: an EnchantDefinition id. */
   enchantId?: string | null
-  /** The rule profile, for the enchant's numbers under Classic Era rules. Forever by default. */
+  /**
+   * The rule profile. Forever by default. Under Classic Era rules the enchant takes Classic Era's
+   * name where its number differs, and an item whose effect that profile simulates differently
+   * says so in a note.
+   */
   profile?: RuleProfileId
   /** The ids of the items worn, to count the set's pieces and light the bonuses reached. */
   worn?: Iterable<number>
@@ -133,65 +140,85 @@ const CREATURES = ['Beasts', 'Demons', 'Dragonkin', 'Elementals', 'Giants', 'Hum
 const SCHOOLS = ['Arcane', 'Fire', 'Frost', 'Holy', 'Nature', 'Shadow'] as const
 
 /**
- * The Equip lines for the stats that aren't white ones, in this order, each worded two ways:
- * `forever`, the Forever client's stat columns ("+28 Critical Strike Rating", the words
- * docs/data/items.md and the `Stats` type quote), and `classic`, the Classic Era equip spells'
- * descriptions, as the pool's set bonuses render the same auras from the client ("Improves your
- * chance to hit by 1%."). An item whose values are the Forever client's has only stat columns and
- * the Classic ones only spells (docs/data/client.md "Aura → stat"), so `statsFrom` picks the words.
- * Where only one wording is known, both use it.
+ * The Equip lines for the stats no client line words, in this order: the Forever client's stat
+ * columns, worded by its own `ITEM_MOD_*` strings ([gs-forever], docs/ux.md "Item tooltips"): the
+ * long form after "Equip: " where the client has one ("Increases your critical strike by 28."), and
+ * "+N" with the short form where it has only that ("+81 Attack Power Vs Undead."). Which form the
+ * game prints is `[?]`. Stats that only equip spells give (percentages, defense skill) have no
+ * `ITEM_MOD_*` string: each spell's own client line shows them (`item.statEquip`), and the words
+ * here, the Classic Era descriptions of the same auras, stand in only for a spell the client
+ * leaves without one (no pool item has such a spell; a test holds it).
  */
-const EQUIP_STATS: { key: keyof Stats; forever: (n: number) => string; classic?: (n: number) => string }[] = [
-  { key: 'defense', forever: (n) => `Increased Defense +${n}.` },
-  { key: 'defenseRating', forever: (n) => `+${n} Defense Rating.` },
-  { key: 'dodge', forever: (n) => `Increases your chance to dodge an attack by ${n}%.` },
-  { key: 'dodgeRating', forever: (n) => `+${n} Dodge Rating.` },
-  { key: 'parry', forever: (n) => `Increases your chance to parry an attack by ${n}%.` },
-  { key: 'parryRating', forever: (n) => `+${n} Parry Rating.` },
-  { key: 'block', forever: (n) => `Increases your chance to block attacks with a shield by ${n}%.` },
-  { key: 'blockRating', forever: (n) => `+${n} Block Rating.` },
-  // Barrier Shield's 22912, as the Forever client describes it (docs/data/client.md "Aura → stat").
-  { key: 'blockValue', forever: (n) => `Increases the block value of your shield by ${n}.` },
-  { key: 'hit', forever: (n) => `Improves your chance to hit by ${n}%.` },
-  { key: 'hitRating', forever: (n) => `+${n} Hit Rating.` },
-  { key: 'spellHit', forever: (n) => `Improves your chance to hit with spells by ${n}%.` },
-  { key: 'crit', forever: (n) => `Improves your chance to get a critical strike by ${n}%.` },
-  { key: 'meleeCrit', forever: (n) => `Improves your chance to get a critical strike with melee attacks by ${n}%.` },
-  { key: 'critRating', forever: (n) => `+${n} Critical Strike Rating.` },
-  { key: 'spellCrit', forever: (n) => `Improves your chance to get a critical strike with spells by ${n}%.` },
-  { key: 'hasteRating', forever: (n) => `+${n} Haste Rating.` },
-  { key: 'expertiseRating', forever: (n) => `+${n} Expertise Rating.` },
-  { key: 'armorPenetration', forever: (n) => `+${n} Armor Penetration Rating.` },
-  { key: 'attackPower', forever: (n) => `+${n} Attack Power.` },
-  { key: 'rangedAttackPower', forever: (n) => `+${n} Ranged Attack Power.`, classic: (n) => `+${n} ranged Attack Power.` },
-  { key: 'feralAttackPower', forever: (n) => `+${n} Attack Power in Cat, Bear, and Dire Bear forms only.` },
-  ...CREATURES.map((c) => ({ key: `attackPowerVs${c}` as keyof Stats, forever: (n: number) => `+${n} Attack Power when fighting ${c}.` })),
-  { key: 'weaponDamage', forever: (n) => `+${n} Weapon Damage.` },
-  { key: 'rangedAttackSpeed', forever: (n) => `Increases ranged attack speed by ${n}%.` },
-  {
-    key: 'spellPower',
-    forever: (n) => `+${n} Spell Power.`,
-    classic: (n) => `Increases damage and healing done by magical spells and effects by up to ${n}.`,
-  },
-  { key: 'healing', forever: (n) => `+${n} Healing.`, classic: (n) => `Increases healing done by spells and effects by up to ${n}.` },
-  {
-    key: 'spellDamage',
-    forever: (n) => `+${n} Spell Damage.`,
-    classic: (n) => `Increases damage done by magical spells and effects by up to ${n}.`,
-  },
+const EQUIP_STATS: { key: keyof Stats; line: (n: number) => string }[] = [
+  { key: 'defense', line: (n) => `Increased Defense +${n}.` },
+  { key: 'defenseRating', line: (n) => `Increases defense skill by ${n}.` },
+  { key: 'dodge', line: (n) => `Increases your chance to dodge an attack by ${n}%.` },
+  { key: 'dodgeRating', line: (n) => `Increases your dodge by ${n}.` },
+  { key: 'parry', line: (n) => `Increases your chance to parry an attack by ${n}%.` },
+  { key: 'parryRating', line: (n) => `Increases your parry by ${n}.` },
+  { key: 'block', line: (n) => `Increases your chance to block attacks with a shield by ${n}%.` },
+  { key: 'blockRating', line: (n) => `Increases your shield block by ${n}.` },
+  { key: 'blockValue', line: (n) => `Increases the block value of your shield by ${n}.` },
+  { key: 'hit', line: (n) => `Improves your chance to hit by ${n}%.` },
+  { key: 'hitRating', line: (n) => `Increases your hit by ${n}.` },
+  { key: 'spellHit', line: (n) => `Improves your chance to hit with spells by ${n}%.` },
+  { key: 'crit', line: (n) => `Improves your chance to get a critical strike by ${n}%.` },
+  { key: 'meleeCrit', line: (n) => `Improves your chance to get a critical strike with melee attacks by ${n}%.` },
+  { key: 'critRating', line: (n) => `Increases your critical strike by ${n}.` },
+  { key: 'spellCrit', line: (n) => `Improves your chance to get a critical strike with spells by ${n}%.` },
+  { key: 'hasteRating', line: (n) => `Increases your haste by ${n}.` },
+  { key: 'expertiseRating', line: (n) => `Increases your expertise by ${n}.` },
+  { key: 'armorPenetration', line: (n) => `Increases your armor piercing by ${n}.` },
+  { key: 'attackPower', line: (n) => `Increases attack power by ${n}.` },
+  { key: 'rangedAttackPower', line: (n) => `Increases ranged attack power by ${n}.` },
+  { key: 'feralAttackPower', line: (n) => `Increases attack power by ${n} in Cat, Bear, Dire Bear, and Moonkin forms only.` },
+  ...CREATURES.map((c) => ({ key: `attackPowerVs${c}` as keyof Stats, line: (n: number) => `+${n} Attack Power Vs ${c}.` })),
+  { key: 'weaponDamage', line: (n) => `Increases physical damage done by up to ${n}.` },
+  { key: 'rangedAttackSpeed', line: (n) => `Increases ranged attack speed by ${n}%.` },
+  { key: 'spellPower', line: (n) => `Increases spell power by ${n}.` },
+  { key: 'healing', line: (n) => `Increases healing done by magical spells and effects by up to ${n}.` },
+  { key: 'spellDamage', line: (n) => `Increases damage done by magical spells and effects by up to ${n}.` },
   ...SCHOOLS.map((s) => ({
     key: `${s.toLowerCase()}SpellDamage` as keyof Stats,
-    forever: (n: number) => `Increases damage done by ${s} spells and effects by up to ${n}.`,
+    line: (n: number) => `Increases ${s.toLowerCase()} damage done by up to ${n}.`,
   })),
-  ...CREATURES.map((c) => ({
-    key: `spellDamageVs${c}` as keyof Stats,
-    forever: (n: number) => `Increases damage done to ${c} by magical spells and effects by up to ${n}.`,
-  })),
-  { key: 'spellPenetration', forever: (n) => `Decreases the magical resistances of your spell targets by ${n}.` },
-  { key: 'mp5', forever: (n) => `+${n} Mana Regeneration.`, classic: (n) => `Restores ${n} mana per 5 sec.` },
-  { key: 'hp5', forever: (n) => `Restores ${n} health per 5 sec.` },
-  { key: 'healthRegen', forever: (n) => `+${n} Health Regeneration.` },
+  ...CREATURES.map((c) => ({ key: `spellDamageVs${c}` as keyof Stats, line: (n: number) => `+${n} Spell Damage Vs ${c}.` })),
+  { key: 'spellPenetration', line: (n) => `Increases spell piercing by ${n}.` },
+  { key: 'mp5', line: (n) => `Restores ${n} mana per 5 sec.` },
+  { key: 'hp5', line: (n) => `Restores ${n} health per 5 sec.` },
+  { key: 'healthRegen', line: (n) => `Restores ${n} health per 5 sec.` },
 ]
+
+/** The tooltip's own words for a stat no client line gives, without the "Equip: " (`EQUIP_STATS`); undefined for a white stat. */
+export function equipStatText(key: keyof Stats, value: number): string | undefined {
+  return EQUIP_STATS.find((s) => s.key === key)?.line(value)
+}
+
+type StatValues = Partial<Record<keyof Stats, number>>
+type SkillValues = Partial<Record<WeaponSkill, number>>
+
+/** Who words an item's stats (`statSources`). */
+interface StatSources {
+  /** The client's own Equip line for each stat spell that has one, unless the item's effect lines already show it. */
+  lines: string[]
+  /** What's left for the tooltip to word: stat columns, armor, resistances, and a stat spell the client leaves without a line. */
+  stats: StatValues
+  weaponSkill: SkillValues
+}
+
+/** The item's stats split by who words them: the client's stat-spell lines, or the tooltip (docs/data/items.md#stat-spell-text). */
+function statSources(item: Item): StatSources {
+  const stats: StatValues = { ...item.stats }
+  const weaponSkill: SkillValues = { ...item.weaponSkill }
+  const shown = new Set([...item.otherEquip, ...item.procs, ...item.useEffects].map((e) => e.spellId))
+  const lines: string[] = []
+  for (const spell of item.statEquip) {
+    for (const [key, value] of Object.entries(spell.stats) as [keyof Stats, number][]) stats[key] = (stats[key] ?? 0) - value
+    for (const [skill, value] of Object.entries(spell.weaponSkill ?? {}) as [WeaponSkill, number][]) weaponSkill[skill] = (weaponSkill[skill] ?? 0) - value
+    if (!shown.has(spell.spellId)) lines.push(spell.raw)
+  }
+  return { lines, stats, weaponSkill }
+}
 
 function weaponLines(item: Item): TooltipLine[] {
   const weapon = item.weapon
@@ -216,10 +243,10 @@ function ammoLines(item: Item): TooltipLine[] {
   return item.ammo ? [{ text: `Adds ${item.ammo.dps.toFixed(1)} damage per second`, tone: 'white' }] : []
 }
 
-function whiteStatLines(item: Item): TooltipLine[] {
-  const stats = item.stats as Partial<Record<keyof Stats, number>>
+function whiteStatLines(item: Item, stats: StatValues): TooltipLine[] {
   const lines: TooltipLine[] = []
-  // The Forever tooltip adds stat 50's bonus armor to the white armor line (docs/data/client.md "Armor").
+  // The Forever tooltip adds stat 50's bonus armor to the white armor line (docs/data/client.md
+  // "Armor"); an equip spell's "+200 Armor." is its own Equip line (`statSources`).
   const armor = (stats.armor ?? 0) + (stats.bonusArmor ?? 0)
   if (armor) lines.push({ text: `${armor} Armor`, tone: 'white' })
   // Classic Era's innate block value, on a shield whose values fall back to Classic Era's (docs/data/items.md).
@@ -229,10 +256,8 @@ function whiteStatLines(item: Item): TooltipLine[] {
     if (value) lines.push({ text: `${signed(value)} ${label}`, tone: 'white' })
   }
   const resists = RESISTANCES.map(([key]) => stats[key] ?? 0)
-  // Forever's stat 124 gives all five as one line, "+N Spell Resistance" (docs/data/client.md).
-  if (item.statsFrom === 'forever' && resists[0] && resists.every((r) => r === resists[0])) {
-    lines.push({ text: `${signed(resists[0])} Spell Resistance`, tone: 'white' })
-  } else {
+  // Forever's stat 124 gives all five as one stat (docs/data/client.md): an Equip line (`equipLines`).
+  if (!allResistances(item, stats)) {
     RESISTANCES.forEach(([, school], i) => {
       if (resists[i]) lines.push({ text: `${signed(resists[i])} ${school} Resistance`, tone: 'white' })
     })
@@ -240,33 +265,111 @@ function whiteStatLines(item: Item): TooltipLine[] {
   return lines
 }
 
+/** Forever's stat 124, all five resistances as one: the five equal, on an item whose values are Forever's. */
+function allResistances(item: Item, stats: StatValues): number | null {
+  const resists = RESISTANCES.map(([key]) => stats[key] ?? 0)
+  return item.statsFrom === 'forever' && resists[0] && resists.every((r) => r === resists[0]) ? resists[0] : null
+}
+
+/**
+ * The PvP rank titles, ranks 1 to 14, by faction: the client's `PVP_RANK_<rank + 4>_<0 Horde, 1
+ * Alliance>` strings ([gs-forever]; the four dishonorable ranks come first, as `RequiredPVPRank`
+ * counts them).
+ */
+const PVP_RANK_TITLES: Record<Faction, readonly string[]> = {
+  Alliance: [
+    'Private',
+    'Corporal',
+    'Sergeant',
+    'Master Sergeant',
+    'Sergeant Major',
+    'Knight',
+    'Knight-Lieutenant',
+    'Knight-Captain',
+    'Knight-Champion',
+    'Lieutenant Commander',
+    'Commander',
+    'Marshal',
+    'Field Marshal',
+    'Grand Marshal',
+  ],
+  Horde: [
+    'Scout',
+    'Grunt',
+    'Sergeant',
+    'Senior Sergeant',
+    'First Sergeant',
+    'Stone Guard',
+    'Blood Guard',
+    'Legionnaire',
+    'Centurion',
+    'Champion',
+    'Lieutenant General',
+    'General',
+    'Warlord',
+    'High Warlord',
+  ],
+}
+
+/**
+ * A PvP rank requirement as the game words it, "Requires Lieutenant Commander": the rank's title in
+ * the faction that can wear the item (the one its name gives, `itemFaction`). The game names the
+ * reader's own faction's title, and only that faction can wear the item here. Where the item suits
+ * both and the titles differ, the data's "Requires PvP rank N" stands.
+ */
+function pvpRankLine(item: Item, rank: number, text: string): string {
+  const faction = itemFaction(item)
+  const titles = faction ? [PVP_RANK_TITLES[faction][rank - 1]] : [PVP_RANK_TITLES.Alliance[rank - 1], PVP_RANK_TITLES.Horde[rank - 1]]
+  return titles[0] && titles.every((t) => t === titles[0]) ? `Requires ${titles[0]}` : text
+}
+
 function requirementLines(item: Item): TooltipLine[] {
   const lines: TooltipLine[] = []
   if (item.classes) lines.push({ text: `Classes: ${item.classes.join(', ')}`, tone: 'white' })
   if (item.races) lines.push({ text: `Races: ${item.races.join(', ')}`, tone: 'white' })
   if (item.reqLevel) lines.push({ text: `Requires Level ${item.reqLevel}`, tone: 'white' })
-  for (const requirement of item.requirements) lines.push({ text: requirement.text, tone: 'white' })
+  for (const requirement of item.requirements) {
+    const text = requirement.kind === 'pvpRank' && requirement.level ? pvpRankLine(item, requirement.level, requirement.text) : requirement.text
+    lines.push({ text, tone: 'white' })
+  }
   lines.push({ text: `Item Level ${item.itemLevel}`, tone: 'gold' })
   return lines
 }
 
-function equipLines(item: Item): TooltipLine[] {
-  const stats = item.stats as Partial<Record<keyof Stats, number>>
+/** The note under an item effect the Classic Era profile simulates as Classic Era has it (docs/ux.md "Item tooltips"). */
+export const CLASSIC_ERA_EFFECT_NOTE = 'Classic Era rules simulate this effect as Classic Era has it.'
+
+/** An effect the Classic Era profile simulates as that client has it: a function of the profile in `ITEM_EFFECTS`. */
+const differsUnderClassicEra = (item: Item) => typeof ITEM_EFFECTS[item.id]?.effects === 'function'
+
+function equipLines(item: Item, sources: StatSources, profile: RuleProfileId): TooltipLine[] {
+  const { stats, weaponSkill } = sources
   const lines: TooltipLine[] = []
-  for (const { key, forever, classic } of EQUIP_STATS) {
+  const all = allResistances(item, stats)
+  if (all) lines.push({ text: `Equip: Increases spell resistance by ${all}.`, tone: 'green' })
+  for (const { key, line } of EQUIP_STATS) {
     const value = stats[key]
-    if (value) lines.push({ text: `Equip: ${(item.statsFrom === 'classic' && classic ? classic : forever)(value)}`, tone: 'green' })
+    if (value) lines.push({ text: `Equip: ${line(value)}`, tone: 'green' })
   }
-  for (const [skill, value] of Object.entries(item.weaponSkill ?? {})) {
-    if (value) lines.push({ text: `Equip: Increased ${skill} +${value}.`, tone: 'green' })
+  for (const [skill, value] of Object.entries(weaponSkill) as [WeaponSkill, number][]) {
+    if (value) lines.push({ text: `Equip: Increases ${skill.toLowerCase()} skill by ${value}.`, tone: 'green' })
   }
+  for (const text of sources.lines) lines.push({ text, tone: 'green' })
   // The client's own lines, prefix and cooldown included (docs/data/items.md#effect-and-set-bonus-text).
-  for (const effect of [...item.otherEquip, ...item.procs, ...item.useEffects]) lines.push({ text: effect.raw, tone: 'green' })
+  // A generated line is the scraper's words for a spell the game describes with nothing: left out.
+  for (const effect of [...item.otherEquip, ...item.procs, ...item.useEffects]) {
+    if (!effect.generated) lines.push({ text: effect.raw, tone: 'green' })
+  }
+  // The lines stay the Forever client's under Classic Era rules; an effect that profile simulates
+  // as Classic Era's (Hand of Justice's chance, Ironfoe's) says so.
+  if (profile === 'classicEra' && differsUnderClassicEra(item)) lines.push({ text: CLASSIC_ERA_EFFECT_NOTE, tone: 'grey' })
   return lines
 }
 
 function setLines(item: Item, worn: ReadonlySet<number>): TooltipLine[] {
-  const set = item.setId ? itemData.sets[item.setId] : undefined
+  // The set the item counts toward: a Classic Era row can carry a set id Forever reuses for another set (`setOf`).
+  const setId = setOf(item)
+  const set = setId ? itemData.sets[setId] : undefined
   if (!set) return []
   const size = set.size ?? set.itemIds.length
   const count = set.itemIds.filter((id) => worn.has(id)).length
@@ -276,8 +379,10 @@ function setLines(item: Item, worn: ReadonlySet<number>): TooltipLine[] {
     const piece = itemsById.get(id)
     if (piece) lines.push({ text: piece.name, tone: worn.has(id) ? 'worn' : 'grey', indent: true })
   }
+  // The client's ITEM_SET_BONUS "Set: %s" for a bonus reached, ITEM_SET_BONUS_GRAY "(%d) Set: %s" for one not.
   set.bonuses.forEach((bonus, i) => {
-    lines.push({ text: `(${bonus.pieces}) Set: ${bonus.text}`, tone: count >= bonus.pieces ? 'green' : 'grey', gapBefore: i === 0 })
+    const active = count >= bonus.pieces
+    lines.push({ text: active ? `Set: ${bonus.text}` : `(${bonus.pieces}) Set: ${bonus.text}`, tone: active ? 'green' : 'grey', gapBefore: i === 0 })
   })
   return lines
 }
@@ -301,10 +406,11 @@ export function itemTooltipLines(item: Item, { enchantId, profile = 'forever', w
   }
   const slot = SLOT[item.slot] ?? item.itemSubclass
   lines.push({ text: slot, right: typeName(item), tone: 'white' })
-  lines.push(...weaponLines(item), ...ammoLines(item), ...whiteStatLines(item))
+  const sources = statSources(item)
+  lines.push(...weaponLines(item), ...ammoLines(item), ...whiteStatLines(item, sources.stats))
   const enchant = enchantTooltipLine(enchantId, profile)
   if (enchant) lines.push({ text: enchant, tone: 'green' })
-  lines.push(...requirementLines(item), ...equipLines(item), ...setLines(item, wornIds))
+  lines.push(...requirementLines(item), ...equipLines(item, sources, profile), ...setLines(item, wornIds))
   return lines
 }
 

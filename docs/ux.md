@@ -1388,31 +1388,56 @@ its open and close rules by `ItemTooltip` in `src/features/gear/item-tooltip.tsx
   Unique or Unique-Equipped with its group; the slot, with the type on the right ("Two-Hand" and
   "Axe"; none for jewelry, cloaks and held items); a weapon's damage with its speed on the right,
   any extra damage and its damage per second; ammo's damage per second; armor (base and bonus armor
-  on one line, as Forever's tooltip adds them) and a Classic Era shield's block; primary stats and
-  resistances; **the enchant**; classes, races, "Requires Level", other requirements (reputation,
-  skill, PvP rank) and the item level; the **Equip** lines for the other stats, then the item's own
-  Equip, Chance on hit and Use lines; and the **set**: its name with the pieces worn ("(3/8)"), its
-  pieces and its bonuses as "(2) Set: …".
-- **Words come from the data, never invented.** Effect and set-bonus lines are the client's
-  rendered descriptions, as the item data carries them. The enchant is the client's enchant name
-  with its values filled in ("Strength +15", "Crusader"; `enchant-lines.ts`, held to the client by
-  its test); under Classic Era rules an enchant whose Classic Era number differs shows the
-  catalogue's Classic Era summary instead. Stats have no client text in the app's data, so they're
-  worded as the client words the same stat elsewhere: an item whose values are Forever's has stat
-  columns ("Equip: +28 Critical Strike Rating."), and a Classic Era one equip spells, in the words
-  the pool's set bonuses render for the same auras ("Equip: Improves your chance to hit by 1%.").
-  A fact the data doesn't carry is left out, not guessed: durability, sell price and flavor text
-  (the browser's data drops the last two), and a set piece outside the item pool, which has no name
-  in the data (the count still counts every piece).
+  on one line, as Forever's tooltip adds them; an equip spell's "+200 Armor." stays its own Equip
+  line) and a Classic Era shield's block; primary stats and resistances; **the enchant**; classes,
+  races, "Requires Level", other requirements (reputation, skill, PvP rank) and the item level; the
+  **Equip** lines for the stat columns, then each stat spell's line, then the item's other Equip,
+  Chance on hit and Use lines; and the **set** the item counts toward (`setOf`: a Classic Era row
+  whose set id Forever reuses for another set, such as Champion's Chain Headguard's, shows none):
+  its name with the pieces worn ("(3/8)"), its pieces, and its bonuses, "Set: …" for one reached
+  and "(2) Set: …" for one not, as the client's `ITEM_SET_BONUS` and `ITEM_SET_BONUS_GRAY` word
+  them. An off-hand a two-hander locks doesn't count as worn, as the engine skips it.
+- **Words come from the client, never invented.**
+  - *Effect, stat-spell and set-bonus lines* are the client's rendered descriptions, as the item
+    data carries them (`statEquip`, `procs`, `useEffects`, `otherEquip`;
+    [items.md](data/items.md#stat-spell-text)): "Improves your chance to get a critical strike
+    with melee attacks by 1.0%.", "+14 Attack Power. This effect is tripled in Forest and
+    Grassland areas." A line the scraper words for a spell the client describes with nothing
+    ("+15 Spell Power in certain areas.", `generated`) isn't shown, as the game shows nothing; the
+    stats summary keeps it.
+  - *Forever's stat columns* have no description, so they take the Forever client's own
+    `ITEM_MOD_*` strings ([GlobalStrings][gs-forever-ux]) after "Equip: ": "Increases your
+    critical strike by 28.", "Increases your hit by 20.", "Increases attack power by 62.",
+    "Increases spell power by 46.", "Restores 5 mana per 5 sec.", "Increases spell resistance by
+    5." (stat 124, all five resistances). A stat with only a short string reads "+81 Attack Power
+    Vs Undead.". `[?]` Whether the game prints these long forms or the short "+28 Critical Strike"
+    is unsettled until a guild screenshot of a rated item; the strings are the client's either way,
+    and "Rating" is in none of them. A stat spell the client leaves without a description would
+    take the Classic Era wording of its aura; no pool item has one, and a test holds that.
+  - *The enchant* is the client's enchant name with its values filled in ("Strength +15",
+    "Crusader"; `enchant-lines.ts`, held to the client by its test). Under Classic Era rules an
+    enchant whose Classic Era number differs takes the Classic Era client's name for it ("Armor
+    +50", "Health +100"), held to that client's cached rows by the same test.
+  - *PvP ranks* read as the client's rank title, "Requires Lieutenant Commander": the
+    `PVP_RANK_*` title for the faction that can wear the item (`itemFaction`, which its name
+    gives), since the game names the reader's own faction's and only that faction wears it here.
+    `[?]` The "Requires %s" form is the client's `ITEM_REQ_SKILL`, assumed for ranks too.
+  - *Under Classic Era rules* an item's lines stay the Forever client's, as its stats do in the
+    engine. Where that profile simulates an item's effect as Classic Era has it (Hand of Justice's
+    chance, Ironfoe's: the effects in `ITEM_EFFECTS` that take the profile), a grey note under the
+    lines says so: "Classic Era rules simulate this effect as Classic Era has it."
+  - A fact the data doesn't carry is left out, not guessed: durability, sell price and flavor text
+    (the browser's data drops the last two), and a set piece outside the item pool, which has no
+    name in the data (the count still counts every piece).
 - **Colours, on a dark panel in both themes**, as the game's is (#0b0d1a, with a #565d7e border
   and a shadow, so it stands off the dark page too; `TOOLTIP_PALETTE`). The one exception to
   tooltips taking the popover's colours ([Visual language](#visual-language)): the game's colours
   only read on dark. White for the item's own facts (19.3:1); green `#1EFF00` for Equip, Use and
   Chance on hit, the enchant and a set bonus reached (14.1:1); gold `#FFD100` for the item level and
   the set's name (13.2:1); pale yellow for a set piece worn (18.4:1) and grey `#9D9D9D` for one
-  not worn and a bonus not reached (7.1:1). The name takes its quality colour, the game's where it
-  reaches AA on the panel (Uncommon, Legendary 7.7:1) and the dark theme's otherwise (Rare
-  `#4DA3FF` 7.4:1, Epic `#C27EF7` 7.0:1; the game's own are 4.0:1). A unit test holds every colour
+  not worn, a bonus not reached and the Classic Era note (7.1:1). The name takes its quality
+  colour, the game's where it reaches AA on the panel (Uncommon, Legendary 7.7:1) and the dark
+  theme's otherwise (Rare `#4DA3FF` 7.4:1, Epic `#C27EF7` 7.0:1; the game's own are 4.0:1). A unit test holds every colour
   to 4.5:1 or more. Two-column rows put the right column flush right; set pieces are indented; a
   gap sets off the set and its bonuses.
 - **Opening and closing, by device:**
@@ -1508,6 +1533,8 @@ its open and close rules by `ItemTooltip` in `src/features/gear/item-tooltip.tsx
     390 and 360 px (a long name is cut short 32 px sooner);
   - in the wide grid, at the row's inner end, toward the pane's middle on either side;
   - on a picker row, at its top right, level with the name.
+
+[gs-forever-ux]: https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua
 
 ## Brand
 

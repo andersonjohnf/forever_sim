@@ -5,7 +5,7 @@
 // interface doesn't declare, or lacks a required one (true = required, false = optional).
 import { describe, expect, it } from 'vitest'
 import itemJson from './items/pre-bis.json'
-import type { Item, ItemData, ItemDataMeta, ItemSet, SetBonus, UseEffect, Weapon } from './items/types'
+import type { Item, ItemData, ItemDataMeta, ItemSet, SetBonus, StatEquipLine, UseEffect, Weapon } from './items/types'
 import raceJson from './races/races.json'
 import type { Race, RaceData, RaceSnapshotMeta, Racial } from './races/types'
 import druidSpellJson from './spells/druid.json'
@@ -78,6 +78,7 @@ const ITEM = {
   weapon: true,
   weaponSkill: true,
   statSpellIds: true,
+  statEquip: true,
   procs: true,
   useEffects: true,
   otherEquip: true,
@@ -94,7 +95,8 @@ const ITEM = {
   notes: true,
 } satisfies Shape<Item>
 const WEAPON = { min: true, max: true, speed: true, dps: true, school: true, skill: true, extraDamage: false } satisfies Shape<Weapon>
-const EFFECT = { raw: true, spellId: true, cooldownSec: false } satisfies Shape<UseEffect>
+const EFFECT = { raw: true, spellId: true, cooldownSec: false, generated: false } satisfies Shape<UseEffect>
+const STAT_EQUIP = { raw: true, spellId: true, stats: true, weaponSkill: false, generated: false } satisfies Shape<StatEquipLine>
 const ITEM_SET = { name: true, size: true, itemIds: true, bonuses: true, bonusesFrom: true } satisfies Shape<ItemSet>
 const SET_BONUS = { pieces: true, spellId: true, text: true, parsed: false, weaponSkill: false } satisfies Shape<SetBonus>
 
@@ -107,6 +109,7 @@ describe('items/pre-bis.json matches src/data/items/types.ts', () => {
       expectShape(item, ITEM, `item ${item.id}`)
       if (item.weapon) expectShape(item.weapon, WEAPON, `item ${item.id} weapon`)
       for (const e of [...item.procs, ...item.useEffects, ...item.otherEquip]) expectShape(e, EFFECT, `item ${item.id} effect`)
+      for (const e of item.statEquip) expectShape(e, STAT_EQUIP, `item ${item.id} stat line`)
     }
     for (const [id, set] of Object.entries(data.sets)) {
       expectShape(set, ITEM_SET, `set ${id}`)

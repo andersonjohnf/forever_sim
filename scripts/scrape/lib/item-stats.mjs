@@ -229,7 +229,7 @@ export const STAT_TYPE = {
 };
 
 /** Keys STAT_TYPE may produce that `Stats` has no field for (reported, not summed). */
-const NOT_IN_STATS = new Set(["mana", "health", "holyResistance"]);
+export const NOT_IN_STATS = new Set(["mana", "health", "holyResistance"]);
 
 /**
  * Equip-spell aura → stat, for SpellEffect rows with Effect 6 (APPLY_AURA). One documented

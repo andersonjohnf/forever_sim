@@ -4,7 +4,7 @@
 // them (createFallbackContext). Pure functions over the lookups the CLI
 // (scripts/scrape/items-client.mjs) loads; no I/O. See docs/data/items.md.
 
-import { AURA_STAT, NOT_STAT_AURAS, SLOT, createFallbackContext, deriveItem, deriveSet, hasSpell, spellStats } from "./item-stats.mjs";
+import { AURA_STAT, NOT_IN_STATS, NOT_STAT_AURAS, SLOT, createFallbackContext, deriveItem, deriveSet, hasSpell, spellStats } from "./item-stats.mjs";
 import { compareText } from "./json.mjs";
 import { formatCooldown, renderSpellText } from "./spell-text.mjs";
 
@@ -213,11 +213,36 @@ function effectLines(bundle, derived, coverage, itemId) {
     if (t.text === null) continue;
     const raw = `${PREFIX[e.trigger]}${t.text}`;
     const { spellId } = e;
+    // A generated line is the scraper's words for a spell the client describes with nothing:
+    // flagged, so a tooltip that shows only the game's words can leave it out.
+    const generated = t.how === "generated" ? { generated: true } : {};
     if (e.kind === "use") {
       const ms = e.cooldownMs ?? e.categoryCooldownMs ?? null;
-      out.useEffects.push(ms ? { raw: `${raw} (${formatCooldown(ms)} Cooldown)`, spellId, cooldownSec: ms / 1000 } : { raw, spellId });
-    } else if (e.kind === "proc") out.procs.push({ raw, spellId });
-    else out.otherEquip.push({ raw, spellId });
+      out.useEffects.push(ms ? { raw: `${raw} (${formatCooldown(ms)} Cooldown)`, spellId, cooldownSec: ms / 1000, ...generated } : { raw, spellId, ...generated });
+    } else if (e.kind === "proc") out.procs.push({ raw, spellId, ...generated });
+    else out.otherEquip.push({ raw, spellId, ...generated });
+  }
+  return out;
+}
+
+/**
+ * The client's own Equip line for each of the item's stat spells (docs/data/items.md#stat-spell-text),
+ * in the order the item lists its effects: the rendered description, with the stats and weapon
+ * skill the spell adds to `stats` and `weaponSkill`, so a tooltip can show the line in place of its
+ * own wording for them. A spell whose description is empty (the game shows nothing) or can't be
+ * fully rendered has no entry: its stats keep a tooltip's wording.
+ */
+function statEquipLines(bundle, derived, itemId) {
+  const stat = new Set(derived.statSpellIds);
+  const order = [...new Set([...(bundle.ctx.itemEffects.get(itemId) ?? []).map((e) => e.SpellID).filter((id) => stat.has(id)), ...derived.statSpellIds])];
+  const out = [];
+  for (const spellId of order) {
+    const t = effectText(bundle, spellId);
+    if (t.how !== "rendered") continue;
+    const s = spellStats(bundle.ctx, spellId);
+    const stats = Object.fromEntries(Object.entries(s.stats).filter(([k, v]) => v && !NOT_IN_STATS.has(k)));
+    const weaponSkill = nonEmpty(s.weaponSkill);
+    out.push({ raw: `${PREFIX.equip}${t.text}`, spellId, stats: sortKeys(stats), ...(weaponSkill ? { weaponSkill } : {}) });
   }
   return out;
 }
@@ -409,6 +434,7 @@ export function describeRow(bundle, id, coverage) {
     weapon: derived.weapon ? weapon : null,
     weaponSkill: nonEmpty(derived.weaponSkill),
     statSpellIds: derived.statSpellIds,
+    statEquip: statEquipLines(bundle, derived, id),
     ...effects,
     setId: derived.setId === null ? null : String(derived.setId),
     icon: L.iconName(id, item),
@@ -604,6 +630,7 @@ export function buildPool({ forever, classic, filter, bis, watch }) {
       weaponSkill: d.weaponSkill,
       ...(d.derived.ammo ? { ammo: d.derived.ammo } : {}),
       statSpellIds: d.statSpellIds,
+      statEquip: d.statEquip,
       procs: d.procs,
       useEffects: d.useEffects,
       otherEquip: d.otherEquip,

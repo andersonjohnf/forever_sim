@@ -122,8 +122,15 @@ export function GearSection() {
   }
   const setSection = useSetup((s) => s.setSection)
   const profile = useSetup((s) => s.config.rules.profile)
-  // The items worn, for a tooltip's set count (docs/ux.md "Item tooltips").
-  const wornIds = useMemo(() => Object.values(config.gear).flatMap((entry) => (entry ? [entry.itemId] : [])), [config.gear])
+  // The items worn, for a tooltip's set count (docs/ux.md "Item tooltips"): an off-hand a two-hander
+  // locks doesn't count, as the engine skips it (src/sim/plan/build.ts).
+  const wornIds = useMemo(
+    () =>
+      (Object.entries(config.gear) as [GearSlot, { itemId: number } | undefined][]).flatMap(([slot, entry]) =>
+        entry && !(slot === 'offHand' && twoHanded) ? [entry.itemId] : [],
+      ),
+    [config.gear, twoHanded],
+  )
   // Where a mouse or pen hovers, hover and keyboard focus open an item's tooltip, so the info control
   // shows only where nothing hovers: a touch screen, at any width (docs/ux.md "Item tooltips").
   const hovers = useMediaQuery('(hover: hover) and (pointer: fine)')

@@ -126,6 +126,10 @@ milestone ids, nothing promised that isn't agreed. Keep it in step with the mile
 reordered milestone updates it in the same commit, and shipped work moves into that release's entry.
 When the user asks for a Coming soon post for Discord, make it terse: the heading "## Coming soon",
 a **Next update** group, then an **After that** group with one short bullet a milestone.
+**After every push, give the user one short Discord note** that combines the two (user decision,
+2026-09-26): a terse summary of the update (a few bullets, the headline changes only), a line that
+the full notes are in the app's What's New, then a bold "Coming soon" with a bullet or two. Keep it
+well under Discord's limit: a summary, not the whole entry.
 
 ## Working with agents: small slices, fresh contexts
 

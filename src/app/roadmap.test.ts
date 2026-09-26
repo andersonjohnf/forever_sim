@@ -29,6 +29,15 @@ describe('the roadmap (docs/ux.md "Coming soon")', () => {
     for (const e of ROADMAP) expect(order, e.id).toContain(e.when)
   })
 
+  // docs/milestones.md: multi-target (M6) comes ahead of the optimizer's remaining steps (user
+  // decision 2026-09-26, D30's amendment).
+  it('lists multi-target before the Optimizer', () => {
+    const ids = ROADMAP.map((e) => e.id)
+    expect(ids).toContain('multi-target')
+    expect(ids).toContain('optimizer')
+    expect(ids.indexOf('multi-target')).toBeLessThan(ids.indexOf('optimizer'))
+  })
+
   // CLAUDE.md "Release updates": plain text a player reads, as the release notes are.
   it('is written for players: no emoji, no internals, whole sentences', () => {
     for (const e of ROADMAP) {

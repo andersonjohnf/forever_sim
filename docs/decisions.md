@@ -512,7 +512,11 @@ had no known number was modelled with none. Both are now rules:
   combat logs, not a reason to move a value.
 
 ### D30: The sim finds the best talents, gear and rotation itself; defaults are its results (2026-09-24)
-User decision, now the top priority. The feature is called **the Optimizer** (user's name for it;
+**Amended 2026-09-26 (user decision):** multi-target ([M6](milestones.md#m6-multi-target-)) now
+comes first; the optimizer's remaining steps, O3 (in the app) and O4 (defaults from its results),
+follow it. The optimizer is no longer the top priority.
+
+User decision, then the top priority. The feature is called **the Optimizer** (user's name for it;
 not "Top Gear", which is Raidbots'). Talent builds, gear sets and rotations have a numerically
 best answer for a given setup, so the sim searches for it rather than assuming one, as Raidbots'
 Top Gear and the retail optimizers do:

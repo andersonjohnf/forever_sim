@@ -1,0 +1,18 @@
+Copyright (c) 2026 John Anderson. All rights reserved.
+
+This repository is public so the community can read and review how Forever Sim works. That is the
+only purpose it is shared for.
+
+No license is granted. Without the copyright holder's prior written permission, you may not copy,
+modify, merge, publish, distribute, sublicense, sell, host or otherwise make available this
+software, its documentation or any part of them, in source or compiled form, including as the
+basis of another simulator or website. Viewing the repository, and forking it on GitHub as
+GitHub's Terms of Service allow, grant no further rights.
+
+Not covered: game data extracted from the World of Warcraft clients belongs to Blizzard
+Entertainment, and third-party names, logos and tools (such as wago.tools and WoWDBDefs) belong to
+their owners, under their own terms.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+
+For permission, open an issue at https://github.com/andersonjohnf/forever_sim/issues.

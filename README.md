@@ -100,5 +100,11 @@ names, and the `firebase` environment limited to `main`.
 - Classic Era mechanics research by the Classic theorycrafting community, credited in each
   doc's *Sources* section.
 
+## License
+
+Copyright (c) 2026 John Anderson. All rights reserved. The code is public so the community can
+review it, not for reuse: no one may copy, modify or distribute it, or build another sim or site
+from it, without written permission. See [LICENSE](LICENSE).
+
 World of Warcraft is a trademark of Blizzard Entertainment. Forever Sim and Decades are not
 affiliated with or endorsed by Blizzard Entertainment.

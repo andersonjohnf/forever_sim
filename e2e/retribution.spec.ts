@@ -199,7 +199,7 @@ test.describe('Retribution', () => {
     const might = buffs.getByRole('switch', { name: 'Blessing of Might' })
     await expect(might).toBeChecked()
     await expect(might).toBeEnabled()
-    await expect(might).toHaveAccessibleDescription('+133 attack power')
+    await expect(might).toHaveAccessibleDescription('+112 attack power')
     await might.click()
     await expect(might).not.toBeChecked()
     // The Standard raid preset without a paladin still blesses you with Might.

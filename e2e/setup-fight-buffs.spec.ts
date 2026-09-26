@@ -62,11 +62,11 @@ test('Classic Era rules show Classic Era’s buff and enchant numbers', async ({
   await page.getByRole('button', { name: 'Advanced' }).click()
   await page.getByRole('radiogroup', { name: 'Rules' }).getByRole('radio', { name: 'Classic Era' }).click()
 
-  // Classic Era: Battle Shout rank 7 is +232 (buffs doc, Classic Era values), as the fight uses it.
+  // Classic Era: Battle Shout rank 6, the trainer's (D36), is +193 (buffs doc, Classic Era values), as the fight uses it.
   await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
-  await expect(shout).toContainText('+232 attack power')
+  await expect(shout).toContainText('+193 attack power')
   await expect(shout).not.toContainText('+139')
-  await expect(page.locator('label').filter({ has: page.getByRole('switch', { name: 'Blessing of Might' }) })).toContainText('+185 attack power')
+  await expect(page.locator('label').filter({ has: page.getByRole('switch', { name: 'Blessing of Might' }) })).toContainText('+155 attack power')
   await page.getByRole('tab', { name: 'Gear', exact: true }).click()
   await expect(page.getByRole('button', { name: /^Greater Strength · .*, Hands enchant$/ })).toContainText('Greater Strength · +7 Strength')
 })

@@ -90,4 +90,26 @@ keeps its survival talents (D29), with its effective-health floor held.
 
 ## Verification pass over the W4 fixes
 
-See the addendum below.
+Every finding fixed (W4U-7's shorter summary is still 2 lines at 1280, waived: optional, and ux.md
+allows wrapping); nothing the fixes introduced at medium or worse. Checks: lint, typecheck, 3,781
+unit tests, 166 e2e tests. The documented preset deltas reproduced on a fresh seed.
+
+| id | severity | origin | finding | disposition |
+|---|---|---|---|---|
+| VW4-1 | low | introduced | The Rend floor let a Rend through with exactly one tick left, which never ticks. | Fixed, 9809199d: more than one tick. |
+| VW4-2 | low | introduced | The docs said 17/34 leads only without an execute phase; it leads in short fights with one too. | Reworded in 9809199d; see QV-1. |
+| VW4-3 | low | fix residue | Ten golden comments still called the truncation the client's. | Fixed, 9809199d. |
+| VW4-4 | low | fix residue | B79 still said 13%. | Fixed, 9809199d. |
+
+## Quick check of 9809199d
+
+VW4-1, VW4-3 and VW4-4 fixed; VW4-1 changes no result beyond noise (Fury with no phase +0.01 DPS at
+180 s; everything with a phase byte-identical).
+
+| id | severity | origin | finding | disposition |
+|---|---|---|---|---|
+| QV-1 | low | introduced by VW4-2's rewording | The new crossovers were wrong too: with the default 20% phase 17/34 leads to about 37 s, not 45. | **Simplified (step 6):** two rounds in a row found the stated crossovers wrong, so the docs no longer name one. They say "short fights", as the preset's name does, with one measured example at 30 s (+3.2% with no phase, +0.8% with a 20% one). |
+| QV-2 | low | pre-existing text VW4-2 missed | open-questions and §5.2's opening still said "without an execute phase". | Fixed with QV-1. |
+| QV-3 | low | introduced by VW4-1 | The docs still said "at least one tick" of the fight left. | Fixed: "more than one tick", rows 10b and 2 and the note. |
+
+QV-1 to QV-3 are doc wording only, with no code change; the gate passes for D36's warrior work.

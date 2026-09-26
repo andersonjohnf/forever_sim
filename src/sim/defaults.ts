@@ -108,7 +108,7 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
     // docs/classes/warrior.md#61-talent-builds: Fury 13/38/0
     { name: 'Fury (default)', code: DEFAULT_TALENTS['warrior-fury'] },
     // docs/classes/warrior.md#61-talent-builds: the popular Fury 17/34/0, the default until W4, ahead of it only in short
-    // fights: up to about 45 s with an execute phase, 90 s without (§5.2 "Re-tuning after D36")
+    // fights (§5.2 "Re-tuning after D36")
     { name: 'Fury popular build (better in short fights)', code: POPULAR_WARRIOR_TALENTS['warrior-fury'] },
     // docs/classes/warrior.md#61-talent-builds: Arms 35/16/0
     { name: 'Arms (default)', code: DEFAULT_TALENTS['warrior-arms'] },

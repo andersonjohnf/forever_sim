@@ -162,11 +162,11 @@ export const usesSupplies = (classId: ClassId) => PROFICIENCY[classId].supplies 
 /**
  * Item sets whose every piece is a quest reward only one class receives, by the set's name in the
  * client's ItemSet table, and that class. The item rows carry no class restriction, so the client
- * would let anyone wear them, but no other class can get one. Dungeon Set 2: the upgrade quests are
- * open to every class, and each class receives its own set's piece [C]
+ * would let anyone wear them, but no other class can get one. Dungeon Set 2: each class takes its
+ * own version of the upgrade quests and receives its own set's piece [C]
  * ([Dungeon Set 2](https://warcraft.wiki.gg/wiki/Dungeon_Set_2);
- * [An Earnest Proposition](https://warcraft.wiki.gg/wiki/An_Earnest_Proposition): "You will receive
- * (depending on class)").
+ * [An Earnest Proposition](https://warcraft.wiki.gg/wiki/An_Earnest_Proposition): one quest per
+ * class, Alliance 8905–8912 and 10492, Horde from 8913).
  */
 export const CLASS_QUEST_SETS: Readonly<Record<string, ClassId>> = {
   'Battlegear of Heroism': 'warrior',

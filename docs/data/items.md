@@ -1003,10 +1003,10 @@ PvP pieces to both factions, since their rows carry no requirement to go by `[?]
 
 **Dungeon Set 2 is its class's alone** `[C]`. Its pieces are quest rewards ([Dungeon
 Set 2](https://warcraft.wiki.gg/wiki/Dungeon_Set_2): "The items that form these sets are quest
-rewards"). The upgrade quests are open to every class, and only the reward depends on it: each class
-receives its own set's piece ([An Earnest
-Proposition](https://warcraft.wiki.gg/wiki/An_Earnest_Proposition), the bracers' quest: "You will
-receive (depending on class)", Darkmantle Bracers for a rogue, Feralheart Bracers for a druid). So
+rewards"). Each class takes its own version of the upgrade quests and receives its own set's piece
+([An Earnest Proposition](https://warcraft.wiki.gg/wiki/An_Earnest_Proposition), the bracers' quest:
+one quest per class, Alliance 8905–8912 and 10492, Horde from 8913; Darkmantle Bracers for a rogue,
+Feralheart Bracers for a druid). So
 only the set's class receives a piece, yet their client rows carry no class restriction (`classes`
 is null), so by the client alone any class that wears the armor type could wear them. The engine gives each piece to its set's class only (`CLASS_QUEST_SETS` and `canUse`,
 `src/sim/equip.ts`), reading the pieces from the client's item sets by the sets' names:

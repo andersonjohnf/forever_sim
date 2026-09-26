@@ -110,7 +110,7 @@ describe('class-quest rewards (docs/data/items.md#class-quest-rewards)', () => {
   it('removes another class’s piece from a loaded setup, saying whose quest reward it is', () => {
     const { config, warnings, questRemovals } = normalizeConfig({ ...defaultConfig('druid-feral-bear'), gear: { head: { itemId: 22005 } } })
     expect(config.gear.head).toBeUndefined()
-    // The quests are open to every class; only the reward depends on it (FL-2).
+    // Each class takes its own version of the quests and receives its own piece (FL-2, FV-1).
     expect(warnings).toContain('Darkmantle Cap is a quest reward only rogues receive, so it was removed. Choose another in Gear.')
     expect(questRemovals).toEqual([{ slot: 'head', classId: 'rogue', name: 'Darkmantle Cap' }])
     // The rogue's own setup keeps it.

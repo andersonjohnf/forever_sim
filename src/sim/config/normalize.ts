@@ -160,7 +160,7 @@ const joinNames = (names: readonly string[]) =>
  * group and quest class, the names in paper-doll order, then what to do, once. `whose` names the
  * spec whose setup lost them, for the visit's notice ("from your Feral (Bear) Druid setup"):
  * "Darkmantle Cap and Darkmantle Boots are quest rewards only rogues receive, so they were removed.
- * Choose others in Gear." The quests are open to every class; only the reward depends on it.
+ * Choose others in Gear." Each class takes its own version of the quests and receives its own piece.
  */
 export function questRemovalNotice(groups: readonly { removals: readonly QuestRemoval[]; whose?: string }[]): string {
   const sentences: string[] = []

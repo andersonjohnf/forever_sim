@@ -328,7 +328,7 @@ describe('Sunder Armor on the boss (warrior.md §3.2, §7)', () => {
     expect(plan.auras[plan.abilities[sunder].aura]).toMatchObject({ durationMs: 30000, maxStacks: 5, targetArmor: 450 })
   })
 
-  it('lasts 30 s; its threat is (206 + 5% of attack power) × the stance’s multiplier per landed Sunder, and it never crits', () => {
+  it('lasts 30 s; its threat is 206 × the stance’s multiplier per landed Sunder, and it never crits', () => {
     const { plan, sunder } = sunderPlan()
     line(plan, sunder, at(plan, 0))
     const hits = whiteHits(plan)
@@ -346,10 +346,10 @@ describe('Sunder Armor on the boss (warrior.md §3.2, §7)', () => {
     expect(counter(sim, row, FIELD.hits)).toBe(1)
     expect(counter(sim, row, FIELD.crits)).toBe(0)
     expect(counter(sim, row, FIELD.damage)).toBe(0)
-    expect(counter(sim, row, FIELD.threat)).toBeCloseTo((206 + 0.05 * ap) * plan.threatMult, 9)
+    expect(counter(sim, row, FIELD.threat)).toBeCloseTo(206 * plan.threatMult, 9)
   })
 
-  it('its attack power share reads the attack power when it lands: more attack power, more threat', () => {
+  it('its threat is flat: the notes’ attack power term has no value, so more attack power adds none (threat.md#warrior)', () => {
     const { plan, sunder } = sunderPlan()
     line(plan, sunder, at(plan, 0))
     const threatAt = (bonusAp: number) => {
@@ -359,16 +359,17 @@ describe('Sunder Armor on the boss (warrior.md §3.2, §7)', () => {
       sim.runFight(0)
       return counter(sim, p.abilities[sunder].source, FIELD.threat)
     }
-    expect(threatAt(200) - threatAt(0)).toBeCloseTo(0.05 * 200 * plan.threatMult, 9)
+    expect(threatAt(200)).toBeGreaterThan(0)
+    expect(threatAt(200) - threatAt(0)).toBeCloseTo(0, 9)
   })
 
-  it('threat.md T1 and T2: 206 + 5% of attack power per landed Sunder in `forever` (412.62 at 1,400), 261 in `classicEra` (390.195)', () => {
-    expect([sunderArmor(PROFILES.forever).threatBonus, sunderArmor(PROFILES.forever).threatApCoefficient]).toEqual([206, 0.05])
-    expect([sunderArmor(PROFILES.classicEra).threatBonus, sunderArmor(PROFILES.classicEra).threatApCoefficient]).toEqual([261, 0])
+  it('threat.md T1 and T2: 206 per landed Sunder in `forever` (307.97), 261 in `classicEra` (390.195), at 1,400 attack power', () => {
+    expect([sunderArmor(PROFILES.forever).threatBonus, sunderArmor(PROFILES.forever).threatApCoefficient ?? 0]).toEqual([206, 0])
+    expect([sunderArmor(PROFILES.classicEra).threatBonus, sunderArmor(PROFILES.classicEra).threatApCoefficient ?? 0]).toEqual([261, 0])
     // The same Protection warrior (Defensive Stance, Defiance 3/3 with a shield) under each profile,
     // at the worked examples' ×1.495 and 1,400 attack power: the default's gloves enchant (×1.02) left out.
     for (const [profile, bonus, expected] of [
-      ['forever', 206, 412.62],
+      ['forever', 206, 307.97],
       ['classicEra', 261, 390.195],
     ] as const) {
       const d = defaultConfig('warrior-protection')
@@ -502,7 +503,7 @@ describe('the Defensive Protection warrior (warrior.md §5.4)', () => {
     // Defensive Stance 1.3 × Defiance 3/3 1.15 × the gloves' Threat enchant 1.02 (threat.md T20), all fight.
     expect(plan.threatMult).toBeCloseTo(1.3 * 1.15 * 1.02, 12)
     const rows = {
-      shieldSlam: [1, 475],
+      shieldSlam: [1, 254],
       revenge: [2.25, 243],
       thunderClap: [2.5, 0],
       demoralizingShout: [0, 43.2],
@@ -516,14 +517,11 @@ describe('the Defensive Protection warrior (warrior.md §5.4)', () => {
       const expected = (mult * counter(sim, row, FIELD.damage) + bonus * landed) * plan.threatMult
       expect(counter(sim, row, FIELD.threat) / expected, id).toBeCloseTo(1, 9)
     }
-    // Sunder Armor: 206 + 5% of the attack power as it lands, so what's left after the 206s is 5% of
-    // the attack power it landed at on average: the fight start's, or more under Battle Shout and the potion.
+    // Sunder Armor: a flat 206 per landed application, whatever the attack power (threat.md#warrior).
     const sunder = plan.abilities.find((a) => a.id === 'sunderArmor')!.source
     const landed = landedOf(sunder)
-    const apAtLanding = (counter(sim, sunder, FIELD.threat) / plan.threatMult - 206 * landed) / (0.05 * landed)
-    const startAp = new Sim(plan).inspect().attackPower
-    expect(apAtLanding).toBeGreaterThanOrEqual(startAp)
-    expect(apAtLanding).toBeLessThan(startAp + 400)
+    expect(landed).toBeGreaterThan(0)
+    expect(counter(sim, sunder, FIELD.threat) / (206 * landed * plan.threatMult)).toBeCloseTo(1, 9)
     // White swings: damage × 1 (and Windfury's and Hand of Justice's extra attacks).
     expect(counter(sim, 0, FIELD.threat) / (counter(sim, 0, FIELD.damage) * plan.threatMult)).toBeCloseTo(1, 9)
   })

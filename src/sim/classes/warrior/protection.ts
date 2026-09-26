@@ -27,7 +27,6 @@ import {
   revengeWindowProcs,
   SHIELD_BLOCK,
   SHIELD_SLAM,
-  shieldSlam,
   SUNDER_ARMOR,
   sunderArmor,
   THUNDER_CLAP,
@@ -155,16 +154,17 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why
 
 /**
  * What the presets' help and short lines say, measured in the default setup (warrior.md §5.4 "Build
- * 1.60.1.70009"; seed 31101, 100,000 paired fights, re-measured 2026-09-25 with W4's talents, D36):
- * Defensive's TPS, DPS and damage taken a second, Balanced and Max TPS against it in percent, and Max
- * TPS against Balanced, since the two share their rows. protection-presets.test.ts measures them again,
- * so a change that moves them fails until they're re-measured here.
+ * 1.60.1.70009"; seed 31101, 100,000 paired fights, re-measured 2026-09-26 for Shield Slam's +254 and
+ * Sunder Armor's flat 206, threat.md#warrior): Defensive's TPS, DPS and damage taken a second, Balanced
+ * and Max TPS against it in percent, and Max TPS against Balanced, since the two share their rows.
+ * protection-presets.test.ts measures them again, so a change that moves them fails until they're
+ * re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 925.39, dps: 386.07, damageTaken: 616.34 },
-  balanced: { tpsPct: 6.44, dpsPct: 5.82, damageTakenPct: 20.99 },
-  maxTps: { tpsPct: 6.91, dpsPct: 5.56, damageTakenPct: 21.11 },
-  maxTpsOverBalanced: { tpsPct: 0.44, dpsPct: -0.24, damageTakenPct: 0.09 },
+  defensive: { tps: 856.67, dps: 386.07, damageTaken: 616.34 },
+  balanced: { tpsPct: 6.2, dpsPct: 5.82, damageTakenPct: 20.99 },
+  maxTps: { tpsPct: 6.65, dpsPct: 5.56, damageTakenPct: 21.11 },
+  maxTpsOverBalanced: { tpsPct: 0.43, dpsPct: -0.24, damageTakenPct: 0.09 },
 } as const
 
 /** A preset measured against another: its TPS, DPS and damage taken a second, in percent. */
@@ -317,7 +317,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.slamEnabled,
     group: 'Core abilities',
     label: 'Shield Slam',
-    help: 'Use Shield Slam whenever it’s ready, for its damage and threat: the most threat a global cooldown makes, even at Classic Era’s threat value, and Forever’s tooltip calls its threat very high.',
+    help: 'Use Shield Slam whenever it’s ready, for its damage and threat: the most threat a global cooldown makes at Classic Era’s threat value, which the sim uses: Forever’s tooltip calls its threat very high but gives no number.',
     default: true,
     requires: { talent: 'Shield Slam', shield: true },
   },
@@ -633,10 +633,10 @@ export function protectionRotation(
   const b = new RotationBuilder(talents)
 
   const tcDef = thunderClap(ctx.profile)
-  // Its threat is the profile's: Forever's 206 plus 5% of attack power, Classic Era's 261 (threat.md#warrior).
+  // Its threat is the profile's: Forever's client 206, Classic Era's 261 (threat.md#warrior).
   const sunderDef = sunderArmor(ctx.profile)
-  // Its threat bonus is the profile's: Forever's "very high" 475 [?], Classic Era's 254 (threat.md#warrior).
-  const slamDef = shieldSlam(ctx.profile)
+  // Its threat bonus is Classic Era's 254 in both profiles (threat.md#warrior).
+  const slamDef = SHIELD_SLAM
   /** Shield Slam's index, −1 when it isn't used (no talent, or off). */
   const slam = () => (talents.has('Shield Slam') && v.on(ID.slamEnabled) ? b.ability(slamDef) : -1)
 

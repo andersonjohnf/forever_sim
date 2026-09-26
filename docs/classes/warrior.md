@@ -11,7 +11,7 @@ at 300 weapon skill. Dual Wield Specialization now also adds off-hand hit and do
 off-hand rage. Fury gains Precision, Boundless Rage and Raging Blows. Enrage now triggers when
 you are hit, not when you are crit. Shield Slam and Revenge do almost twice their Classic damage, and in the
 client data Sunder Armor now carries a flat threat effect of its own (206 at rank 5 since build
-1.60.1.70009, 1013 before it), plus a share of attack power by Blizzard's notes. Where Forever is
+1.60.1.70009, 1013 before it); Blizzard's notes add an attack power term no client carries. Where Forever is
 silent, this doc uses Classic Era (1.13–1.15) behaviour, mostly from Magey's tested wiki and
 guybrush's WarriorSim at its pre-SoD revision.
 
@@ -121,7 +121,7 @@ utility are covered in [§4](#4-talents).
 | Improved Battle Shout and Improved Demoralizing Shout | Fury talents | **Removed** [cls] | No way to raise shout values |
 | Demoralizing Shout (rank 5) | −146 AP at 60, 30 s | **−204 AP at 60, 45 s** [sb] [client] (SpellEffect, SpellLevels, 1.60.1.69913) | Details belong in [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) |
 | Thunder Clap | 4 s cooldown, 10% attack-speed slow, Battle Stance only | **6 s cooldown, 20% slow, Battle or Defensive Stance** [sb] [client] (SpellShapeshift, 1.60.1.69913) | Protection can use it without dancing |
-| Sunder Armor | No threat effect in client data [client] (SpellEffect, 1.15.9.69722) (Classic threat of 261 is set server side [magey-thr]) | Client data adds a **THREAT effect of 206 at rank 5** (34/75/117/158 at ranks 1–4) [F] [client] (SpellEffect, 1.60.1.70009). Build 1.60.1.69913 had 1/405/608/810/1013; Blizzard's notes for 1.60.1.70009 "corrected the threat values on all ranks, including a small increase to threat generated from Attack Power" [notes-70009], a term the client doesn't carry: **default + 0.05 × AP** [?] (Q1) | Below Classic Era's 261 flat until 1,100 AP; about 281 at the default tank's ~1,500 AP when its Sunders land. See [threat.md](../mechanics/threat.md#warrior) and Q1 |
+| Sunder Armor | No threat effect in client data [client] (SpellEffect, 1.15.9.69722) (Classic threat of 261 is set server side [magey-thr]) | Client data adds a **THREAT effect of 206 at rank 5** (34/75/117/158 at ranks 1–4) [F] [client] (SpellEffect, 1.60.1.70009). Build 1.60.1.69913 had 1/405/608/810/1013; Blizzard's notes for 1.60.1.70009 "corrected the threat values on all ranks, including a small increase to threat generated from Attack Power" [notes-70009], a term no client carries and nobody has measured, so the sim adds none (Q1) | 206 flat, below Classic Era's 261. See [threat.md](../mechanics/threat.md#warrior) and Q1 |
 | Victory Rush | Does not exist in Classic Era | New baseline spell: 1 damage, heals 10% of max health, 30 s cooldown, only within 20 s of killing a non-trivial enemy [sb] | Not used against bosses |
 | Retaliation, Shield Wall, Last Stand, Taunt | 30 min, 30 min (75%, 10 s), 10 min, 10 s | 15 min, 15 min (60%, 12 s), **3 min**, 8 s [sb] [db-cd] | Not simulated |
 | Concussion Blow | 15 rage | 10 rage [db-pow] | Not simulated |
@@ -609,7 +609,7 @@ unconfirmed. `classicEra` has none [C]. The results' assumptions list it with Re
 | --- | --- | --- | --- | --- | --- | --- |
 | Battle Shout (6, 11551) | 10 | none | yes | any | +115 melee AP to the party (20 yd) for 3 min (111 + 0.6 per level from 52, truncated, §1.1). Rank 7 (25289, +139) is an Ahn'Qiraj book (D36, Q25). `classicEra`: Classic Era's rank 6, +193 for 2 min (184 + 1, +1 per level from 52; `DurationIndex` 4), the same cost and GCD | [F] [client] (SpellEffect, SpellLevels, 1.60.1.70009); `classicEra` [C] [client] (SpellEffect, SpellLevels, SpellMisc, SpellDuration, 1.15.9.69722) |
 | Demoralizing Shout (5, 11556) | 10 | none | yes | any | −204 AP to enemies within 10 yd for 45 s: the level-60 tooltip, base −196 and −1.4 per level above 54 (levels 54–64, so `MaxLevel` doesn't cap it below 60), −204.4 shown as 204. Whether the debuff applies −204 in combat is an open question (Q22) | tooltip [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913); in combat [?] |
-| Sunder Armor (5, 11597) | 15 | none | yes | any | −450 armor per stack, 5 stacks, 30 s. The client data also carries a THREAT effect of 206 (1013 before 1.60.1.70009); the sim adds 0.05 × AP [?] for the notes' attack power term | [F] [sb] [client] (SpellEffect, 1.60.1.70009) (Q1) |
+| Sunder Armor (5, 11597) | 15 | none | yes | any | −450 armor per stack, 5 stacks, 30 s. The client data also carries a THREAT effect of 206 (1013 before 1.60.1.70009), which the sim uses flat; the notes' attack power term has no value (Q1) | [F] [sb] [client] (SpellEffect, 1.60.1.70009) (Q1) |
 | Bloodrage (2687) | 0 (costs health) | 60 s | off | any | +10 rage, then +10 over 10 s | [F] [sb] [client] (SpellEffect, 1.60.1.69913) |
 | Berserker Rage (18499) | 0 | 30 s | **yes** | Berserker | For 10 s, immune to fear and incapacitate, and extra rage from damage taken. Improved Berserker Rage: +5 / +10 rage | [F] [sb] [db-cd] [tal] |
 | Death Wish (12328) | 10 | 3 min | yes | any | For 30 s: +20% Physical damage done, +5% damage taken, fear immunity | [F] [tal] [db-eff] |
@@ -1942,16 +1942,18 @@ Notes:
   slow from the Buffs tab counts instead of your own. The results list the three with their uptimes.
 - **Threat values** per ability, including the Forever Sunder question (Q1), live in
   [threat.md](../mechanics/threat.md#warrior). The engine uses the Forever client's 206 for Sunder
-  Armor plus 0.05 × AP [?] (the notes' attack power term), Shield Slam's "very high" dmg + 475 [?]
-  (the [wording table](../mechanics/threat.md#threat-wording-table)), and Classic Era's values for
-  the rest [?]; under the `classicEra` profile, Sunder's and Shield Slam's too (261 and 254 [C]).
-  The Classic reference numbers are Magey's 1.13.6 measurements [magey-thr].
-- **Why Sunder Armor still fills the free GCDs.** Since build 1.60.1.70009 it makes about 413
-  threat a cast at 1,400 AP for 9 rage, a quarter of a Shield Slam's and a third of a Revenge's
+  Armor, flat (the notes' attack power term has no value), and Classic Era's values for the rest
+  [?], Shield Slam's dmg + 254 [C] included: its "very high" tooltip has no value (Q34, the
+  [wording table](../mechanics/threat.md#threat-wording-table)). Under the `classicEra` profile
+  Sunder's is Classic Era's 261 [C] too.
+  The Classic reference numbers are the measurements Magey's table collects [magey-thr]: Magey's on
+  1.13.6, and Resultsmayvary's on 1.13.2 for Heroic Strike r8 and Revenge r5, the ranks the sim uses.
+- **Why Sunder Armor still fills the free GCDs.** Since build 1.60.1.70009 it makes about 308
+  threat a cast for 9 rage, a fifth of a Shield Slam's and about a third of a Revenge's
   ([W26](#w26-threat-per-global-cooldown-protection)), so Shield Slam and Revenge come first, as
   they always did. But a global cooldown nothing else wants makes nothing, and the filler is the
-  only thing Protection has for it: off, Balanced loses 7.5% of its TPS (seed 31101). Heroic Strike
-  spends the rage the global cooldowns can't.
+  only thing Protection has for it: off, Balanced loses 4.7% of its TPS (seed 31101, 100,000
+  paired fights). Heroic Strike spends the rage the global cooldowns can't.
 - **Thunder Clap and Demoralizing Shout roll the spell table** (the client's `DefenseType` Magic):
   17% miss against a raid boss before spell hit (14% with the default gear's 3% hit rating), no
   dodge, parry or block, and a miss refunds 80% as a melee ability's does [?]. Thunder Clap crits at
@@ -2122,7 +2124,8 @@ fight ends, which is what a high threshold cost in short fights.
   boss swing faster, and its swings give more rage (Δ DPS +15.51). Demoralizing Shout's −204 attack
   power takes only about 29 off a 5,000 hit. Shield Block's blocks replace crushing blows and
   crits, whose bigger swings give more rage, for 10 rage a use. Shield Slam's GCD and 17 rage make
-  more threat as Sunder Armor and Heroic Strike at Classic Era's +254 threat [?]
+  more threat as Sunder Armor and Heroic Strike at Classic Era's +254 threat, with Sunder Armor's
+  threat before build 1.60.1.70009
   ([W26](#w26-threat-per-global-cooldown-protection)). The duties stay on by default
   ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
   keeping the boss slowed and weakened and crushing blows off the table is the tank's job, and no
@@ -2213,9 +2216,8 @@ includes the last-seconds dump, 12 s in both (PV6, below).
   The break-even was about **+449**: at +449 keeping it is level (−0.25, −0.51 to +0.01; seed 8108,
   100,000 fights), and above it keeping it wins on TPS as well (Q34). Using it only from 45 rage
   (+9.10, +0.80%, at −19.74 DPS on seed 8104) rests on the same value: at +449 it's level too
-  (+0.21, −0.06 to +0.48). Since build 1.60.1.70009 the sim gives "very high" +475 [?] (the
-  [wording table](../mechanics/threat.md#threat-wording-table)), and Sunder Armor's lower threat
-  makes Shield Slam the best use of a global cooldown even at +254: dropping it costs 17.4% of
+  (+0.21, −0.06 to +0.48). Since build 1.60.1.70009 Sunder Armor's lower threat makes Shield Slam
+  the best use of a global cooldown at +254, the value the sim uses: dropping it costs 18.4% of
   Balanced's TPS ([below](#build-160170009-protection)).
 - **Not adopted** (on search seeds, against the winner or its predecessor): the filler from 10
   rage (−0.24); the potion up to 15 or 35 rage (−2.60, −0.49); Bloodrage before the pull (−0.29)
@@ -2323,10 +2325,16 @@ taken** (862.24 a second, +251.65; [Max TPS](#max-tps-p2)).
 
 #### Build 1.60.1.70009 (Protection)
 
-Build 1.60.1.70009 cut Sunder Armor's threat from 1,013 to 206 plus 0.05 × AP [?] (§1, Q1), and
-the sim now gives Shield Slam's "very high" +475 [?] (254 before; the
-[wording table](../mechanics/threat.md#threat-wording-table)). A D27 first-pass check of the three
-presets' thresholds (seed 31101, 20,000 paired fights a candidate):
+Build 1.60.1.70009 cut Sunder Armor's threat from 1,013 to 206 (§1, Q1). Until 2026-09-26 the sim
+added 0.05 × AP to it and gave Shield Slam's "very high" +475, both values of our own choosing; now
+Sunder Armor is 206 flat and Shield Slam keeps Classic Era's +254 (Q34;
+[threat.md](../mechanics/threat.md#warrior)). That moved the default Balanced from 985.3 to 910.1 TPS
+(−7.6%; each default headline at its default seed, 10,000 fights): Shield Slam's −4.75% (938.5), then
+Sunder Armor's −3.0%. The first-pass check below ran with +475 and 0.05 × AP (seed 31101, 20,000
+paired fights a candidate); a quick re-check at the new values (the same seed and fights) finds nothing
+that changes a preset: the filler waiting for Shield Slam +0.22% (+0.14 to +0.29%), Heroic Strike from
+70 or 95 −1.24% and −0.57%, and the filler from 30 or 45 rage +0.75% and +0.58%, where 60 is the user's
+(D28) and 75 or 90 cost 1.84% and 3.71%:
 
 - **Balanced:** Heroic Strike from 84 stays best (76 −0.38%, 90 −0.39%, 82 level); the filler
   waiting for Shield Slam is level (+0.02%). The filler's 60 is the user's (D28). The filler off
@@ -2339,15 +2347,16 @@ presets' thresholds (seed 31101, 20,000 paired fights a candidate):
   drops a duty only when its upkeep costs TPS) Max TPS keeps it. Thunder Clap (−5.94%) and
   Demoralizing Shout (−2.47%) still cost TPS, so they stay dropped. Heroic Strike from 45 stays
   (35 −0.65%, 55 +0.13%, within D27's resolution); the filler waiting for Shield Slam is +0.09%.
-- **Shield Slam** off, in Balanced: **−173.13 TPS (−17.43%)** and **−97.07 DPS (−25.1%)** (seed
-  31101, 100,000 paired fights). Before this build it was +2.6% TPS for −25% DPS: Sunder Armor's
-  global cooldowns made more threat than Shield Slam's at Classic Era's +254. At +254 it's still
-  −12.85% in Max TPS and −13.37% in Balanced, whose headline +254 would put at 946.78 TPS (−4.7%;
-  seed 31101, 6,000 fights; [Q34](#9-open-questions)).
+- **Shield Slam** off, in Balanced: **−167.14 TPS (−18.37%)** and **−109.31 DPS (−26.8%)** at +254
+  and the flat 206 (seed 31101, 100,000 paired fights; −17.43% at +475 and 0.05 × AP). Before this
+  build it was +2.6% TPS for −25% DPS: Sunder Armor's global cooldowns made more threat than Shield
+  Slam's. The Sunder Armor filler off: **−42.79 TPS (−4.70%)**.
 
 The presets against Defensive, on seed 31101 (100,000 paired fights), in the default setup,
-re-measured 2026-09-25 with W4's talents (13/5/33 with Deep Wounds, [§6.1](#61-talent-builds); the
-rotation is unchanged). Before, on 8/5/38: with the trainers' ranks
+re-measured 2026-09-26 for Shield Slam's +254 and Sunder Armor's flat 206 (W4's talents, 13/5/33 with
+Deep Wounds, [§6.1](#61-talent-builds); the rotation is unchanged). With +475 and 0.05 × AP, on
+2026-09-25: Defensive 925.39 TPS; Balanced 984.94 (+6.44%); Max TPS 989.32 (+6.91%), the same DPS and
+damage taken. Before, on 8/5/38: with the trainers' ranks
 ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25): Heroic Strike r8, Revenge r5 and
 Battle Shout r6, and the raid's Blessing of Might r6 and Strength of Earth r4) Defensive 882.83 TPS,
 351.55 DPS, 610.74 taken; Balanced 944.64 (+7.00%), 373.58 DPS; Max TPS 953.75 (+8.03%), 375.22 DPS;
@@ -2358,14 +2367,15 @@ before Thorns scaled with spell power Defensive 926.27, 363.06 DPS; Balanced 993
 
 | Preset | TPS | DPS | Damage taken a second |
 | --- | --- | --- | --- |
-| Defensive | 925.39 | 386.07 | 616.34 |
-| Balanced (the default) | 984.94, **+6.44%** (+59.18 to +59.92) | 408.52, +5.82% | 745.71, +21.0% |
-| Max TPS | 989.32, **+6.91%** (+63.57 to +64.30) | 407.52, +5.56% | 746.42, +21.1% |
+| Defensive | 856.67 | 386.07 | 616.34 |
+| Balanced (the default) | 909.75, **+6.20%** (+52.73 to +53.44) | 408.52, +5.82% | 745.71, +21.0% |
+| Max TPS | 913.66, **+6.65%** (+56.64 to +57.35) | 407.52, +5.56% | 746.42, +21.1% |
 
 **Max TPS against Balanced.** With Shield Block back, the two keep the same rows and differ only
 in thresholds: Max TPS uses the Sunder Armor filler from its cost (12 with the default build, 9
 with Improved Sunder Armor 3/3) rather than 60% of the max rage, and Heroic Strike from 45 rage
-rather than 84% of the max rage. On the same fights that's **+4.38 TPS (+0.44%, +4.08 to +4.68)**,
+rather than 84% of the max rage. On the same fights that's **+3.91 TPS (+0.43%, +3.62 to +4.21)**
+(+4.38, +0.44%, with +475 and 0.05 × AP),
 −1.00 DPS (−0.24%, −1.17 to −0.82) and +0.70 damage taken a second (+0.09%, +0.61 to +0.80): the
 same damage taken. On 8/5/38 it was +9.11 TPS (+0.96%) and +1.63 DPS (+0.44%) (before the
 trainers' ranks, +10.12 TPS, +1.01%): with Deep Wounds, the rage the filler takes from Heroic
@@ -2381,10 +2391,13 @@ Shield Block). The Rotation tab's help quotes the new numbers. **Plausibility (D
 paladin's 752.6 (+33.1%) and the bear's 1,126.6 (−11.1%). D29 has no numeric target (user decision,
 2026-09-24, withdrawing the officers' 800–900 feel), so these are observations for in-game
 tests (milestones T6). Sunder Armor
-is now 11% of the warrior's threat (33% before), and Shield Slam 27% (18%; seed 12345, 500 fights).
-With W4's 13/5/33 (Deep Wounds 11% of its damage) Balanced makes 985 TPS against the
-paladin's 747 (+31.9%) and the bear's 1,102 (−10.6%; each default headline at its default seed,
-20,000 fights; [§6.1](#61-talent-builds)).
+is now about 9% of the warrior's threat (33% before the build), and Shield Slam about 26% (the
+engine's golden run). With W4's 13/5/33 (Deep Wounds 11% of its damage) Balanced made 985 TPS against
+the paladin's 747 (+31.9%) and the bear's 1,102 (−10.6%; each default headline at its default seed,
+20,000 fights; [§6.1](#61-talent-builds)); at +254 and the flat 206 it makes 910 (+21.9% over the
+paladin, −17.4% under the bear, 10,000 fights). The gap to the bear is an open question for
+in-game tests, not a reason to move a value; Q1 and Q34 hold the warrior's two threat terms that
+have no value yet and add nothing until measured.
 
 ### 5.5 Multi-target options (light)
 
@@ -3074,13 +3087,13 @@ Weaponmaster 5/5 with a mace brings it to `471 × 0.85 = 400.35` [?] (Q9).
 The 8/5/38 build (the default until W4) in Defensive Stance with Defiance 3/3 and a shield (×1.495, W16), average
 hits, no crits, no armor, the default setup's block value of 62, and 1,400 attack power, about the
 default setup's in a fight (the threat values are [threat.md](../mechanics/threat.md#warrior)'s,
-build 1.60.1.70009; before it, Sunder Armor made 1,514.44 a cast, 168.27 a rage, and Shield Slam
-1,440.93):
+build 1.60.1.70009; before it, Sunder Armor made 1,514.44 a cast, 168.27 a rage; until 2026-09-26 the
+sim's 0.05 × AP and +475 made Sunder Armor 412.62 and Shield Slam 1,771.32):
 
 | Ability | Threat | Rage | Threat per rage |
 | --- | --- | --- | --- |
-| Sunder Armor | `(206 + 0.05 × 1400) × 1.495 = 412.62` | 9 | 45.85 |
-| Shield Slam | `((655 + 62) × 0.99 + 475) × 1.495 = 1771.32` | 17 | 104.20 |
+| Sunder Armor | `206 × 1.495 = 307.97` (the attack power adds nothing) | 9 | 34.22 |
+| Shield Slam | `((655 + 62) × 0.99 + 254) × 1.495 = 1440.93` | 17 | 84.76 |
 | Revenge (rank 5) | `(121 × 1.6 × 0.99 × 2.25 + 243) × 1.495 = 1007.99` | 2 | 504.00 |
 | Thunder Clap | `103 × 0.99 × 2.5 × 1.495 = 381.11` | 17 | 22.42 |
 | Demoralizing Shout | `43.2 × 1.495 = 64.58` | 7 | 9.23 |
@@ -3099,13 +3112,10 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
    1.60.1.69913 had 1 / 405 / 608 / 810 / 1013; Blizzard's notes call it a correction "on all
    ranks, including a small increase to threat generated from Attack Power" [notes-70009]. So the
    old question (1013, or 1013 on top of the server's 261?) is moot: the client value is the base.
-   **What's left:** the attack power term, which the client doesn't carry (no bonus coefficient on
-   the effect). The sim's default is **0.05 × AP** [?] (D29), a reasoned guess: the notes frame
-   the change as a correction with a small attack power increase, and Classic Era's rank 5 total,
-   261, is the closest allowed value for the total, so the share keeps it near 261. It makes 261
-   at 1,100 AP (a round figure: the default tank has 802 without raid buffs and 1,241 with them at
-   the pull), and **about 281 at the default tank's ~1,500 AP when its Sunders land** (1,494 on
-   average over a fight), 8% over 261, before the stance.
+   **What's left:** the attack power term, which no client carries (no bonus coefficient on the
+   effect) and nobody has measured. It has no value, so the sim adds none: Sunder Armor makes 206
+   flat. (Until 2026-09-26 the sim assumed 0.05 × AP, a share chosen to keep the total near Classic
+   Era's 261; D37 removed it, and the default Protection warrior lost 3.0% of its TPS.)
    **Test:** at 60, in Defensive Stance with Defiance 3/3 and a shield (×1.495), read the threat
    macro before and after a landed Sunder at two attack powers (with and without Battle Shout and
    a Juju Might or Mighty Rage Potion): threat ÷ 1.495 − 206 = the AP term, and its change over
@@ -3357,16 +3367,15 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     levels higher, with and without +hit, count Thunder Clap's and Demoralizing Shout's misses and
     the rage a missed one costs, and Thunder Clap's crits and their size against its hits.
 34. **Shield Slam's threat.** Forever's tooltip raised it from "a high amount of threat" to "a very
-    high amount" [F], and neither client carries a value. The engine's default is **dmg + 475** [?]:
-    the [wording table](../mechanics/threat.md#threat-wording-table)'s "very high", Classic Era's
-    "high" 254 [C] (Magey) scaled by the damage Forever gave it with the new words (640–670 against
-    342–358, ×1.871 at the midpoints), as the table's "high" on Heroic Strike scales with its bonus
-    damage. The result lists it among its assumptions. Since build 1.60.1.70009's lower Sunder
-    Armor, the value no longer decides a preset: at +254 dropping Shield Slam still costs 12.85% of
-    Max TPS's threat (957.77 → 834.72 TPS) and 13.37% of Balanced's
-    ([§5.4](#build-160170009-protection); before, +254 made dropping it a 3.3% gain). It still
-    moves the headline: at +254 the default Balanced makes **946.78 TPS, −4.7%** against +475's
-    993.82, and Max TPS 957.77 (−4.6%) (seed 31101, 6,000 fights). **Test:** the threat macro before and after a Shield Slam at 60 in Defensive Stance with
+    high amount" [F], and neither client carries a value. The sim uses Classic Era's rank 4 bonus,
+    **dmg + 254** [C], measured by Magey on 1.13.6 and Resultsmayvary on 1.13.2 (ranks 1–4 178 / 203 /
+    229 / 254; [threat.md](../mechanics/threat.md#warrior)); the extra the words promise has no value in
+    any allowed source, so it adds nothing. wowsims' 508 (254 × 2) cites no source. The result lists
+    it among its assumptions. Until 2026-09-26 the sim assumed **+475**, 254 scaled by Forever's
+    damage ratio (×1.871), a ratio of our own choosing (D37): the default Balanced made 985.3 TPS with
+    it and 938.5 without (−4.75%, 10,000 fights at the default seed, Sunder Armor as it was). At +254
+    Shield Slam still decides nothing: off, Balanced loses 18.37% of its TPS ([§5.4](#build-160170009-protection)).
+    **Test:** the threat macro before and after a Shield Slam at 60 in Defensive Stance with
     Defiance 3/3 and a shield, against its damage in the combat log: threat ÷ 1.495 − damage = the
     bonus. As C6 in [open-questions](../open-questions.md#c6-warrior-threat-at-max-rank).
 

@@ -156,10 +156,10 @@ describe('rage.md worked examples', () => {
 
 describe('threat.md worked examples (formula level)', () => {
   const defensive = 1.3 * 1.15
-  it('T1–T3: Sunder Armor (Forever: 206 + 0.05 × 1,400 attack power = 276)', () => {
-    expect(threat(0, 1, 206 + 0.05 * 1400, defensive)).toBeCloseTo(412.62, 3)
+  it('T1–T3: Sunder Armor (Forever: a flat 206, whatever the attack power)', () => {
+    expect(threat(0, 1, 206, defensive)).toBeCloseTo(307.97, 3)
     expect(threat(0, 1, 261, 1.495)).toBeCloseTo(390.195, 3)
-    expect(threat(0, 1, 206 + 0.05 * 1400, 1.3)).toBeCloseTo(358.8, 3)
+    expect(threat(0, 1, 206, 1.3)).toBeCloseTo(267.8, 3)
   })
   it('T4–T7: warrior abilities at ×1.495', () => {
     expect(threat(500, 1, 145, 1.495)).toBeCloseTo(964.275, 3)

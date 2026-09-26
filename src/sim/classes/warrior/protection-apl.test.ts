@@ -53,6 +53,8 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
       // 1.60.1.70009 (warrior.md §1, threat.md#warrior): Sunder Armor's threat (206 + 5% of attack power,
       // 1,013 before) and Shield Slam's (dmg + 475, 254) are in every plan that uses either, and Max TPS
       // keeps Shield Block (D26's rule), so 191 to 196 of the 200 cases moved in each snapshot.
+      // Re-taken for Shield Slam's Classic Era +254 and Sunder Armor's flat 206 (D37; threat.md#warrior):
+      // with +475 and 0.05 × attack power put back, the snapshot before it reproduces exactly.
       const hashes = CASES.map(({ values, talents, context }) => {
         const none = protectionRotation(withPriority(values, priority), talents, noAura, context)
         expect(protectionRotation(withPriority(values, priority), talents, noAura, context, defaultAplOrder(PROTECTION_APL))).toEqual(none)
@@ -74,7 +76,9 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
       // 53, the snapshot before it reproduces exactly. Re-taken for Touch of the Grave's trigger
       // (`damageLanded`, character-stats.md#touch-of-the-grave): every plan carries one more trigger
       // list, empty, since no case is Undead; with the lists held at the 27 codes before it, the
-      // snapshot before it reproduces exactly.
+      // snapshot before it reproduces exactly. Re-taken for Shield Slam's +254 and Sunder Armor's flat
+      // 206 (D37; threat.md#warrior): with +475 and 0.05 × attack power put back, the snapshot before
+      // it reproduces exactly.
       const hashes = CASES.map((c) => fingerprint(planJson(buildPlan(configOf(c, priority)).plan)))
       expect(new Set(hashes).size).toBeGreaterThan(150)
       expect(hashes).toMatchSnapshot()

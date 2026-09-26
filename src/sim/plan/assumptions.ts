@@ -252,14 +252,14 @@ const REGISTRY = {
     text: 'Threat uses Classic Era rules (1 threat per damage, 5 per rage from talents, stance or form multipliers); Forever threat is server-side and unmeasured.',
     docRef: `${THREAT}#per-ability-threat-at-max-rank`,
   },
-  // threat.md#threat-wording-table, warrior.md Q1: the plan gives the bonus ({detail}).
+  // threat.md#threat-wording-table, warrior.md Q34: the plan gives the bonus ({detail}).
   shieldSlamThreat: {
-    text: 'Shield Slam makes its damage plus {detail} in threat. Forever’s tooltip raised its threat from Classic Era’s “high” (254) to “very high” with no number, and raised its damage 1.87 times, so the bonus rises with it. Untested.',
+    text: 'Shield Slam makes its damage plus {detail} in threat, Classic Era’s value from when its tooltip said “high”. Forever’s tooltip says “very high” but gives no number, so the sim adds nothing for it. Untested.',
     docRef: `${THREAT}#threat-wording-table`,
   },
-  // threat.md#warrior, warrior.md Q1: the plan gives the client's value and the attack power share ({detail}).
+  // threat.md#warrior, warrior.md Q1: the plan gives the client's value ({detail}).
   sunderThreat: {
-    text: 'Sunder Armor makes {detail} in threat, before your stance’s multiplier. The 206 is the Forever client’s; Blizzard’s notes add threat from attack power without a number, so 5% is a guess that keeps it near Classic Era’s 261: about 281 at the default tank’s 1,500 attack power in a fight. Untested.',
+    text: 'Sunder Armor makes {detail} threat, before your stance’s multiplier: the Forever client’s value. Blizzard’s notes add a small amount of threat from attack power but give no number, so the sim adds none. Untested.',
     docRef: `${THREAT}#warrior`,
   },
   // The same in a paladin tank's terms: no rage or stance, its mana and Righteous Fury instead.

@@ -651,21 +651,23 @@ describe('assumptions', () => {
       expect.arrayContaining(['bossMelee', 'damageTakenRage', 'foreverBossParry', 'whiteThreat', 'defiance', 'classicShieldBlockValue', 'baseStatPlaceholders']),
     )
     expect(prot).not.toContain('shieldBlockValue')
-    // threat.md#warrior (W2): Sunder Armor's and Shield Slam's threat is the profile's, and so are the notes.
+    // threat.md#warrior (W2): Sunder Armor's threat is the profile's, and so are the notes; Shield Slam's is
+    // Classic Era's in both, with a note in `forever` for its "very high" tooltip.
     const note = (config: SimConfig, id: string) => buildPlan(config).assumptions.find((a) => a.id === id)?.text
     const classicProt = withRules(defaultConfig('warrior-protection'), 'classicEra')
     const ability = (config: SimConfig, id: string) => buildPlan(config).plan.abilities.find((a) => a.id === id)!
-    expect([ability(classicProt, 'sunderArmor').threatBonus, ability(classicProt, 'sunderArmor').threatApCoefficient]).toEqual([261, 0])
+    expect([ability(classicProt, 'sunderArmor').threatBonus, ability(classicProt, 'sunderArmor').threatApCoefficient ?? 0]).toEqual([261, 0])
     expect(ability(classicProt, 'shieldSlam').threatBonus).toBe(254)
     const prot1 = defaultConfig('warrior-protection')
-    expect([ability(prot1, 'sunderArmor').threatBonus, ability(prot1, 'sunderArmor').threatApCoefficient]).toEqual([206, 0.05])
-    expect(ability(prot1, 'shieldSlam').threatBonus).toBe(475)
-    expect(note(prot1, 'whiteThreat')).toMatch(/: Sunder Armor and Shield Slam use their own values \(below\), the other abilities Classic Era’s\.$/)
-    // Without Shield Slam the note names Sunder Armor alone, in the singular.
+    expect([ability(prot1, 'sunderArmor').threatBonus, ability(prot1, 'sunderArmor').threatApCoefficient ?? 0]).toEqual([206, 0])
+    expect(ability(prot1, 'shieldSlam').threatBonus).toBe(254)
+    expect(note(prot1, 'whiteThreat')).toMatch(/: Sunder Armor uses its own value \(below\), the other abilities Classic Era’s\.$/)
+    // Without Shield Slam the notes are the same, less Shield Slam's own.
     const noSlam = { ...prot1, rotation: { ...prot1.rotation, 'warrior.protection.shieldSlam.enabled': false } }
-    expect(note(noSlam, 'whiteThreat')).toMatch(/: Sunder Armor uses its own value \(below\), the other abilities Classic Era’s\.$/)
-    expect(note(prot1, 'sunderThreat')).toMatch(/^Sunder Armor makes 206 plus 5% of your attack power in threat, before your stance’s multiplier\./)
-    expect(note(prot1, 'shieldSlamThreat')).toMatch(/^Shield Slam makes its damage plus 475 in threat\./)
+    expect(note(noSlam, 'whiteThreat')).toBe(note(prot1, 'whiteThreat'))
+    expect(note(noSlam, 'shieldSlamThreat')).toBeUndefined()
+    expect(note(prot1, 'sunderThreat')).toMatch(/^Sunder Armor makes 206 threat, before your stance’s multiplier: the Forever client’s value\./)
+    expect(note(prot1, 'shieldSlamThreat')).toMatch(/^Shield Slam makes its damage plus 254 in threat, Classic Era’s value/)
     expect(note(classicProt, 'whiteThreat')).not.toMatch(/Sunder/)
     expect(note(classicProt, 'sunderThreat')).toBeUndefined()
     expect(note(classicProt, 'shieldSlamThreat')).toBeUndefined()
